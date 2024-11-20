@@ -1,0 +1,89 @@
+{
+  "NetworkA": {
+    "Default": true,
+    "Hosts": {
+      "UserDesktop": {
+        "ip": "192.168.1.100",
+        "username": "usera@outlook.com",
+        "WUFlag": true,
+        "MAC": "ff:ff:ff:ff:ff:ff",
+        "wolFlag": true,
+        "wolPort": 9
+      },
+      "UserLaptop": {
+        "ip": "192.168.1.105",
+        "username": "userb@outlook.com",
+        "WUFlag": true,
+        "MAC": "ff:ff:ff:ff:ff:ff",
+        "wolFlag": true,
+        "wolPort": 9
+      },
+      "UserLenovo": {
+        "ip": "192.168.1.110",
+        "username": "userb@outlook.com",
+        "WUFlag": true,
+        "MAC": "ff:ff:ff:ff:ff:ff",
+        "wolFlag": true,
+        "wolPort": 9
+      },
+      "UserBeelink": {
+        "ip": "192.168.1.102",
+        "username": "userc@outlook.com",
+        "WUFlag": true,
+        "MAC": "ff:ff:ff:ff:ff:ff",
+        "wolFlag": true,
+        "wolPort": 9
+      }
+    }
+  },
+  "NetworkB": {
+    "Default": false,
+    "Hosts": {
+      "NetworkBAdmin": {
+        "ip": "192.168.10.70",
+        "username": "uuuu@outlook.com",
+        "WUFlag": true,
+        "MAC": "ff:ff:ff:ff:ff:ff",
+        "wolFlag": true,
+        "wolPort": 9
+      },
+      "NetworkBAdvokat": {
+        "ip": "192.168.10.92",
+        "username": "user",
+        "WUFlag": true,
+        "MAC": "ff:ff:ff:ff:ff:ff",
+        "wolFlag": true,
+        "wolPort": 9
+      }
+    },
+    "Scan": [
+      {
+        "order": "01",
+        "method": "ping",
+        "ipfrom": "192.168.10.0",
+        "ipto": "192.168.10.255"
+      },
+      {
+        "order": "02",
+        "method": "port",
+        "ipfrom": "192.168.10.0",
+        "ipto": "192.168.10.255",
+        "port": "22"
+      },
+      {
+        "order": "03",
+        "method": "port",
+        "ipfrom": "192.168.10.0",
+        "ipto": "192.168.10.255",
+        "port": "3389"
+      },
+      {
+        "order": "03",
+        "method": "port",
+        "ipfrom": "192.168.10.0",
+        "ipto": "192.168.10.255",
+        "port": "9100"
+      }
+    ]
+  }
+}

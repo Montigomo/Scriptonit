@@ -1,0 +1,50 @@
+{
+  "Agitech": [
+    {
+      "Name": "Win32-OpenSSH",
+      "Type": "github",
+      "Url": "https://github.com/PowerShell/Win32-OpenSSH",
+      "Destination": "D:\\path\\Open SSH",
+      "Deep": 7,
+      "UsePreview": false,
+      "Force": false,
+      "Prepare": true
+    },
+    {
+      "Name": "easyrsa",
+      "Type": "github",
+      "Url": "https://github.com/OpenVPN/easy-rsa",
+      "Destination": "D:\\path\\easyrsa",
+      "UsePreview": false,
+      "Force": false,
+      "Prepare": true
+    },
+    {
+      "Name": "hiddify",
+      "Type": "github",
+      "Url": "https://github.com/hiddify/hiddify-next/",
+      "Destination": "D:\\path\\hiddify",
+      "UsePreview": false,
+      "Force": false,
+      "Prepare": true
+    },
+    {
+      "Name": "hiddify",
+      "Type": "github",
+      "Url": "https://github.com/hiddify/hiddify-next/",
+      "Destination": "D:\\path\\hiddify",
+      "UsePreview": true,
+      "Force": false,
+      "Prepare": true
+    },
+    {
+      "Name": "VirtualHere",
+      "Type": "direct",
+      "Url": "VirtualHere",
+      "Destination": "D:\\path\\VirtualHere",
+      "UsePreview": true,
+      "Force": false,
+      "Prepare": true
+    }
+  ]
+}

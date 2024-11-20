@@ -1,0 +1,16 @@
+{
+  "NetFirewal": {
+    "DisplayGroup": {
+      "Remote Desktop": {
+        "en-US": "Remote Desktop",
+        "ru-RU": "Дистанционное управление рабочим столом"
+      }
+    }
+  },
+  "winget": {
+    "id": {
+        "en-US": "Id",
+        "ru-RU": "ИД"
+    }
+  }
+}

@@ -1,0 +1,127 @@
+{
+  "NetworkA": [
+    {
+      "RulesSetName": "utorrentWebUI",
+      "Objects": [
+        {
+          "RuleName": "TCP_out",
+          "RuleParams": {
+            "DisplayName": "{RulesSetName}_{RuleName}",
+            "Name": "{RulesSetName}_{RuleName}",
+            "Direction": "Outbound",
+            "InterfaceType": "Any",
+            "Action": "Allow",
+            "RemoteAddress": "Any",
+            "LocalPort": "9999",
+            "Protocol": "TCP",
+            "Enabled": "True"
+          }
+        },
+        {
+          "RuleName": "TCP_in",
+          "RuleParams": {
+            "DisplayName": "{RulesSetName}_{RuleName}",
+            "Name": "{RulesSetName}_{RuleName}",
+            "Direction": "Inbound",
+            "InterfaceType": "Any",
+            "Action": "Allow",
+            "RemoteAddress": "Any",
+            "LocalPort": "9999",
+            "Protocol": "TCP",
+            "Enabled": "True"
+          }
+        },
+        {
+          "RuleName": "UDP_out",
+          "RuleParams": {
+            "DisplayName": "{RulesSetName}_{RuleName}",
+            "Name": "{RulesSetName}_{RuleName}",
+            "Direction": "Inbound",
+            "InterfaceType": "Any",
+            "Action": "Allow",
+            "RemoteAddress": "Any",
+            "LocalPort": "9999",
+            "Protocol": "UDP",
+            "Enabled": "True"
+          }
+        },
+        {
+          "RuleName": "UDP_in",
+          "RuleParams": {
+            "DisplayName": "{RulesSetName}_{RuleName}",
+            "Name": "{RulesSetName}_{RuleName}",
+            "Direction": "Inbound",
+            "InterfaceType": "Any",
+            "Action": "Allow",
+            "RemoteAddress": "Any",
+            "LocalPort": "9999",
+            "Protocol": "UDP",
+            "Enabled": "True"
+          }
+        }
+      ]
+    },
+    {
+      "RulesSetName": "YAWC_Service",
+      "Objects": [
+        {
+          "_000": {
+            "DisplayName": "{RulesSetName}_{RuleName}",
+            "Name": "{RulesSetName}_{RuleName}",
+            "Direction": "Outbound",
+            "Program": "C:\\Program Files (x86)\\Yawcam\\Yawcam_Service.exe",
+            "Profile": "Any",
+            "Action": "Allow",
+            "Enabled": "True"
+          }
+        },
+        {
+          "_001": {
+            "DisplayName": "{RulesSetName}_{RuleName}",
+            "Name": "{RulesSetName}_{RuleName}",
+            "Program": "C:\\Program Files (x86)\\Yawcam\\Yawcam_Service.exe",
+            "RemoteAddress": "LocalSubnet",
+            "Action": "Allow",
+            "Protocol": "ICMPv4",
+            "IcmpType": "8",
+            "Enabled": "True",
+            "Profile": "Any"
+          }
+        }
+      ]
+    },
+    {
+      "RulesSetName": "Simple_dnla",
+      "Objects": [
+        {
+          "RuleName": "in_UDP",
+          "RuleParams": {
+            "DisplayName": "{RulesSetName}_{RuleName}",
+            "Name": "{RulesSetName}_{RuleName}",
+            "Action": "Allow",
+            "Enabled": "True",
+            "Direction": "Inbound",
+            "Protocol": "UDP",
+            "Program": "D:\\software\\simpledlna\\simpledlna.exe",
+            "EdgeTraversalPolicy": "DeferToUser",
+            "Profile": "Private, Public"
+          }
+        },
+        {
+          "RuleName": "in_TCP",
+          "RuleParams": {
+            "DisplayName": "{RulesSetName}_{RuleName}",
+            "Name": "{RulesSetName}_{RuleName}",
+            "Action": "Allow",
+            "Enabled": "True",
+            "Direction": "Inbound",
+            "Protocol": "TCP",
+            "Program": "D:\\software\\simpledlna\\simpledlna.exe",
+            "EdgeTraversalPolicy": "DeferToUser",
+            "Profile": "Private, Public"
+          }
+        }
+      ]
+    }
+  ]
+}
