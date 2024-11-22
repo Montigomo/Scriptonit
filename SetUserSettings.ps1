@@ -9,7 +9,7 @@ param (
 
 Set-StrictMode -Version 3.0
 
-. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "UserFolders", "Network") -Verbose | Out-Null
+. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "UserFolders", "Network") | Out-Null
 
 #region functions
 function ConvertFrom-FixedColumnTable {

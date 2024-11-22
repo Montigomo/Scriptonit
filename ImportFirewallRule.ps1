@@ -6,7 +6,7 @@ param (
 
 Set-StrictMode -Version 3.0
 
-. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common") -Verbose | Out-Null
+. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common") | Out-Null
 
 Get-ModuleAdvanced -ModuleName "NetSecurity"
 

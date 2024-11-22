@@ -276,7 +276,7 @@ function Install-NvDriver {
 
     if ($xml["LookupValueSearch"] -and $xml["LookupValueSearch"].LookupValues) {
         foreach ($item in $xml["LookupValueSearch"].LookupValues.ChildNodes) {
-            if ($item -and ($item.Name -eq $gpu)) {
+            if ($item -and ($item.Name -ilike "*$gpu")) {
                 $_driverData.productId = $item.Value
                 $_driverData.productSeriesId = $item.Attributes["ParentID"].Value
                 $searchSuccess = $true
@@ -392,7 +392,7 @@ function Install-NvDriver {
     }
     $lastDriver = $drivers | Sort-Object { $_.version } -Descending | Select-Object -First 1
     $drvLastVersion = $lastDriver["version"]
-    #WriteLog "productSeriesId=$_driverData.productSeriesId, "
+    Write-Host $_driverData.productSeriesId | select *
     WriteLog "Installed driver version: $drvCurrentVersion, found $drvLastVersion version."
     if ($drvCurrentVersion -ge $drvLastVersion) {
         WriteLog "The installed version is the latest."

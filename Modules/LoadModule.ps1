@@ -7,28 +7,6 @@ param (
 Set-StrictMode -Version 3.0
 
 #region types definition
-# function New-GenericObject {
-#     param (
-#         [Parameter(Mandatory)]$TypeName
-#     )
-#     $out = New-Object @PSBoundParameters
-#     $out.PSTypeNames.Insert(0, ($out.GetType().FullName -split '`')[0])
-#     #return ,$out
-#     Write-Output -NoEnumerate $out
-# }
-
-# $TypeParam = @{
-#     TypeName   = 'System.Collections.Generic.List'
-#     MemberType = 'ScriptMethod'
-#     MemberName = 'LmContainsKey'
-#     Value      = { 
-#         Param($Name)
-#         #return ($this.BinarySearch($Name, [ObjComparer]::new()) -ge 0)
-#         return ($this.FindIndex([Predicate[pscustomobject]] { param($s)$s.Name -eq $Name }) -ge 0)
-#     }
-# }
-
-#Update-TypeData @TypeParam -Force
 
 $TypeParam = @{
     TypeName   = 'System.Array'
@@ -69,10 +47,6 @@ $Parent = (Get-PSCallStack)[1]
 $LibraryBaseFolder = "$PSScriptRoot"
 
 $ModulePrefix = "Scriptonit"
-
-# if (-not (Test-Path "variable:global:ModulesList")) {
-#     [System.Collections.Generic.List[PSCustomObject]]$global:ModulesList = New-GenericObject -TypeName System.Collections.Generic.List[PSCustomObject]
-# }
 
 if (-not (Test-Path "variable:global:ModulesList")) {
     $global:ModulesList = @()
@@ -283,15 +257,15 @@ function LmScanModule {
                 foreach ($item in $content) {
                     $modules = $null
                     switch -regex ($item) {
-                        '(\..*LoadModule\.ps1\"\s+\-ModuleNames\s+\@\((?<modules>.*)\).*(?<force>-Force).*Out-Null)' {
+                        '(\..*LoadModule\.ps1\"\s+\-ModuleNames\s+\@\((?<modules>.*)\).*(?<force>-Force)?.*Out-Null)' {
                             $modules = $Matches["modules"].split(",").trim().Trim('"')
                             break
                         }
-                        '(\..*LoadModule\.ps1\"\s+\-ModuleNames\s+\@\((?<modules>.*)\).|\s+Out-Null)' {
-                            $modules = $Matches["modules"].split(",").trim().Trim('"')
-                            break
-                        }
-                        Default {}
+                        # '(\..*LoadModule\.ps1\"\s+\-ModuleNames\s+\@\((?<modules>.*)\).|\s+Out-Null)' {
+                        #     $modules = $Matches["modules"].split(",").trim().Trim('"')
+                        #     break
+                        # }
+                        # Default {}
                     }
                     if ($modules) {
                         foreach ($ModuleName in $modules) {
@@ -306,7 +280,6 @@ function LmScanModule {
     }
 
 }
-
 function LmLoadModule {
     param (
         [Parameter(Mandatory = $true)][string]$ModuleFullName

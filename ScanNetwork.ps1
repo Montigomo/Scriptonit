@@ -11,7 +11,7 @@ param (
 
 Set-StrictMode -Version 3.0
 #region Imports
-. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network") -Verbose | Out-Null
+. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network") | Out-Null
 #endregion
 
 #region ResolveHost ScanIpRangePrinters ScanIpRangePort ScanIpRangePing
