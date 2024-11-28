@@ -19,9 +19,7 @@ Set-StrictMode -Version 3.0
 #     Set-EnvironmentVariable -Name 'Path' -Scope 'Machine' -Value "C:\Program Files\Far Manager" -Action "Remove"
 # .LINK
 # .NOTES
-#     Author : Agitech
-#     Version : 0.0.0.1
-#     Purpose : Get world better    
+#     Author: Agitech; Version: 0.0.0.1
 function Set-EnvironmentVariable {
     [CmdletBinding()]
     param(

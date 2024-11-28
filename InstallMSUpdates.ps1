@@ -91,7 +91,7 @@ function InstallMSUpdates {
         if (-not $_prepare) {
             continue
         }
-        Write-Host "---> Trying to connect to $key... <---" -ForegroundColor DarkYellow
+        Write-Host "** Trying to connect to $key..." -ForegroundColor DarkYellow
         $result = Test-RemotePort -IPAddress $_ipAddress -Port 22 -TimeoutMilliSec 3000
         if ($result.Response) {
             Write-Host "$key is online." -ForegroundColor DarkGreen -NoNewline

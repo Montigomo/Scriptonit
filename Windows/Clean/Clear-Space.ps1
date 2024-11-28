@@ -1,7 +1,155 @@
-### version=1.00.02
+Set-StrictMode -Version 3.0
 
 # https://winitpro.ru/index.php/2013/08/07/kak-umenshit-razmer-papki-winsxs-v-windows-8/
 # https://superuser.com/questions/1611311/how-to-delete-the-folder-c-programdata-microsoft-diagnosis-etllogs-and-stop-w
+
+#region types definitions
+
+enum ClearType{
+    All
+    Cache
+    WindowsUpdate
+}
+
+if (-not (Get-Command "Get-WmiObject" -ErrorAction SilentlyContinue)) {
+    New-Alias -Name "Get-WmiObject" -Value "Get-CimInstance"
+}
+#endregion
+
+#region Set-ServicesAction FreeDiskSpace Stop-BrowserSessions Get-StorageSize Remove-Dir
+
+enum ServiceAction {
+    Start
+    Stop
+    Restart
+}
+
+function Set-ServicesAction {
+    param (
+        [Parameter()][array]$Services,
+        [Parameter()][ServiceAction]$Action
+    )
+    
+    foreach ($serviceName in $Services) {
+        switch ($Action) {
+            Restart {
+                $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+                if ($service) {
+                    $service | Restart-Service
+                }
+                break
+            }
+            Stop {
+                $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+                if ($service) {
+                    $service | Stop-Service -ErrorAction SilentlyContinue
+                }
+                break
+            }
+            Start {
+                $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+                if ($service) {
+                    $service | Set-Service -StartupType 'Automatic' | Start-Service
+                }
+            }
+        }
+    }
+}
+
+function FreeDiskSpace {
+    param(
+        [string]$DiskLetter = 'C'
+    )
+    return ([math]::Round((Get-Volume -DriveLetter $DiskLetter | Select-Object @{ Name = "MB"; Expression = { $_.SizeRemaining / 1MB } }).MB, 2))
+}
+
+function Stop-BrowserSessions {
+    $activeBrowsers = Get-Process Firefox*, Chrome*, Waterfox*, Edge*
+    ForEach ($browserProcess in $activeBrowsers) {
+        try {
+            $browserProcess.CloseMainWindow() | Out-Null
+        }
+        catch {
+        }
+    }
+}
+
+function Get-StorageSize {
+    Get-WmiObject Win32_LogicalDisk |
+    Where-Object { $_.DriveType -eq "3" } |
+    Select-Object SystemName,
+    @{ Name = "Drive"; Expression = { ( $_.DeviceID) } },
+    @{ Name = "Size (GB)"; Expression = { "{0:N1}" -f ( $_.Size / 1gb) } },
+    @{ Name = "FreeSpace (GB)"; Expression = { "{0:N1}" -f ( $_.Freespace / 1gb) } },
+    @{ Name = "PercentFree"; Expression = { "{0:P1}" -f ( $_.FreeSpace / $_.Size) } } #|
+    #Format-Table -AutoSize #| Out-String
+}
+
+function Remove-Dir {
+    param(
+        [Parameter(Mandatory = $true)][string]$path
+    )
+
+    if ((Test-Path "$path")) {
+        Get-ChildItem -Path "$path" -Force -Recurse -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue #-Verbose
+    }
+}
+
+#endregion
+
+#region WindowsUpdate
+
+function CheckWUS {
+    $s = Get-Service wuauserv
+    return ($s.Status -eq "Running")
+}
+
+function StopWUS {
+    Stop-Service wuauserv -Force
+}
+
+function StartWUS {
+    Start-Service wuauserv
+}
+
+function Clear-WindowsUpdate {
+
+    $tries = 5
+    if (CheckWUS) {
+        Write-Host "Windows Update Service is Running..." -ForegroundColor Red
+        Write-Host "Stopping Windows Update Service..." -ForegroundColor Blue
+        StopWUS
+    }
+    do {
+        if (-not (CheckWUS)) {
+            break
+        }
+        else {
+            StopWUS
+            $tries--            
+        }
+    } until ($tries -gt 0    )
+
+    if (CheckWUS) {
+        Write-Host "Can't stop Windows Update Service..." -ForegroundColor Red
+        return
+    }
+
+    Write-Host "Windows Update Service is Stopped..." -ForegroundColor Green
+    Write-Host "Cleaning Files..." -ForegroundColor Blue -NoNewline
+
+    Get-ChildItem -LiteralPath $env:windir\SoftwareDistribution\Download\ -Recurse | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
+    
+    Write-Host "Done..." -ForegroundColor Green
+
+    Write-Host "Starting Windows Update Service..." -ForegroundColor Blue
+
+    StartWUS
+}
+
+#endregion
+ 
+#region Clear-GlobalWindowsCache Clear-UserCacheFiles Clear-WindowsUserCacheFiles
 
 function Clear-GlobalWindowsCache {
     Remove-Dir "C:\Windows\Temp"
@@ -59,103 +207,9 @@ function Clear-WindowsUserCacheFiles {
     Remove-Dir "C:\Users\$user\AppData\Local\Temp"
 }
 
-#region WindowsUpdate
-function CheckWUS {
-    $s = Get-Service wuauserv
-    if ($s.Status -eq "Running") {
-        return 0
-    }
-    else {
-        return 1
-    }
-}
-
-function StopWUS {
-    Stop-Service wuauserv -Force
-}
-
-function StartWUS {
-    Start-Service wuauserv
-}
-
-function WUSRunning {
-    Write-Host "Windows Update Service is Running..." -ForegroundColor Red
-    Write-Host " Stopping Windows Update Service..." -ForegroundColor Blue
-
-    # Stopping Windows Update Service and check again if it is stopped
-    StopWUS
-    if (CheckWUS) {
-        WUSStopped
-    }
-    else {
-        Write-Host "Can't stop Windows Update Service..." -ForegroundColor Red
-        exit 1
-    }
-    Write-Host "Starting Windows Update Service..." -ForegroundColor Blue
-
-    # Starting the Windows Update Service again
-    StartWUS
-}
-
-function WUSStopped {
-
-    Write-Host "Windows Update Service is Stopped..." -ForegroundColor Green
-
-
-
-    Write-Host " Cleaning Files..." -ForegroundColor Blue -NoNewline
-    Get-ChildItem -LiteralPath $env:windir\SoftwareDistribution\Download\ -Recurse | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
-    Write-Host "Done..." -ForegroundColor Green
-
-
-}
-
 #endregion
 
-#Region Helper functions
-
-function FreeDiskSpace {
-    param(
-        [string]$DiskLetter = 'C'
-    )
-
-    return ([math]::Round((Get-Volume -DriveLetter $DiskLetter | Select-Object @{ Name = "MB"; Expression = { $_.SizeRemaining / 1MB } }).MB, 2))
-}
-
-function Stop-BrowserSessions {
-    $activeBrowsers = Get-Process Firefox*, Chrome*, Waterfox*, Edge*
-    ForEach ($browserProcess in $activeBrowsers) {
-        try {
-            $browserProcess.CloseMainWindow() | Out-Null
-        }
-        catch {
-        }
-    }
-}
-
-
-function Get-StorageSize {
-    Get-WmiObject Win32_LogicalDisk |
-    Where-Object { $_.DriveType -eq "3" } |
-    Select-Object SystemName,
-    @{ Name = "Drive"; Expression = { ( $_.DeviceID) } },
-    @{ Name = "Size (GB)"; Expression = { "{0:N1}" -f ( $_.Size / 1gb) } },
-    @{ Name = "FreeSpace (GB)"; Expression = { "{0:N1}" -f ( $_.Freespace / 1gb) } },
-    @{ Name = "PercentFree"; Expression = { "{0:P1}" -f ( $_.FreeSpace / $_.Size) } } |
-    Format-Table -AutoSize | Out-String
-}
-
-function Remove-Dir {
-    param([Parameter(Mandatory = $true)][string]$path)
-
-    if ((Test-Path "$path")) {
-        Get-ChildItem -Path "$path" -Force -Recurse -ErrorAction SilentlyContinue | Remove-Item -Recurse -Force -ErrorAction SilentlyContinue #-Verbose
-    }
-}
-
-#Endregion Helperfunctions
-
-#Region Browsers
+#region Browsers
 
 #Region ChromiumBrowsers
 
@@ -218,9 +272,9 @@ function Clear-WaterfoxCacheFiles {
 
 #Endregion FirefoxBrowsers
 
-#Endregion Browsers
+#endregion
 
-#Region CommunicationPlatforms
+#region CommunicationPlatforms
 
 function Clear-TeamsCacheFiles {
     param([string]$user = $env:USERNAME)
@@ -233,9 +287,9 @@ function Clear-TeamsCacheFiles {
     }
 }
 
-#Endregion CommunicationPlatforms
+#endregion
 
-#Region MiscApplications
+#region Applications
 
 function Clear-ThunderbirdCacheFiles {
     param([string]$user = $env:USERNAME)
@@ -335,54 +389,69 @@ function Clear-LibreOfficeCacheFiles {
     }
 }
 
-#Endregion MiscApplications
-
+#endregion
 
 function Clear-Space {
+    [CmdletBinding()]
+    param (
+        [Parameter()][ClearType[]]$ClearType = @([ClearType]::All)
+    )
 
-
-    # Getting free disk space before the cleaning actions
-    Write-Host " Free Disk Space before: " -ForegroundColor Blue -NoNewline
-    $Before = FreeDiskSpace
-    Write-Host "$Before MB"
-
-
-    if (CheckWUS) {
-        WUSStopped
-    }
-    else {
-        WUSRunning
-    }
-
-    if (-not (Get-Command "Get-WmiObject" -ErrorAction SilentlyContinue)) {
-        New-Alias -Name "Get-WmiObject" -Value "Get-CimInstance"
-    }
-
+    $freeSpaceBefore = Get-WmiObject Win32_LogicalDisk |    Where-Object { $_.DriveType -eq "3" } 
     $StartTime = (Get-Date)
-    $stBefore = Get-StorageSize
 
+
+    #$Before = FreeDiskSpace
+    #Write-Host "Free Disk Space before: " -ForegroundColor Blue -NoNewline
+    #Write-Host "$Before MB" -ForegroundColor DarkYellow
+
+    Clear-WindowsUpdate
     Clear-UserCacheFiles
     Clear-GlobalWindowsCache
-
-    $EndTime = (Get-Date)
-    $stAfter = Get-StorageSize
-
-    Write-Host "Clean storage." -ForegroundColor DarkYellow
-    Write-Host  "Storage before" -ForegroundColor DarkGreen
-    Write-Host  $stBefore -ForegroundColor DarkYellow
-    Write-Host  "Storage after" -ForegroundColor DarkGreen
-    Write-Host  $stAfter -ForegroundColor DarkYellow
-    Write-Host  "Elapsed Time: $( ($StartTime - $EndTime).totalseconds ) seconds" -ForegroundColor DarkYellow
-
-
-    # Getting free disk space after the cleaning actions
-    Write-Host " Free Disk Space after: " -ForegroundColor Blue -NoNewline
-    $After = FreeDiskSpace
-    Write-Host "$After MB"
+    Clear-WindowsUserCacheFiles
     
-    # Calculating the free disk space difference
-    Write-Host " Cleaned: " -ForegroundColor Blue -NoNewline
-    $Cleaned = $After - $Before
-    Write-Host "$Cleaned MB"
+    $EndTime = (Get-Date)
+
+    # Write-Host "Clean storage." -ForegroundColor DarkYellow
+    # Write-Host  "Storage before" -ForegroundColor DarkGreen
+    # Write-Host  $stBefore -ForegroundColor DarkYellow
+    # Write-Host  "Storage after" -ForegroundColor DarkGreen
+    # Write-Host  $stAfter -ForegroundColor DarkYellow
+
+    $sumState = @()
+
+    foreach ($item in (Get-WmiObject Win32_LogicalDisk |    Where-Object { $_.DriveType -eq "3" })) {
+        $itemBefore = $freeSpaceBefore | Where-Object { $_.DeviceID -eq $item.DeviceID }
+        $cleaned = 0
+        $fsBefore = 0
+        $fsBeforeStr = "n/a"
+        if ($itemBefore) {
+            $fsBefore = $itemBefore.Freespace / 1gb
+            $fsBeforeStr = "{0:N1}" -f $fsBefore
+            $cleaned = ($item.Freespace / 1gb) - $fsBefore
+        }
+        $sumState += [PSCustomObject]@{
+            SystemName              = $item.SystemName
+            "Drive"                 = $item.DeviceID
+            "Size (GB)"             = "{0:N1}" -f ( $item.Size / 1gb) 
+            "FreeSpace before (GB)" = $fsBeforeStr
+            "FreeSpace after (GB)"  = "{0:N1}" -f ( $item.Freespace / 1gb)
+            "Cleaned  (GB)"         = "{0:N3}" -f $(if ($cleaned -lt 0) { 0 } else { $cleaned })
+            "PercentFree"           = "{0:P1}" -f ( $item.FreeSpace / $item.Size)
+        }
+    }
+
+    Write-Host  "Elapsed Time: $(($EndTime - $StartTime).totalseconds) seconds" -ForegroundColor DarkYellow
+
+    $sumState | Format-Table -AutoSize | Out-String
+    #$After = FreeDiskSpace
+    #Write-Host "Free Disk Space after: " -ForegroundColor Blue -NoNewline    
+    #Write-Host "$After MB" -ForegroundColor DarkYellow
+    
+    #$Cleaned = $After - $Before
+    #Write-Host "Cleaned: " -ForegroundColor Blue -NoNewline
+    #Write-Host "$Cleaned MB" -ForegroundColor DarkYellow
 
 }
+
+Clear-Space
