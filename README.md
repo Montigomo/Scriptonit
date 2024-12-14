@@ -1,11 +1,42 @@
 
 ### Small PowerShell scripts that help to solve small computer management tasks.
 
-ConfigureWakeOnLan.ps1 - tune computer for wake on lan ready.
-- disable fast startup
-- set some parameter of the active ethernet adapter
-  - "Wake on Magic Packet"      = "Enabled|On"
-  - "Shutdown Wake-On-Lan"      = "Enabled"
-  - "Shutdown Wake Up"          = "Enabled"
-  - "Energy Efficient Ethernet" = "Disabled|Off"
-  - "Green Ethernet"            = "Disabled"
+1. .config - folder with config files that data scripts used
+2. Modules - folder with reusable code used in other scripts
+3. Software -
+4. Windows -
+5. top level scrips
+  - ConfigureWakeOnLan.ps1 - tune computer for wake on lan ready.
+    - disable fast startup
+    - set some parameter of the active ethernet adapter
+      - "Wake on Magic Packet"      = "Enabled|On"
+      - "Shutdown Wake-On-Lan"      = "Enabled"
+      - "Shutdown Wake Up"          = "Enabled"
+      - "Energy Efficient Ethernet" = "Disabled|Off"
+      - "Green Ethernet"            = "Disabled"
+  - DownloadItems.ps1 - download software releases. Data for work peeked up from config file Software.json (.config folder).  
+example github item:
+```
+    {
+      "Name": "Win32-OpenSSH",
+      "Type": "github",
+      "Url": "https://github.com/PowerShell/Win32-OpenSSH",
+      "Destination": "D:\\path\\Open SSH",
+      "Deep": 7,
+      "UsePreview": false,
+      "Force": false,
+      "Prepare": true
+    }
+```
+
+```
+    {
+      "Name": "VirtualHere",
+      "Type": "direct",
+      "Url": "VirtualHere", [name of existing function that will invoked, invoked function name is Download prefix and Url, in this example function name will be DownloadVirtualHere ]
+      "Destination": "D:\\path\\VirtualHere",
+      "UsePreview": true,
+      "Force": false,
+      "Prepare": true
+    }
+```
