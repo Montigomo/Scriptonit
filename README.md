@@ -40,3 +40,43 @@ example github item:
       "Prepare": true
     }
 ```
+  - InstallMSUpdates.ps1 -  checks and runs windows update on a remote computer. Useed ssh session. Data for work is taken from Network.json file.
+```
+  "NetworkA": {
+    "Default": true,
+    "Hosts": {
+      "UserDesktop": {
+        "ip": "192.168.1.100",
+        "username": "usera@outlook.com",
+        "WUFlag": true,
+        "MAC": "ff:ff:ff:ff:ff:ff",
+        "wolFlag": true,
+        "wolPort": 9
+      },
+      "UserLaptop": {
+        "ip": "192.168.1.105",
+        "username": "userb@outlook.com",
+        "WUFlag": true,
+        "MAC": "ff:ff:ff:ff:ff:ff",
+        "wolFlag": true,
+        "wolPort": 9
+      },
+      "UserLenovo": {
+        "ip": "192.168.1.110",
+        "username": "userb@outlook.com",
+        "WUFlag": true,
+        "MAC": "ff:ff:ff:ff:ff:ff",
+        "wolFlag": true,
+        "wolPort": 9
+      },
+      "UserBeelink": {
+        "ip": "192.168.1.102",
+        "username": "userc@outlook.com",
+        "WUFlag": true,
+        "MAC": "ff:ff:ff:ff:ff:ff",
+        "wolFlag": true,
+        "wolPort": 9
+      }
+    }
+  }
+```
