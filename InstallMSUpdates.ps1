@@ -16,6 +16,12 @@ Set-StrictMode -Version 3.0
 
 #region Help
 
+# articles 
+# https://woshub.com/pswindowsupdate-module/
+
+# project site
+# https://github.com/mgajda83/PSWindowsUpdate
+
 # this script may be used for update remote Windows PC in LAN via ssh Session
 # Чтобы разрешить сканирование на Microsoft Update, выполните команду:
 # Add-WUServiceManager -ServiceID "7971f918-a847-4430-9279-4a52d1efe18d" -AddServiceFlag 7

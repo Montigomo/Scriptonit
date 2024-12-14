@@ -219,20 +219,38 @@ function LmTestFunction {
     Test-Path -Path "function:${Name}"
 }
 
-function LmSortHashtable {
+function LmSortHashtableByKey {
     param (
         [Parameter()][hashtable]$InputHashtable
     )
+    
     $_shash = [System.Collections.Specialized.OrderedDictionary]@{}
 
     foreach ($key in $InputHashtable.Keys | Sort-Object) {
         $_object = $InputHashtable[$key]
         if ($_object -is [hashtable]) {
-            $_object = LmSortHashtable -InputHashtable $_object
+            $_object = LmSortHashtableByKey -InputHashtable $_object
         }
         $_shash[$key] = $_object
     }
     return $_shash
+}
+
+function LmSortHashtableByPropertyValue{
+    param (
+        [Parameter(Mandatory=$true)][hashtable]$InputHashtable,
+        [Parameter(Mandatory=$true)][string]$Key
+    )
+
+    $hash = $InputHashtable.GetEnumerator()
+    $hash =  $hash | Sort-Object {$_.Value.$Key}
+
+    $sorted_hash = [ordered]@{}
+    foreach($item in $hash){
+        $sorted_hash.Add($item.Key, $item.Value)
+    }
+
+    return $sorted_hash
 }
 
 #endregion

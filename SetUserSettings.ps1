@@ -421,6 +421,8 @@ function SetUserSettings {
 
     $UserOperations = LmGetObjects -ConfigName "Users.$UserName.Operations"
 
+    $UserOperations = LmSortHashtableByPropertyValue -InputHashtable $UserOperations -Key "order"
+
     foreach ($key in $UserOperations.Keys) {
         if($Operations -and -not ($Operations.Contains($key))){
             continue
