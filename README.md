@@ -14,7 +14,7 @@
       - "Shutdown Wake Up"          = "Enabled"
       - "Energy Efficient Ethernet" = "Disabled|Off"
       - "Green Ethernet"            = "Disabled"
-  - DownloadItems.ps1 - download software releases. Data for work peeked up from config file Software.json (.config folder).  
+  - DownloadItems.ps1 - download software releases. Data for work is taken from config file Software.json.  
 example github item:
 ```
     {
