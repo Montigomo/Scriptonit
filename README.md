@@ -24,6 +24,8 @@ All scripts that can work on remote machine, uses PSSession (ssh)
 - **DownloadItems.ps1** - downloads software releases. Data for work is taken from config file Software.json.  
 example github item:
 
+ "Url" - real github project url or name of existing function that will invoked,  invoked function name is Download prefix and Url, for example if *"Url": "VirtualHere"* invoked function name will be *DownloadVirtualHere*
+
 ```json
     {
       "Name": "Win32-OpenSSH",
@@ -41,7 +43,7 @@ example github item:
     {
       "Name": "VirtualHere",
       "Type": "direct",
-      "Url": "VirtualHere", [name of existing function that will invoked, invoked function name is Download prefix and Url, in this example function name will be DownloadVirtualHere ]
+      "Url": "VirtualHere",
       "Destination": "D:\\path\\VirtualHere",
       "UsePreview": true,
       "Force": false,
