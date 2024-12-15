@@ -93,7 +93,7 @@ example github item:
 
 - **InvokeWakeOnLan.ps1**
 
-send magic packet to multiple remote machines. Remote machine list took from  config folder file Networks.json.
+send magic packet to multiple remote machines. Remote machines list took from  config folder file Networks.json.
 
 | Parameter  | ParameterSet | Type | Info   |
 | :--------| :------| :------| :------|
