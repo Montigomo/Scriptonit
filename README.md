@@ -1,10 +1,13 @@
-### Small PowerShell scripts that help to solve small computer management tasks
+# Small PowerShell scripts that help to solve some small computer management tasks
 
-1. .config - folder with config files that data scripts used
-2. Modules - folder with reusable code used in other scripts
-3. Software -
-4. Windows -
-5. top level scrips
+| Folder   | Info   |
+| :--------| :------|
+| root     | top level scrips                                           |
+| .config  | config files with data that scripts used                   |
+| Modules  | reusable code used in other scripts                        |
+| Software | scripts that solve tasks of specific programs              |
+| Windows  | specific windows scripts, reg files and other resources    |
+| | |
 
 - ConfigureWakeOnLan.ps1 - tune computer for wake on lan ready.
   - disable fast startup
