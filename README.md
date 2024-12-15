@@ -1,14 +1,18 @@
-# Small PowerShell scripts that help to solve some small computer management tasks
+## Small PowerShell scripts that help to solve some small computer management tasks
 
 | Folder   | Info   |
 | :--------| :------|
-| root     | top level scrips                                           |
-| .config  | config files with data that scripts used                   |
-| Modules  | reusable code used in other scripts                        |
-| Software | scripts that solve tasks of specific programs              |
-| Windows  | specific windows scripts, reg files and other resources    |
+| *root*     | top level scrips                                           |
+| *.config*  | config files with data that scripts used                   |
+| *Modules*  | reusable code used in other scripts                        |
+| *Software* | scripts that solve tasks of specific programs              |
+| *Windows*  | specific windows scripts, reg files and other resources    |
 
-- ConfigureWakeOnLan.ps1 - tune computer for wake on lan ready.
+### Top level scripts
+
+All scripts that can work on remote machine, uses PSSession (ssh)
+
+- **ConfigureWakeOnLan.ps1** - tune computer for wake on lan ready.
   - disable fast startup
   - set some parameter of the active ethernet adapter
     - "Wake on Magic Packet"      = "Enabled|On"
@@ -16,7 +20,8 @@
     - "Shutdown Wake Up"          = "Enabled"
     - "Energy Efficient Ethernet" = "Disabled|Off"
     - "Green Ethernet"            = "Disabled"
-- DownloadItems.ps1 - download software releases. Data for work is taken from config file Software.json.  
+  
+- **DownloadItems.ps1** - downloads software releases. Data for work is taken from config file Software.json.  
 example github item:
 
 ```json
@@ -44,7 +49,7 @@ example github item:
     }
 ```
 
-- InstallMSUpdates.ps1 -  checks and runs windows update on a remote computer. Useed ssh session. Data for work is taken from Network.json file.
+- **InstallMSUpdates.ps1** -  checks and runs windows update on a remote computer. Used ssh session. Data for work is taken from Network.json file.
 
 ```json
   "NetworkA": {
@@ -85,3 +90,19 @@ example github item:
     }
   }
 ```
+
+- **InvokeWakeOnLan.ps1**
+
+send magic packet to multiple remote machines. Remote machine list took from  config folder file Networks.json.
+
+| Parameter  | ParameterSet | Type | Info   |
+| :--------| :------| :------| :------|
+| *NetworkName*  | Include, Exclude | [string] | PC list from *Networks.json*  |
+| *IncludeNames* | Include | [string] | Wol packet sends only to specified remote pc from pc list (NetworkName) |
+| *ExcludeNames* | Exclude | [string] | Wol packet sends to pc list NetworkName) exclude specified  |
+
+- **ScanNetwork.ps1**
+
+- **SetStartupItems.ps1**
+
+- **SetUserSettings.ps1**

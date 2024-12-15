@@ -6,10 +6,6 @@ param (
 
 Set-StrictMode -Version 3.0
 
-. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Hardware") | Out-Null
-
-exit
-
 . "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network", "Network.WakeOnLan") -Verbose | Out-Null
 
 function ConfigureWakeOnLan {
