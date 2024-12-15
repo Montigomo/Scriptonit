@@ -7,7 +7,6 @@
 | Modules  | reusable code used in other scripts                        |
 | Software | scripts that solve tasks of specific programs              |
 | Windows  | specific windows scripts, reg files and other resources    |
-| | |
 
 - ConfigureWakeOnLan.ps1 - tune computer for wake on lan ready.
   - disable fast startup
