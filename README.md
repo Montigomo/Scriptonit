@@ -1,22 +1,23 @@
-
-### Small PowerShell scripts that help to solve small computer management tasks.
+### Small PowerShell scripts that help to solve small computer management tasks
 
 1. .config - folder with config files that data scripts used
 2. Modules - folder with reusable code used in other scripts
 3. Software -
 4. Windows -
 5. top level scrips
-  - ConfigureWakeOnLan.ps1 - tune computer for wake on lan ready.
-    - disable fast startup
-    - set some parameter of the active ethernet adapter
-      - "Wake on Magic Packet"      = "Enabled|On"
-      - "Shutdown Wake-On-Lan"      = "Enabled"
-      - "Shutdown Wake Up"          = "Enabled"
-      - "Energy Efficient Ethernet" = "Disabled|Off"
-      - "Green Ethernet"            = "Disabled"
-  - DownloadItems.ps1 - download software releases. Data for work is taken from config file Software.json.  
+
+- ConfigureWakeOnLan.ps1 - tune computer for wake on lan ready.
+  - disable fast startup
+  - set some parameter of the active ethernet adapter
+    - "Wake on Magic Packet"      = "Enabled|On"
+    - "Shutdown Wake-On-Lan"      = "Enabled"
+    - "Shutdown Wake Up"          = "Enabled"
+    - "Energy Efficient Ethernet" = "Disabled|Off"
+    - "Green Ethernet"            = "Disabled"
+- DownloadItems.ps1 - download software releases. Data for work is taken from config file Software.json.  
 example github item:
-```
+
+```json
     {
       "Name": "Win32-OpenSSH",
       "Type": "github",
@@ -29,7 +30,7 @@ example github item:
     }
 ```
 
-```
+```json
     {
       "Name": "VirtualHere",
       "Type": "direct",
@@ -40,8 +41,10 @@ example github item:
       "Prepare": true
     }
 ```
-  - InstallMSUpdates.ps1 -  checks and runs windows update on a remote computer. Useed ssh session. Data for work is taken from Network.json file.
-```
+
+- InstallMSUpdates.ps1 -  checks and runs windows update on a remote computer. Useed ssh session. Data for work is taken from Network.json file.
+
+```json
   "NetworkA": {
     "Default": true,
     "Hosts": {
