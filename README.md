@@ -121,7 +121,7 @@ send magic packet to multiple remote machines. Remote machines list took from *.
  | InstallApplications  | | | Install aplications by winget |
  |                      | Applications | string[] | Array of applications ids. Example: ["RARLab.WinRAR" , "Notepad++.Notepad++", "Telegram.TelegramDesktop"]|
  | SetMpPreference      | | | |
- |                      | Items     | string[] | Array of folders path. Example: ``` ["D:\\_software" , "D:\\temp", "D:\\work\\reverse"] ``` |
+ |                      | Items     | string[] | Array of folders path. Example: </br>``` ["D:\\_software" , "D:\\temp", "D:\\work\\reverse"] ``` |
  | MakeSimLinks         | | | |
  |                      | SimLinks  | hashtable | "\\.ssh\\config": "D:\\path\\.ssh\\config"          "\\.ssh\\id_rsa": "D:\\path\\.ssh\\id_rsa"         "\\.ssh\\id_rsa.pub": "D:\\path\\id_rsa.pub"
  | AddRegFiles          | | | |
