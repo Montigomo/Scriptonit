@@ -109,16 +109,33 @@ send magic packet to multiple remote machines. Remote machines list took from *.
 
 - **SetUserSettings.ps1**  
  How many times after a new installation (reinstallation) of Windows do you configure it to its usual state (install applications, change various settings, etc.)  
- This script automate many of this tasks after fresh windows install.  
- Actions and data  for work is taken from Users.json file. Below list of actions:
-  - *InstallMsvcrt* - Install all Microsoft C and C++ (MSVC) runtime libraries. No parameters
-  - *SetRdpConnections* - Config RDP connections to this PC |
-  - *GitConfig* - Config git settings (safe folders = *)
-  - *SetUserFolders* - Set location users folder (Documents, Pictures, Desktop, Videos, Music) to new location |
-  - *InstallApplications*  - Install aplications by winget. Parameters
+ This script automate many of this tasks after fresh windows install.
+ Actions and data  for work is taken from Users.json file.  
+ Below list of actions:
+  - *InstallMsvcrt* - Install all Microsoft C and C++ (MSVC) runtime libraries. No parameters.
+  - *SetRdpConnections* - Config RDP connections to this PC.  No parameters.
+  - *GitConfig* - Config git settings (safe folders = *).  No parameters.
+  - *SetUserFolders* - Set user folders location (Documents, Pictures, Desktop, Videos, Music).  Parameters:
+    - *Folders*, type - *hashtable* - Each item *Key* - UserFolderName, *Value* - desirable location.  Example:
+    ```json
+      "SetUserFolders": {
+        "order": "005",
+        "params": {
+          "Folders": {
+            "Desktop": "D:\\_users\\<?UserName?>\\Desktop",
+            "Documents": "D:\\_users\\<?UserName?>\\Documents",
+            "Pictures": "D:\\_users\\<?UserName?>\\Pictures",
+            "Video": "D:\\_users\\<?UserName?>\\Videos",
+            "Music": "E:\\Music"
+          }
+        }
+      }  
+    ```
+  - *InstallApplications*  - Install aplications by winget. Parameters:
     - *Applications* - Array of applications ids, type - *string[]*. Example:
     ```json
       "InstallApplications": {
+        "order": "002",
         "params": {
           "Applications": [
             "RARLab.WinRAR",
@@ -135,55 +152,26 @@ send magic packet to multiple remote machines. Remote machines list took from *.
             "Microsoft.DotNet.Runtime.7"
           ]
         }
-      }    
+      }   
     ```
-  - SetMpPreference
- |                      | Items     | string[] | Array of folders path. Example: </br>```      "SetMpPreference": {
+  - *SetMpPreference* - add exclusion folders to Windows Defender.  Parameters:
+    - Items - Array of folder paths, type - *string[]*. Example:
+    ```json
+      "SetMpPreference": {
         "order": "006",
         "params": {
           "Items": [
             "D:\\_software",
             "D:\\work",
+            "C:\\Users\\agite\\YandexDisk",
             "D:\\work\\reverse"
           ]
         }
-      }``` </br>|
- | MakeSimLinks         | | | |
- |                      | SimLinks  | hashtable | "\\.ssh\\config": "D:\\path\\.ssh\\config"          "\\.ssh\\id_rsa": "D:\\path\\.ssh\\id_rsa"         "\\.ssh\\id_rsa.pub": "D:\\path\\id_rsa.pub"
- | AddRegFiles          | | | |
- |                      | Items     | string[] |  "\\Explorer_Expand to current folder_ON.reg", "\\Context Menu\\WIndows 11 classic context menu\\win11_classic_context_menu.reg", "\\Explorer_Show_SuperHidden.reg" |
- | PrepareHosts         | | | |
- |                      | Hosts | hashtable|  |
- | | | | '''"Common": [
-              "127.0.0.1|compute-1.amazonaws.com",
-              "0.0.0.0|license.sublimehq.com",
-              "83.243.40.67|wiki.bash-hackers.org"
-            ],
-            "Corel": [
-              "127.0.0.1|iws.corel.com",
-              "127.0.0.1|apps.corel.com",
-              "127.0.0.1|mc.corel.com",
-              "127.0.0.1|origin-mc.corel.com",
-              "127.0.0.1|iws.corel.com",
-              "127.0.0.1|deploy.akamaitechnologies.com"
-            ]''' |
-            
-    "StartupItems": {
-      "UniversalMediaServer": {
-        "Path": "C:\\Program Files (x86)\\Universal Media Server\\UMS.exe",
-        "prepare": true
-      },
-      "VirtalHere": {
-        "Path": "D:\\tools\\network\\VirtualHere\\vhui64.exe",
-        "prepare": true
-      },
-      "SimpleDLNA": {
-        "Path": "D:\\software\\simpledlna\\SimpleDLNA.exe",
-        "prepare": true
-      },
-      "OpenVPN": {
-        "Path": "C:\\Program Files\\OpenVPN\\bin\\openvpn-gui.exe",
-        "Argument": "--connect 'sean_agitech.ovpn'",
-        "prepare": true
       }
-    }
+      ```
+     *Substitutions* that used in Users,json:
+      ```
+       "UserName" = [Environment]::UserName
+       "UserProfile" = "$([System.Environment]::GetFolderPath("UserProfile"))"  
+      ```
+      
