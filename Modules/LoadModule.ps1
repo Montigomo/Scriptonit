@@ -209,6 +209,7 @@ function LmGetParams {
         }
         catch {}
     }
+
     return $params
 }
 
@@ -236,17 +237,17 @@ function LmSortHashtableByKey {
     return $_shash
 }
 
-function LmSortHashtableByPropertyValue{
+function LmSortHashtableByPropertyValue {
     param (
-        [Parameter(Mandatory=$true)][hashtable]$InputHashtable,
-        [Parameter(Mandatory=$true)][string]$Key
+        [Parameter(Mandatory = $true)][hashtable]$InputHashtable,
+        [Parameter(Mandatory = $true)][string]$Key
     )
 
     $hash = $InputHashtable.GetEnumerator()
-    $hash =  $hash | Sort-Object {$_.Value.$Key}
+    $hash = $hash | Sort-Object { $_.Value.$Key }
 
     $sorted_hash = [ordered]@{}
-    foreach($item in $hash){
+    foreach ($item in $hash) {
         $sorted_hash.Add($item.Key, $item.Value)
     }
 
@@ -375,7 +376,7 @@ function LoadModule {
 
         foreach ($item in $global:ModulesList) {
             $ModuleFullName = "$ModulePrefix.$($item.Name)"
-            if($Force -and (Get-Module -Name $ModuleFullName)){
+            if ($Force -and (Get-Module -Name $ModuleFullName)) {
                 Write-Verbose "Removing module $ModuleFullName"
                 Remove-Module -Name $ModuleFullName -Force
             }

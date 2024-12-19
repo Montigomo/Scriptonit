@@ -6,8 +6,10 @@ param (
     [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
     [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
     [string]$NetworkName,
-    [Parameter(Mandatory = $false, ParameterSetName = 'Include')][string[]]$IncludeNames,
-    [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')][string[]]$ExcludeNames
+    [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
+    [string[]]$IncludeNames,
+    [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
+    [string[]]$ExcludeNames
 )
 
 Set-StrictMode -Version 3.0

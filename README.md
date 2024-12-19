@@ -107,4 +107,68 @@ send magic packet to multiple remote machines. Remote machines list took from *.
 
 - **SetStartupItems.ps1**
 
-- **SetUserSettings.ps1**
+- **SetUserSettings.ps1**  
+ How many times after a new installation (reinstallation) of Windows do you configure it to its usual state (install applications, change various settings, etc.)  
+ This script automate many of this tasks after fresh windows install.  
+ Actions and data  for work is taken from Users.json file. Below table that describes actions:
+
+ | Action  | Parameter | Type | Info   |
+ | :--------| :------| :------| :------|
+ | InstallMsvcrt        | | | Install all Microsoft C and C++ (MSVC) runtime libraries  |
+ | SetRdpConnections    | | | Config RDP connections to this PC |
+ | GitConfig            | | | |
+ | SetUserFolders       | | | |
+ | InstallApplications  | | | Install aplications by winget |
+ |                      | Applications | string[] | Array of applications ids. Example: ["RARLab.WinRAR" , "Notepad++.Notepad++", "Telegram.TelegramDesktop"]|
+ | SetMpPreference      | | | |
+ |                      | Items     | string[] | Array of folders path. Example: ["D:\\_software" , "D:\\temp", "D:\\work\\reverse"] |
+ | MakeSimLinks         | | | |
+ |                      | SimLinks  | hashtable | "\\.ssh\\config": "D:\\path\\.ssh\\config"          "\\.ssh\\id_rsa": "D:\\path\\.ssh\\id_rsa"         "\\.ssh\\id_rsa.pub": "D:\\path\\id_rsa.pub"
+ | AddRegFiles          | | | |
+ |                      | Items     | string[] |  "\\Explorer_Expand to current folder_ON.reg", "\\Context Menu\\WIndows 11 classic context menu\\win11_classic_context_menu.reg", "\\Explorer_Show_SuperHidden.reg" |
+ | PrepareHosts         | | | |
+ |                      | Hosts | | |
+        "params": {
+          "Hosts": {
+            "Common": [
+              "127.0.0.1|compute-1.amazonaws.com",
+              "0.0.0.0|license.sublimehq.com",
+              "83.243.40.67|wiki.bash-hackers.org"
+            ],
+            "Corel": [
+              "127.0.0.1|iws.corel.com",
+              "127.0.0.1|apps.corel.com",
+              "127.0.0.1|mc.corel.com",
+              "127.0.0.1|origin-mc.corel.com",
+              "127.0.0.1|iws.corel.com",
+              "127.0.0.1|deploy.akamaitechnologies.com"
+            ],
+            "RuTracker": [
+              "172.67.185.253|bt.t-ru.org",
+              "172.67.185.253|bt2.t-ru.org",
+              "172.67.185.253|bt3.t-ru.org",
+              "172.67.185.253|bt4.t-ru.org"
+            ]
+          }
+        }
+      }
+    },
+    "StartupItems": {
+      "UniversalMediaServer": {
+        "Path": "C:\\Program Files (x86)\\Universal Media Server\\UMS.exe",
+        "prepare": true
+      },
+      "VirtalHere": {
+        "Path": "D:\\tools\\network\\VirtualHere\\vhui64.exe",
+        "prepare": true
+      },
+      "SimpleDLNA": {
+        "Path": "D:\\software\\simpledlna\\SimpleDLNA.exe",
+        "prepare": true
+      },
+      "OpenVPN": {
+        "Path": "C:\\Program Files\\OpenVPN\\bin\\openvpn-gui.exe",
+        "Argument": "--connect 'sean_agitech.ovpn'",
+        "prepare": true
+      }
+    }

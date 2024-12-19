@@ -2,7 +2,7 @@
 [CmdletBinding(DefaultParameterSetName = 'NetworkName')]
 param (
     [Parameter(Mandatory = $false, ParameterSetName = 'NetworkName', Position = 0)]
-    [string]$NetworkName = "Sean",
+    [string]$NetworkName,
     [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange', Position = 0)]
     [ipaddress]$FromIp,
     [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange', Position = 1)]
