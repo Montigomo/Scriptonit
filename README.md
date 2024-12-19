@@ -21,12 +21,18 @@ All scripts that can work on remote machine, uses PSSession (ssh)
     - "Energy Efficient Ethernet" = "Disabled|Off"
     - "Green Ethernet"            = "Disabled"
   
-- **DownloadItems.ps1** - downloads software releases. Data for work is taken from config file Software.json.  
-example github item:
-
- "Url" - real github project url or name of existing function that will invoked,  invoked function name is Download prefix and Url, for example if *"Url": "VirtualHere"* invoked function name will be *DownloadVirtualHere*
-
+- **DownloadItems.ps1** - downloads software releases. Data for work is taken from config file Software.json.
+  - *Name* - just iten name
+  - *type* - *github*, *direct*
+  - *Url* - github project url or name of existing function that will invoked,  invoked function name is Download prefix and Url, for example if *"Url": "VirtualHere"* invoked function name will be *DownloadVirtualHere*
+  - *Destination* - destination folder
+  - *Deep* - how many versions (releases) will be downloaded, from latest. Only for items *type = github*.
+  - *UsePreview* - download previews or only releses.  Only for items *type = github*.
+  - *Force* - Rewrite files in the destiantion foder.
+  - *Prepare* - *$true* - download, *$false* - not
 ```json
+{
+  "SoftwareSet001": [
     {
       "Name": "Win32-OpenSSH",
       "Type": "github",
@@ -36,10 +42,34 @@ example github item:
       "UsePreview": false,
       "Force": false,
       "Prepare": true
-    }
-```
-
-```json
+    },
+    {
+      "Name": "easyrsa",
+      "Type": "github",
+      "Url": "https://github.com/OpenVPN/easy-rsa",
+      "Destination": "D:\\path\\easyrsa",
+      "UsePreview": false,
+      "Force": false,
+      "Prepare": true
+    },
+    {
+      "Name": "hiddify",
+      "Type": "github",
+      "Url": "https://github.com/hiddify/hiddify-next/",
+      "Destination": "D:\\path\\hiddify",
+      "UsePreview": false,
+      "Force": false,
+      "Prepare": true
+    },
+    {
+      "Name": "hiddify",
+      "Type": "github",
+      "Url": "https://github.com/hiddify/hiddify-next/",
+      "Destination": "D:\\path\\hiddify",
+      "UsePreview": true,
+      "Force": false,
+      "Prepare": true
+    },
     {
       "Name": "VirtualHere",
       "Type": "direct",
@@ -49,6 +79,8 @@ example github item:
       "Force": false,
       "Prepare": true
     }
+  ]
+}
 ```
 
 - **InstallMSUpdates.ps1** -  checks and runs windows update on a remote computer. Used ssh session. Data for work is taken from Network.json file.
