@@ -2,11 +2,11 @@
   "UncleBob": {
     "Default": true,
     "Operations": {
-      "-InstallMsvcrt": { "params": null },
-      "-SetRdpConnections": { "params": null },
-      "-GitConfig": { "params": null },
-      "-SetUserFolders": { "params": null },
-      "-InstallApplications": {
+      "InstallMsvcrt": { "params": null },
+      "SetRdpConnections": { "params": null },
+      "GitConfig": { "params": null },
+      "SetUserFolders": { "params": null },
+      "InstallApplications": {
         "params": {
           "Applications": [
             "RARLab.WinRAR",
@@ -24,7 +24,8 @@
           ]
         }
       },
-      "-SetMpPreference": {
+      "SetMpPreference": {
+        "order": "006",
         "params": {
           "Items": [
             "D:\\_software",
@@ -33,7 +34,7 @@
           ]
         }
       },
-      "-MakeSimLinks": {
+      "MakeSimLinks": {
         "params": {
           "SimLinks": {
             "\\.ssh\\config": "D:\\path\\.ssh\\config",
@@ -42,7 +43,7 @@
           }
         }
       },
-      "-AddRegFiles": {
+      "AddRegFiles": {
         "params": {
           "Items": [
             "\\Explorer_Expand to current folder_ON.reg",
@@ -55,7 +56,7 @@
           ]
         }
       },
-      "-PrepareHosts": {
+      "PrepareHosts": {
         "params": {
           "Hosts": {
             "Common": [
