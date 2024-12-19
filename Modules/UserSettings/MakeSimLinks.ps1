@@ -5,16 +5,18 @@ function MakeSimLinks {
         [Parameter(Mandatory = $true)][hashtable]$SimLinks
     )
 
-
     Write-Host "[MakeSimLinks] started ..." -ForegroundColor Green
 
+
     foreach ($key in $SimLinks.Keys) {
-        $itemPath = "$([System.Environment]::GetFolderPath("UserProfile"))$key"
+
+        $itemSrcPath = MakeSubstitutions -SubsString $key
+
         $itemDstPath = $SimLinks[$key]
 
         if (Test-Path $itemDstPath) {
-            if ((Test-Path -Path $itemPath)) {
-                $item = Get-Item "$itemPath" -ErrorAction SilentlyContinue
+            if ((Test-Path -Path $itemSrcPath)) {
+                $item = Get-Item "$itemSrcPath" -ErrorAction SilentlyContinue
                 if (
                     $item -and (
                     ($item.GetType() -ne [System.IO.FileInfo]) -or 
@@ -22,16 +24,16 @@ function MakeSimLinks {
                     (-not ($item.LinkType -eq "SymbolicLink"))) -or
                     ($item.LinkTarget -ine $itemDstPath)
                 ) {
-                    Write-Host "[MakeSimLinks] Simlink $itemPath found but its target path not correct. Remove it." -ForegroundColor DarkYellow
-                    Remove-Item -Path $itemPath -Force -ErrorAction SilentlyContinue
+                    Write-Host "[MakeSimLinks] Simlink $itemSrcPath found but its target path not correct. Remove it." -ForegroundColor DarkYellow
+                    Remove-Item -Path $itemSrcPath -Force -ErrorAction SilentlyContinue
                 }
             }
-            if (-not (Test-Path -Path $itemPath)) {
-                Write-Host "[MakeSimLinks] Create simlink $itemPath." -ForegroundColor DarkGreen
-                New-Item -Path $itemPath -ItemType SymbolicLink -Value $itemDstPath | Out-Null
+            if (-not (Test-Path -Path $itemSrcPath)) {
+                Write-Host "[MakeSimLinks] Create simlink $itemSrcPath." -ForegroundColor DarkGreen
+                New-Item -Path $itemSrcPath -ItemType SymbolicLink -Value $itemDstPath | Out-Null
             }
             else {
-                Write-Host "[MakeSimLinks] Simlink $itemPath exists and correct." -ForegroundColor DarkGreen
+                Write-Host "[MakeSimLinks] Simlink $itemSrcPath exists and correct." -ForegroundColor DarkGreen
             }
         }
         else {

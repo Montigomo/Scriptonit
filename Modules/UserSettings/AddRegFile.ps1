@@ -27,18 +27,24 @@ function AddRegFile {
 function AddRegFiles {
     param (
         [Parameter(Mandatory = $true)][array]$Items,
-        [Parameter(Mandatory = $false)][string]$Folder = "$PSScriptRoot\Windows\Registry"
+        [Parameter(Mandatory = $false)][string]$Folder = "$PSScriptRoot\..\..\Windows\Registry"
     )
+
     Write-Host "[AddRegFiles] started ..." -ForegroundColor Green
 
     foreach ($item in $Items) {
         $filePath = "$Folder{0}" -f $item
         if (Test-Path -Path $filePath) {
+            $filePath = $filePath  | Resolve-Path
             AddRegFile -RegFilePath $filePath
-            Write-Host "[AddRegFiles] $filePath added." -ForegroundColor DarkGreen
+            Write-Host "[AddRegFiles] " -NoNewline -ForegroundColor DarkGreen
+            Write-Host """$filePath"" " -NoNewline -ForegroundColor DarkBlue
+            Write-Host "added to the registry." -ForegroundColor DarkGreen
         }
         else {
-            Write-Host "[AddRegFiles] $filePath does not exist." -ForegroundColor DarkGreen
+            Write-Host "[AddRegFiles] File " -NoNewline -ForegroundColor DarkYellow
+            Write-Host """$filePath"" " -NoNewline -ForegroundColor DarkBlue
+            Write-Host "does not exist." -ForegroundColor DarkYellow
         }
     }
 

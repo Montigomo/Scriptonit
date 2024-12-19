@@ -1,57 +1,50 @@
 Set-StrictMode -Version 3.0
 
-function SetUserFolders {
+#. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("UserFolders") | Out-Null
 
+function SetUserFolders {
+    param (
+        [Parameter(Mandatory = $true)][hashtable]$Folders
+    )
+
+    # help
     # https://stackoverflow.com/questions/25049875/getting-any-special-folder-path-in-powershell-using-folder-guid/25094236#25094236
     # https://renenyffenegger.ch/notes/Windows/dirs/_known-folders
   
     Write-Host "[SetUserFolders] started ..." -ForegroundColor Green
 
-    $userName = [Environment]::UserName
-
-    $baseUserFolders = "D:\_users\{0}" -f $userName
+    #$userName = [Environment]::UserName
 
     if (-not ([System.Management.Automation.PSTypeName]'KnownFolder').Type) {
-        Write-Host -ForegroundColor DarkYellow "Type [KnownFolder] doesn't exsist."
+        Write-Host "Type [KnownFolder] doesn't exsist." -ForegroundColor Red
         return
     }
 
-
     $KnownFolders = @{
         "Documents" = @{
-            Handle      = $true
             FolderName  = "Personal"
             GUID        = [KnownFolder]::Documents
             ComfortName = "Documents"
-            Destination = "$baseUserFolders\Documents"
         };
         "Pictures"  = @{
-            Handle      = $true
             FolderName  = "My Pictures"
             GUID        = [KnownFolder]::Pictures
             ComfortName = "Pictures"
-            Destination = "$baseUserFolders\Pictures"
         };
         "Desktop"   = @{
-            Handle      = $false
             FolderName  = "Desktop"
             GUID        = [KnownFolder]::Desktop
             ComfortName = "Desktop"
-            Destination = "$baseUserFolders\Desktop"
         };
         "Video"     = @{
-            Handle      = $false
             FolderName  = "My Video"
             GUID        = [KnownFolder]::Videos
             ComfortName = "Videos"
-            Destination = "$baseUserFolders\Videos"
         };
         "Music"     = @{
-            Handle      = $false
             FolderName  = "My Music"
             GUID        = [KnownFolder]::Music
             ComfortName = "Music"
-            Destination = "$baseUserFolders\Music"
         };
     }
     
@@ -69,33 +62,45 @@ function SetUserFolders {
             -Name $UserFolderName -Value $UserFolderPath -Type ExpandString
     }
     
-    foreach ($key in $KnownFolders.Keys) {
-        $item = $KnownFolders[$key]
-        $handle = $item.Handle
-        $FolderName = $item.FolderName
-        $GUID = $item.GUID
-        $ComfortName = $item.ComfortName
-        $Destination = $item.Destination
-        $Location = [KnownFolder]::GetKnownFolderPath($GUID)
-        Write-Host "Forder " -NoNewline -ForegroundColor DarkYellow
-        Write-Host "$FolderName " -NoNewline -ForegroundColor DarkGreen
-        Write-Host "preparing. Location - " -NoNewline -ForegroundColor DarkYellow
-        Write-Host "$Location. " -NoNewline -ForegroundColor DarkGreen 
-        Write-Host "Destination - " -NoNewline -ForegroundColor DarkYellow
-        Write-Host "$Destination." -ForegroundColor DarkGreen
-        if ($Destination -ine $Location) {
-            New-Item -ItemType Directory -Force -Path $Destination | Out-Null
-            [KnownFolder]::SetKnownFolderPath($GUID, $Destination)
+    foreach ($key in $Folders.Keys) {
+        if ($KnownFolders.ContainsKey($key)) {
+
+            $item = $KnownFolders[$key]
+            $FolderName = $item.FolderName
+            $GUID = $item.GUID
+            $Destination = $Folders[$key]
+            $ComfortName = $item.ComfortName
+
+            $Destination = MakeSubstitutions -SubsString $Destination
+
             $Location = [KnownFolder]::GetKnownFolderPath($GUID)
-            if ($Location -ieq $Destination) {
-                Write-Host "Folder $FolderName location changed to $Destination" -ForegroundColor DarkGreen
+
+            Write-Host "User Forder " -NoNewline -ForegroundColor DarkYellow
+            Write-Host """$ComfortName"" " -NoNewline -ForegroundColor DarkGreen
+            Write-Host "preparing. Location - " -NoNewline -ForegroundColor DarkYellow
+            Write-Host "$Location. " -NoNewline -ForegroundColor DarkGreen 
+            Write-Host "Destination - " -NoNewline -ForegroundColor DarkYellow
+            Write-Host "$Destination. "  -NoNewline -ForegroundColor DarkGreen
+            if ($Destination -ine $Location) {
+                Write-Host "Location changes to $Destination." -ForegroundColor DarkGreen
+                New-Item -ItemType Directory -Force -Path $Destination | Out-Null
+                [KnownFolder]::SetKnownFolderPath($GUID, $Destination) | Out-Null
+                $Location = [KnownFolder]::GetKnownFolderPath($GUID)
+                if ($Location -ieq $Destination) {
+                    Write-Host "Folder $FolderName location changed to $Destination" -ForegroundColor DarkGreen
+                }
+                else {
+                    Write-Host "Can't change folder $FolderName location to $Destination" -ForegroundColor Red
+                }
+
             }
             else {
-                Write-Host "Can't change folder $FolderName location to $Destination" -ForegroundColor Red
+                Write-Host "Location does not need to change." -ForegroundColor DarkYellow
             }
-
         }
-
+        else {
+            Write-Host "[SetUserFolders] UserFoder $key unsupported." -ForegroundColor DarkYellow
+        }
     }
 
 }

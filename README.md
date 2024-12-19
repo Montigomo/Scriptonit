@@ -116,8 +116,8 @@ send magic packet to multiple remote machines. Remote machines list took from *.
  | :--------| :------| :------| :------|
  | InstallMsvcrt        | | | Install all Microsoft C and C++ (MSVC) runtime libraries  |
  | SetRdpConnections    | | | Config RDP connections to this PC |
- | GitConfig            | | | |
- | SetUserFolders       | | | |
+ | GitConfig            | | | Config git settings (safe folders = *) |
+ | SetUserFolders       | | | Set location users folder (Documents, Pictures, Desktop, Videos, Music) to new location |
  | InstallApplications  | | | Install aplications by winget |
  |                      | Applications | string[] | Array of applications ids. Example: ["RARLab.WinRAR" , "Notepad++.Notepad++", "Telegram.TelegramDesktop"]|
  | SetMpPreference      | | | |
