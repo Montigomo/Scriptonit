@@ -24,7 +24,7 @@ All scripts that can work on remote machine, uses PSSession (ssh)
 - **DownloadItems.ps1** - downloads software releases. Data for work is taken from config file Software.json.
   - *Name* - just iten name
   - *type* - *github*, *direct*
-  - *Url* - github project url or name of existing function that will invoked,  invoked function name is Download prefix and Url, for example if *"Url": "VirtualHere"* invoked function name will be *DownloadVirtualHere*
+  - *Url* - project url, if *type* = *github* just url of the github project, if *type* = *direct* will invoked function with prefix *"Download"* and Url, for example if *"Url": "VirtualHere"* invoked function name will be *DownloadVirtualHere*
   - *Destination* - destination folder
   - *Deep* - how many versions (releases) will be downloaded, from latest. Only for items *type = github*.
   - *UsePreview* - download previews or only releses.  Only for items *type = github*.
@@ -201,9 +201,12 @@ send magic packet to multiple remote machines. Remote machines list took from *.
         }
       }
       ```
-     *Substitutions* that used in Users,json:
-      ```
-       "UserName" = [Environment]::UserName
-       "UserProfile" = "$([System.Environment]::GetFolderPath("UserProfile"))"  
-      ```
+  - *MakeSimLinks*
+  - *AddRegFiles*
+  - *PrepareHosts*
+  *Substitutions* that used in Users,json:
+  ```
+    "UserName" = [Environment]::UserName
+    "UserProfile" = "$([System.Environment]::GetFolderPath("UserProfile"))"  
+  ```
       
