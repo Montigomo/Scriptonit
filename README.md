@@ -110,18 +110,44 @@ send magic packet to multiple remote machines. Remote machines list took from *.
 - **SetUserSettings.ps1**  
  How many times after a new installation (reinstallation) of Windows do you configure it to its usual state (install applications, change various settings, etc.)  
  This script automate many of this tasks after fresh windows install.  
- Actions and data  for work is taken from Users.json file. Below table that describes actions:
-
- | Action  | Parameter | Type | Info   |
- | :--------| :------| :------| :------|
- | InstallMsvcrt        | | | Install all Microsoft C and C++ (MSVC) runtime libraries  |
- | SetRdpConnections    | | | Config RDP connections to this PC |
- | GitConfig            | | | Config git settings (safe folders = *) |
- | SetUserFolders       | | | Set location users folder (Documents, Pictures, Desktop, Videos, Music) to new location |
- | InstallApplications  | | | Install aplications by winget |
- |                      | Applications | string[] | Array of applications ids. Example: ["RARLab.WinRAR" , "Notepad++.Notepad++", "Telegram.TelegramDesktop"]|
- | SetMpPreference      | | | |
- |                      | Items     | string[] | Array of folders path. Example: </br>``` ["D:\\_software" , "D:\\temp", "D:\\work\\reverse"] ``` |
+ Actions and data  for work is taken from Users.json file. Below list of actions:
+  - *InstallMsvcrt* - Install all Microsoft C and C++ (MSVC) runtime libraries. No parameters
+  - *SetRdpConnections* - Config RDP connections to this PC |
+  - *GitConfig* - Config git settings (safe folders = *)
+  - *SetUserFolders* - Set location users folder (Documents, Pictures, Desktop, Videos, Music) to new location |
+  - *InstallApplications*  - Install aplications by winget. Parameters
+    - *Applications* - Array of applications ids, type - *string[]*. Example:
+    ```json
+      "InstallApplications": {
+        "params": {
+          "Applications": [
+            "RARLab.WinRAR",
+            "--Notepad++.Notepad++",
+            "Telegram.TelegramDesktop",
+            "Logitech.GHUB",
+            "DeepL.DeepL",
+            "OpenVPNTechnologies.OpenVPN",
+            "VideoLAN.VLC",
+            "Git.Git",
+            "TortoiseGit.TortoiseGit",
+            "Microsoft.DotNet.DesktopRuntime.7",
+            "Microsoft.DotNet.AspNetCore.7",
+            "Microsoft.DotNet.Runtime.7"
+          ]
+        }
+      }    
+    ```
+  - SetMpPreference
+ |                      | Items     | string[] | Array of folders path. Example: </br>```      "SetMpPreference": {
+        "order": "006",
+        "params": {
+          "Items": [
+            "D:\\_software",
+            "D:\\work",
+            "D:\\work\\reverse"
+          ]
+        }
+      }``` </br>|
  | MakeSimLinks         | | | |
  |                      | SimLinks  | hashtable | "\\.ssh\\config": "D:\\path\\.ssh\\config"          "\\.ssh\\id_rsa": "D:\\path\\.ssh\\id_rsa"         "\\.ssh\\id_rsa.pub": "D:\\path\\id_rsa.pub"
  | AddRegFiles          | | | |
