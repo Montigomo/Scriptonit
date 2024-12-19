@@ -148,7 +148,7 @@ send magic packet to multiple remote machines. Remote machines list took from *.
   - *SetRdpConnections* - Config RDP connections to this PC.  No parameters.
   - *GitConfig* - Config git settings (safe folders = *).  No parameters.
   - *SetUserFolders* - Set user folders location (Documents, Pictures, Desktop, Videos, Music).  Parameters:
-    - *Folders*, type - *hashtable* - Each item *Key* - UserFolderName, *Value* - desirable location.  Example:
+    - *Folders*, type: *hashtable* - Each item *Key* - UserFolderName, *Value* - desirable location.  Example:
     ```json
       "SetUserFolders": {
         "order": "005",
@@ -164,7 +164,7 @@ send magic packet to multiple remote machines. Remote machines list took from *.
       }  
     ```
   - *InstallApplications*  - Install aplications by winget. Parameters:
-    - *Applications* - Array of applications ids, type - *string[]*. Example:
+    - *Applications*, type: *string[]* - Array of applications ids. Example:
     ```json
       "InstallApplications": {
         "order": "002",
@@ -187,7 +187,7 @@ send magic packet to multiple remote machines. Remote machines list took from *.
       }   
     ```
   - *SetMpPreference* - add exclusion folders to Windows Defender.  Parameters:
-    - Items - Array of folder paths, type - *string[]*. Example:
+    - *Items*,type: *string[]*  - Array of folder paths. Example:
     ```json
       "SetMpPreference": {
         "order": "006",
@@ -201,10 +201,68 @@ send magic packet to multiple remote machines. Remote machines list took from *.
         }
       }
       ```
-  - *MakeSimLinks*
-  - *AddRegFiles*
-  - *PrepareHosts*
-  *Substitutions* that used in Users,json:
+  - *MakeSimLinks* - make simlinks, if suimlink exist and correct do nothing.
+    - *SimLinks*,type: *hashtable*. Each item *key* - source path, *value* - destination path. If the simlink exist and correct do nothing. Example:
+    ```json
+      "MakeSimLinks": {
+        "order": "008",
+        "params": {
+          "SimLinks": {
+            "<?UserProfile?>\\.ssh\\config": "D:\\work\\network\\users\\UncleBob\\.ssh\\config",
+            "<?UserProfile?>\\.ssh\\id_rsa": "D:\\work\\network\\users\\UncleBob\\.ssh\\id_rsa",
+            "<?UserProfile?>\\.ssh\\id_rsa.pub": "D:\\work\\network\\users\\UncleBob\\.ssh\\id_rsa.pub"
+          }
+        }
+      }
+    ```
+  - *AddRegFiles* - import reg files to registry.
+    - *Items* type: *string[]* - array of relative to *"root\Windows\Registry"* folder reg file paths.
+    ```json
+        "AddRegFiles": {
+          "order": "009",
+          "params": {
+            "Items": [
+              "\\Explorer_Expand to current folder_ON.reg",
+              "\\Context Menu\\WIndows 11 classic context menu\\win11_classic_context_menu.reg",
+              "\\Explorer_Activate Windows Photo Viewer on Windows 10.reg",
+              "\\Explorer_Show_extensions_for_known_file_types.reg",
+              "\\Explorer_Show_SuperHidden.reg",
+              "\\Explorer_Open_to_PC.reg",
+              "\\Change-KeyboardToggle.reg"
+            ]
+          }
+        }
+    ```  
+  - *PrepareHosts* - add records to *C:\Windows\System32\drivers\etc* file. If the record exists do nothing.
+  ```json
+    "PrepareHosts": {
+      "order": "007",
+      "params": {
+        "Hosts": {
+          "Common": [
+            "127.0.0.1|compute-1.amazonaws.com",
+            "0.0.0.0|license.sublimehq.com",
+            "83.243.40.67|wiki.bash-hackers.org"
+          ],
+          "Corel": [
+            "127.0.0.1|iws.corel.com",
+            "127.0.0.1|apps.corel.com",
+            "127.0.0.1|mc.corel.com",
+            "127.0.0.1|origin-mc.corel.com",
+            "127.0.0.1|iws.corel.com",
+            "127.0.0.1|deploy.akamaitechnologies.com"
+          ],
+          "RuTracker": [
+            "172.67.185.253|bt.t-ru.org",
+            "172.67.185.253|bt2.t-ru.org",
+            "172.67.185.253|bt3.t-ru.org",
+            "172.67.185.253|bt4.t-ru.org"
+          ]
+        }
+      }
+    }
+  ```
+  *Substitutions* that used in Users.json:
   ```
     "UserName" = [Environment]::UserName
     "UserProfile" = "$([System.Environment]::GetFolderPath("UserProfile"))"  
