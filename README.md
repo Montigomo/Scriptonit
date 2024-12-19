@@ -121,16 +121,14 @@ send magic packet to multiple remote machines. Remote machines list took from *.
  | InstallApplications  | | | Install aplications by winget |
  |                      | Applications | string[] | Array of applications ids. Example: ["RARLab.WinRAR" , "Notepad++.Notepad++", "Telegram.TelegramDesktop"]|
  | SetMpPreference      | | | |
- |                      | Items     | string[] | Array of folders path. Example: ["D:\\_software" , "D:\\temp", "D:\\work\\reverse"] |
+ |                      | Items     | string[] | Array of folders path. Example: ``` ["D:\\_software" , "D:\\temp", "D:\\work\\reverse"] ``` |
  | MakeSimLinks         | | | |
  |                      | SimLinks  | hashtable | "\\.ssh\\config": "D:\\path\\.ssh\\config"          "\\.ssh\\id_rsa": "D:\\path\\.ssh\\id_rsa"         "\\.ssh\\id_rsa.pub": "D:\\path\\id_rsa.pub"
  | AddRegFiles          | | | |
  |                      | Items     | string[] |  "\\Explorer_Expand to current folder_ON.reg", "\\Context Menu\\WIndows 11 classic context menu\\win11_classic_context_menu.reg", "\\Explorer_Show_SuperHidden.reg" |
  | PrepareHosts         | | | |
- |                      | Hosts | | |
-        "params": {
-          "Hosts": {
-            "Common": [
+ |                      | Hosts | hashtable|  |
+ | | | | '''"Common": [
               "127.0.0.1|compute-1.amazonaws.com",
               "0.0.0.0|license.sublimehq.com",
               "83.243.40.67|wiki.bash-hackers.org"
@@ -142,17 +140,8 @@ send magic packet to multiple remote machines. Remote machines list took from *.
               "127.0.0.1|origin-mc.corel.com",
               "127.0.0.1|iws.corel.com",
               "127.0.0.1|deploy.akamaitechnologies.com"
-            ],
-            "RuTracker": [
-              "172.67.185.253|bt.t-ru.org",
-              "172.67.185.253|bt2.t-ru.org",
-              "172.67.185.253|bt3.t-ru.org",
-              "172.67.185.253|bt4.t-ru.org"
-            ]
-          }
-        }
-      }
-    },
+            ]''' |
+            
     "StartupItems": {
       "UniversalMediaServer": {
         "Path": "C:\\Program Files (x86)\\Universal Media Server\\UMS.exe",
