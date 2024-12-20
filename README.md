@@ -12,7 +12,7 @@
 
 All scripts that can work on remote machine, uses PSSession (ssh)
 
-- **ConfigureWakeOnLan.ps1** - tune computer for wake on lan ready.
+- **ConfigureWakeOnLan.ps1** - tune computer for wake on lan ready. No parameters.
   - disable fast startup
   - set some parameter of the active ethernet adapter
     - "Wake on Magic Packet"      = "Enabled|On"
@@ -21,29 +21,29 @@ All scripts that can work on remote machine, uses PSSession (ssh)
     - "Energy Efficient Ethernet" = "Disabled|Off"
     - "Green Ethernet"            = "Disabled"
   
-- **DownloadItems.ps1** - downloads software. Data for work is taken from config file *Software.json*.
+- **DownloadItems.ps1** - downloads software. The data for the job is taken from config file *Software.json*.  
   
   | Parameter  | ParameterSet | Type | Info   |
   | :--------| :------| :------| :------|
-  | *SetName*  | Include, Exclude | [string] | Name of items set from *Software.json*  |
-  | *IncludeNames* | Include | [string] | Only the specified items from the set will be downloaded |
-  | *ExcludeNames* | Exclude | [string] | Exclude the specified items from the set will be downloaded  |
+  | *SetName*  | Include, Exclude | *string* | Name of items set from *Software.json*  |
+  | *IncludeNames* | Include | *string[]* | Only the specified items from the set will be downloaded |
+  | *ExcludeNames* | Exclude | *string[]* | Exclude the specified items from the set will be downloaded  |
   
-- **InstallMSUpdates.ps1** -  checks and runs windows update on a remote computer. Used ssh session. Data for work is taken from *Network.json* file.
+- **InstallMSUpdates.ps1** -  checks and runs windows update on a remote computer. Used ssh session.The data for the job is taken from config file *Network.json* file, section Hosts.  
   
   | Parameter  | ParameterSet | Type | Info   |
   | :--------| :------| :------| :------|
-  | *SetName*  | Include, Exclude | [string] | Name of items set from *Software.json*  |
-  | *IncludeNames* | Include | [string] | Only the specified items from the set will be downloaded |
-  | *ExcludeNames* | Exclude | [string] | Exclude the specified items from the set will be downloaded  |
+  | *NetworkName*  | Include, Exclude | *string* | Name of Network name from *Networks.json*  |
+  | *IncludeNames* | Include | *string[]* | Only the the specified hosts from the network will be updated |
+  | *ExcludeNames* | Exclude | *string[]* | Exclude the specified hosts from the network will be updated  |
 
-- **InvokeWakeOnLan.ps1** - send magic packet to multiple remote machines. Remote machines list took from *.config/Networks.json* section Hosts, Host parameter "wolFlag" must be $true - *"wolFlag": true*.
+- **InvokeWakeOnLan.ps1** - send magic packet to multiple remote machines. The data for the job is taken from config file *Network.json* file, section Hosts. Host parameter "wolFlag" must be set $true - *"wolFlag": true*.  
   
   | Parameter  | ParameterSet | Type | Info   |
   | :--------| :------| :------| :------|
-  | *NetworkName*  | Include, Exclude | [string] | PC list from *Networks.json*  |
-  | *IncludeNames* | Include | [string] | Wol packet sends only to specified remote pc from pc list (NetworkName) |
-  | *ExcludeNames* | Exclude | [string] | Wol packet sends to pc list NetworkName) exclude specified  |
+  | *NetworkName*  | Include, Exclude | *string* | Name of Network name from *Networks.json*   |
+  | *IncludeNames* | Include | *string[]* | Wol packet is sent only to specified remote hosts from network (NetworkName). |
+  | *ExcludeNames* | Exclude | *string[]* | Wol packet is sent to hosts on network (NetworkName), excluding those specified. |
 
 - **ScanNetwork.ps1**
 
