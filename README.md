@@ -21,70 +21,103 @@ All scripts that can work on remote machine, uses PSSession (ssh)
     - "Energy Efficient Ethernet" = "Disabled|Off"
     - "Green Ethernet"            = "Disabled"
   
-- **DownloadItems.ps1** - downloads software releases. Data for work is taken from config file Software.json.
-  - *Name* - just iten name
-  - *type* - *github*, *direct*
-  - *Url* - project url, if *type* = *github* just url of the github project, if *type* = *direct* will invoked function with prefix *"Download"* and Url, for example if *"Url": "VirtualHere"* invoked function name will be *DownloadVirtualHere*
-  - *Destination* - destination folder
-  - *Deep* - how many versions (releases) will be downloaded, from latest. Only for items *type = github*.
-  - *UsePreview* - download previews or only releses.  Only for items *type = github*.
-  - *Force* - Rewrite files in the destiantion foder.
-  - *Prepare* - *$true* - download, *$false* - not
-```json
-{
-  "SoftwareSet001": [
-    {
-      "Name": "Win32-OpenSSH",
-      "Type": "github",
-      "Url": "https://github.com/PowerShell/Win32-OpenSSH",
-      "Destination": "D:\\path\\Open SSH",
-      "Deep": 7,
-      "UsePreview": false,
-      "Force": false,
-      "Prepare": true
-    },
-    {
-      "Name": "easyrsa",
-      "Type": "github",
-      "Url": "https://github.com/OpenVPN/easy-rsa",
-      "Destination": "D:\\path\\easyrsa",
-      "UsePreview": false,
-      "Force": false,
-      "Prepare": true
-    },
-    {
-      "Name": "hiddify",
-      "Type": "github",
-      "Url": "https://github.com/hiddify/hiddify-next/",
-      "Destination": "D:\\path\\hiddify",
-      "UsePreview": false,
-      "Force": false,
-      "Prepare": true
-    },
-    {
-      "Name": "hiddify",
-      "Type": "github",
-      "Url": "https://github.com/hiddify/hiddify-next/",
-      "Destination": "D:\\path\\hiddify",
-      "UsePreview": true,
-      "Force": false,
-      "Prepare": true
-    },
-    {
-      "Name": "VirtualHere",
-      "Type": "direct",
-      "Url": "VirtualHere",
-      "Destination": "D:\\path\\VirtualHere",
-      "UsePreview": true,
-      "Force": false,
-      "Prepare": true
-    }
-  ]
-}
-```
+- **DownloadItems.ps1** - downloads software. Data for work is taken from config file *Software.json*.
+  
+  | Parameter  | ParameterSet | Type | Info   |
+  | :--------| :------| :------| :------|
+  | *SetName*  | Include, Exclude | [string] | Name of items set from *Software.json*  |
+  | *IncludeNames* | Include | [string] | Only the specified items from the set will be downloaded |
+  | *ExcludeNames* | Exclude | [string] | Exclude the specified items from the set will be downloaded  |
+  
+- **InstallMSUpdates.ps1** -  checks and runs windows update on a remote computer. Used ssh session. Data for work is taken from *Network.json* file.
+  
+  | Parameter  | ParameterSet | Type | Info   |
+  | :--------| :------| :------| :------|
+  | *SetName*  | Include, Exclude | [string] | Name of items set from *Software.json*  |
+  | *IncludeNames* | Include | [string] | Only the specified items from the set will be downloaded |
+  | *ExcludeNames* | Exclude | [string] | Exclude the specified items from the set will be downloaded  |
 
-- **InstallMSUpdates.ps1** -  checks and runs windows update on a remote computer. Used ssh session. Data for work is taken from Network.json file.
+- **InvokeWakeOnLan.ps1** - send magic packet to multiple remote machines. Remote machines list took from *.config/Networks.json* section Hosts, Host parameter "wolFlag" must be $true - *"wolFlag": true*.
+  
+  | Parameter  | ParameterSet | Type | Info   |
+  | :--------| :------| :------| :------|
+  | *NetworkName*  | Include, Exclude | [string] | PC list from *Networks.json*  |
+  | *IncludeNames* | Include | [string] | Wol packet sends only to specified remote pc from pc list (NetworkName) |
+  | *ExcludeNames* | Exclude | [string] | Wol packet sends to pc list NetworkName) exclude specified  |
 
+- **ScanNetwork.ps1**
+
+- **SetStartupItems.ps1**
+
+- **SetUserSettings.ps1**  
+ How many times after a new installation (reinstallation) of Windows do you configure it to its usual state (install applications, change various settings, etc.)  
+ This script automate many of this tasks after fresh windows install.
+ Actions and data  for work is taken from Users.json file.  
+      
+### config files
+  - *software.json*
+    - *Name* - just iten name
+    - *type* - *github*, *direct*
+    - *Url* - project url, if *type* = *github* just url of the github project, if *type* = *direct* will invoked function with prefix *"Download"* and Url, for example if *"Url": "VirtualHere"* invoked function name will be *DownloadVirtualHere*
+    - *Destination* - destination folder
+    - *Deep* - how many versions (releases) will be downloaded, from latest. Only for items *type = github*.
+    - *UsePreview* - download previews or only releses.  Only for items *type = github*.
+    - *Force* - Rewrite files in the destiantion foder.
+    - *Prepare* - *$true* - download, *$false* - not
+  ```json
+  {
+    "SoftwareSet001": [
+      {
+        "Name": "Win32-OpenSSH",
+        "Type": "github",
+        "Url": "https://github.com/PowerShell/Win32-OpenSSH",
+        "Destination": "D:\\path\\Open SSH",
+        "Deep": 7,
+        "UsePreview": false,
+        "Force": false,
+        "Prepare": true
+      },
+      {
+        "Name": "easyrsa",
+        "Type": "github",
+        "Url": "https://github.com/OpenVPN/easy-rsa",
+        "Destination": "D:\\path\\easyrsa",
+        "UsePreview": false,
+        "Force": false,
+        "Prepare": true
+      },
+      {
+        "Name": "hiddify",
+        "Type": "github",
+        "Url": "https://github.com/hiddify/hiddify-next/",
+        "Destination": "D:\\path\\hiddify",
+        "UsePreview": false,
+        "Force": false,
+        "Prepare": true
+      },
+      {
+        "Name": "hiddify",
+        "Type": "github",
+        "Url": "https://github.com/hiddify/hiddify-next/",
+        "Destination": "D:\\path\\hiddify",
+        "UsePreview": true,
+        "Force": false,
+        "Prepare": true
+      },
+      {
+        "Name": "VirtualHere",
+        "Type": "direct",
+        "Url": "VirtualHere",
+        "Destination": "D:\\path\\VirtualHere",
+        "UsePreview": true,
+        "Force": false,
+        "Prepare": true
+      }
+    ]
+  }
+  ```
+  - *Network.json*
+  
 ```json
   "NetworkA": {
     "Default": true,
@@ -124,25 +157,8 @@ All scripts that can work on remote machine, uses PSSession (ssh)
     }
   }
 ```
-
-- **InvokeWakeOnLan.ps1**
-
-send magic packet to multiple remote machines. Remote machines list took from *.config/Networks.json* section Hosts, Host parameter "wolFlag" must be $true - *"wolFlag": true*.
-
-| Parameter  | ParameterSet | Type | Info   |
-| :--------| :------| :------| :------|
-| *NetworkName*  | Include, Exclude | [string] | PC list from *Networks.json*  |
-| *IncludeNames* | Include | [string] | Wol packet sends only to specified remote pc from pc list (NetworkName) |
-| *ExcludeNames* | Exclude | [string] | Wol packet sends to pc list NetworkName) exclude specified  |
-
-- **ScanNetwork.ps1**
-
-- **SetStartupItems.ps1**
-
-- **SetUserSettings.ps1**  
- How many times after a new installation (reinstallation) of Windows do you configure it to its usual state (install applications, change various settings, etc.)  
- This script automate many of this tasks after fresh windows install.
- Actions and data  for work is taken from Users.json file.  
+  - *Users.json*
+    
  Below list of actions:
   - *InstallMsvcrt* - Install all Microsoft C and C++ (MSVC) runtime libraries. No parameters.
   - *SetRdpConnections* - Config RDP connections to this PC.  No parameters.
@@ -267,4 +283,3 @@ send magic packet to multiple remote machines. Remote machines list took from *.
     "UserName" = [Environment]::UserName
     "UserProfile" = "$([System.Environment]::GetFolderPath("UserProfile"))"  
   ```
-      
