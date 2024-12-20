@@ -1,7 +1,12 @@
-[CmdletBinding()]
+[CmdletBinding(DefaultParameterSetName = 'Include')]
 param (
+    [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
     [Parameter(Mandatory = $false)] [string]$SetName,
-    [Parameter(Mandatory = $false)] [string]$Name
+    [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
+    [string[]]$IncludeNames,
+    [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
+    [string[]]$ExcludeNames
 )
 
 Set-StrictMode -Version 3.0
@@ -9,15 +14,32 @@ Set-StrictMode -Version 3.0
 . "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Download") | Out-Null
 
 function DownloadItems {
+    [CmdletBinding(DefaultParameterSetName = 'Include')]
     param (
+        [Parameter(Mandatory = $true, ParameterSetName = 'Include')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Exclude')]
         [Parameter(Mandatory = $false)] [string]$SetName,
-        [Parameter(Mandatory = $false)] [string]$Name
+        [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
+        [string[]]$IncludeNames,
+        [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
+        [string[]]$ExcludeNames
     )
 
     $objects = LmGetObjects -ConfigName "Software.$SetName"
 
-    if ($Name) {
-        $objects = ($objects | Where-Object { $_."Name" -ieq $Name })
+    switch ($PSCmdlet.ParameterSetName) {
+        'Include' {
+            if ($IncludeNames) {
+                $objects = $objects | Where-Object { $IncludeNames -icontains $_.Name}
+            }
+            break
+        }
+        'Exclude' {
+            if ($ExcludeNames) {
+                $objects = $objects | Where-Object { $ExcludeNames -inotcontains $_.Name }
+            }
+            break
+        }
     }
 
     foreach ($object in $objects) {
@@ -49,11 +71,9 @@ function DownloadItems {
             }
         }
     }
-
 }
 
-$params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
-
-if ($params) {
+if ($PSBoundParameters.Count -gt 0) {
+    $params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
     DownloadItems @params
 }

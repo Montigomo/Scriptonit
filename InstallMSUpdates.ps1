@@ -62,68 +62,100 @@ function InstallMSUpdatesStub {
 function InstallMSUpdates {
     [CmdletBinding(DefaultParameterSetName = 'Include')]
     param (
-        [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
-        [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Include')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Exclude')]
         [string]$NetworkName,
-        [Parameter(Mandatory = $false, ParameterSetName = 'Include')][string[]]$IncludeNames,
-        [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')][string[]]$ExcludeNames
+        [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
+        [string[]]$IncludeNames,
+        [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
+        [string[]]$ExcludeNames
     )
 
     Write-Host "*** Updatting $NetworkName network." -ForegroundColor DarkGreen
 
-    $network = LmGetObjects -ConfigName "Networks.$NetworkName"
+    # $network = LmGetObjects -ConfigName "Networks.$NetworkName"
 
-    $hosts = $network.Hosts
+    # if(-not $network){
+    #     return
+    # }
 
-    $keys = @()
+    # $hosts = $network.Hosts
+
+    # $keys = $hosts.Keys
+
+    # switch ($PSCmdlet.ParameterSetName) {
+    #     'Include' {
+    #         if ($IncludeNames) {
+    #             $keys = $keys | Where-Object { $IncludeNames -icontains $_ }
+    #         }
+    #         break
+    #     }
+    #     'Exclude' {
+    #         if ($ExcludeNames) {
+    #             $keys = $keys | Where-Object { $ExcludeNames -inotcontains $_ }
+    #         }
+    #         break
+    #     }
+    # }
+
+    $objects = LmGetObjects -ConfigName "Networks.$NetworkName.Hosts"
+
+    if(-not $objects){
+        return
+    }
+
+    $objects = $objects.GetEnumerator()
+
     switch ($PSCmdlet.ParameterSetName) {
         'Include' {
-            $keys = $hosts.Keys | Where-Object { (-not $IncludeNames) -or ($IncludeNames -icontains $_) }
+            if ($IncludeNames) {
+                $objects = $objects | Where-Object { $IncludeNames -icontains $_.Key}
+            }
             break
         }
         'Exclude' {
-            $keys = $hosts.Keys | Where-Object { (-not $ExcludeNames) -or ($ExcludeNames -inotcontains $_) }
+            if ($ExcludeNames) {
+                $objects = $objects | Where-Object { $ExcludeNames -inotcontains $_.Key }
+            }
             break
         }
     }
 
-    #$keys = $hosts.Keys | Where-Object { $(if ($ComputerNames) {($ComputerNames -icontains $_)}else{$true}) -and $(if($ExcludeNames) { $ExcludeNames -inotcontains $_ }else{$true})}
-    #$keys = $hosts.Keys | Where-Object { ((-not $IncludeNames) -or ($IncludeNames -icontains $_)) -and ((-not $ExcludeNames) -or ($ExcludeNames -inotcontains $_))}
+    foreach ($object in $objects) {
+        $_hostName = $object.Key
+        $_ipAddress = $object.Value["ip"]
+        $_userName = $object.Value["username"]
+        $_prepare = $object.Value["WUFlag"]
 
-    foreach ($key in $keys) {
-
-        $item = $hosts[$key]
-        $_ipAddress = $item["ip"]
-        $_userName = $item["username"]
-        $_prepare = $item["WUFlag"]
         if (-not $_prepare) {
             continue
         }
-        Write-Host "** Trying to connect to $key..." -ForegroundColor DarkYellow
+
+        Write-Host "** Trying to connect to $_hostName..." -ForegroundColor DarkYellow
         $result = Test-RemotePort -IPAddress $_ipAddress -Port 22 -TimeoutMilliSec 3000
         if ($result.Response) {
-            Write-Host "$key is online." -ForegroundColor DarkGreen -NoNewline
+            Write-Host "$_hostName is online." -ForegroundColor DarkGreen -NoNewline
             Write-Host " Attempting to create ssh session." -ForegroundColor Blue
             $Session = New-PSSession -HostName $_ipAddress -UserName $_userName -ConnectingTimeout 30000 -ErrorAction SilentlyContinue
             if ($Session) {
                 Write-Host "Ssh session created successfully." -ForegroundColor DarkGreen  -NoNewline
-                Write-Host "$key will be updated." -ForegroundColor Blue
+                Write-Host "$_hostName will be updated." -ForegroundColor Blue
                 $sb = [ScriptBlock]::Create("powershell.exe -ExecutionPolicy Bypass -Command { function Get-ModuleAdvanced { ${function:Get-ModuleAdvanced} } ; Get-ModuleAdvanced -ModuleName PSWindowsUpdate}")
                 Invoke-Command  -Session $Session  -ScriptBlock $sb
                 Invoke-Command  -Session $Session  -ScriptBlock ${Function:InstallMSUpdatesStub}
                 Remove-PSSession $Session
             }
             else {
-                Write-Host "Can't establish ssh session to host: $key ." -ForegroundColor Red
+                Write-Host "Can't establish ssh session to host: $_hostName ." -ForegroundColor Red
             }
         }
         else {
-            Write-Host "$key is offline" -ForegroundColor DarkRed
+            Write-Host "$_hostName is offline" -ForegroundColor DarkRed
         }
     }
 }
 
-$params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
-if ($params) {
+if ($PSBoundParameters.Count -gt 0) {
+    $params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
     InstallMSUpdates @params
 }

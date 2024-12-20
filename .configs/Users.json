@@ -2,11 +2,12 @@
   "UncleBob": {
     "Default": true,
     "Operations": {
-      "InstallMsvcrt": { "params": null },
-      "SetRdpConnections": { "params": null },
-      "GitConfig": { "params": null },
-      "SetUserFolders": { "params": null },
+      "InstallMsvcrt": {
+        "order": "001",
+        "params": null
+      },
       "InstallApplications": {
+        "order": "002",
         "params": {
           "Applications": [
             "RARLab.WinRAR",
@@ -24,26 +25,44 @@
           ]
         }
       },
+      "SetRdpConnections": {
+        "order": "003",
+        "params": null
+      },
+      "GitConfig": {
+        "order": "004",
+        "params": null
+      },
+      "SetUserFolders": {
+        "order": "005",
+        "params": {
+          "Folders": {
+            "Desktop": "D:\\_users\\<?UserName?>\\Desktop",
+            "Documents": "D:\\_users\\<?UserName?>\\Documents",
+            "Pictures": "D:\\_users\\<?UserName?>\\Pictures",
+            "Video": "D:\\_users\\<?UserName?>\\Videos",
+            "Music": "E:\\Music"
+          }
+        }
+      },
       "SetMpPreference": {
         "order": "006",
         "params": {
-          "Items": [
-            "D:\\_software",
-            "D:\\work",
-            "D:\\work\\reverse"
-          ]
+          "Items": ["D:\\_software", "D:\\work\\reverse"]
         }
       },
       "MakeSimLinks": {
+        "order": "008",
         "params": {
           "SimLinks": {
-            "\\.ssh\\config": "D:\\path\\.ssh\\config",
-            "\\.ssh\\id_rsa": "D:\\path\\.ssh\\id_rsa",
-            "\\.ssh\\id_rsa.pub": "D:\\path\\id_rsa.pub"
+            "<?UserProfile?>\\.ssh\\config": "D:\\work\\network\\users\\bob\\.ssh\\config",
+            "<?UserProfile?>\\.ssh\\id_rsa": "D:\\work\\network\\users\\bob\\.ssh\\id_rsa",
+            "<?UserProfile?>\\.ssh\\id_rsa.pub": "D:\\work\\network\\users\\bob\\.ssh\\id_rsa.pub"
           }
         }
       },
       "AddRegFiles": {
+        "order": "009",
         "params": {
           "Items": [
             "\\Explorer_Expand to current folder_ON.reg",
@@ -57,6 +76,7 @@
         }
       },
       "PrepareHosts": {
+        "order": "007",
         "params": {
           "Hosts": {
             "Common": [
@@ -83,6 +103,7 @@
       }
     },
     "StartupItems": {
+      "order": "010",
       "UniversalMediaServer": {
         "Path": "C:\\Program Files (x86)\\Universal Media Server\\UMS.exe",
         "prepare": true
@@ -97,7 +118,12 @@
       },
       "OpenVPN": {
         "Path": "C:\\Program Files\\OpenVPN\\bin\\openvpn-gui.exe",
-        "Argument": "--connect 'sean_agitech.ovpn'",
+        "--Argument": "--connect 'sean_agitech.ovpn'",
+        "prepare": true
+      },
+      "Hiddify": {
+        "Path": "D:\\software\\network\\hiddify\\Hiddify.exe",
+        "--Argument": "--connect 'sean_agitech.ovpn'",
         "prepare": true
       }
     }

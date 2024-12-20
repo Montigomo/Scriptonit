@@ -4,8 +4,10 @@ param (
     [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
     [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
     [string]$NetworkName,
-    [Parameter(Mandatory = $false, ParameterSetName = 'Include')][string[]]$IncludeNames,
-    [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')][string[]]$ExcludeNames
+    [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
+    [string[]]$IncludeNames,
+    [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
+    [string[]]$ExcludeNames
 )
 
 Set-StrictMode -Version 3.0
@@ -15,16 +17,39 @@ Set-StrictMode -Version 3.0
 function InvokeWakeOnLan {
     [CmdletBinding(DefaultParameterSetName = 'Include')]
     param (
-        [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
-        [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Include')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Exclude')]
         [string]$NetworkName,
-        [Parameter(Mandatory = $false, ParameterSetName = 'Include')][string[]]$IncludeNames,
-        [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')][string[]]$ExcludeNames
+        [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
+        [string[]]$IncludeNames,
+        [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
+        [string[]]$ExcludeNames
     )
 
     $objects = LmGetObjects -ConfigName "Networks.$NetworkName.Hosts"
 
-    $objects = $objects.GetEnumerator() | Where-Object { $_.Value["wolFlag"] -eq $true }
+    if(-not $objects){
+        return
+    }
+
+    $objects = $objects.GetEnumerator()
+
+    switch ($PSCmdlet.ParameterSetName) {
+        'Include' {
+            if ($IncludeNames) {
+                $objects = $objects | Where-Object { $IncludeNames -icontains $_.Key}
+            }
+            break
+        }
+        'Exclude' {
+            if ($ExcludeNames) {
+                $objects = $objects | Where-Object { $ExcludeNames -inotcontains $_.Key }
+            }
+            break
+        }
+    }
+
+    $objects = $objects | Where-Object { $_.Value["wolFlag"] -eq $true }  
 
     foreach ($object in $objects) {
         $objectMAC = $object.Value.MAC
@@ -35,7 +60,7 @@ function InvokeWakeOnLan {
 }
 
 
-$params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
-if ($params) {
+if ($PSBoundParameters.Count -gt 0) {
+    $params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
     InvokeWakeOnLan @params
 }
