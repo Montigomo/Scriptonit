@@ -1,4 +1,4 @@
-## Small PowerShell scripts that help to solve some small computer management tasks
+## Small PowerShell scripts that help perform some small computer management tasks.
 
 | Folder   | Info   |
 | :--------| :------|
