@@ -23,37 +23,119 @@ All scripts that can work on remote machine, uses PSSession (ssh)
   
 - **DownloadItems.ps1** - downloads software. The data for the job is taken from config file *Software.json*.  
   
-  | Parameter  | ParameterSet | Type | Info   |
-  | :--------| :------| :------| :------|
-  | *SetName*  | Include, Exclude | *string* | Name of items set from *Software.json*  |
-  | *IncludeNames* | Include | *string[]* | Only the specified items from the set will be downloaded |
-  | *ExcludeNames* | Exclude | *string[]* | Exclude the specified items from the set will be downloaded  |
+  | Parameter  | Mandatory  |Type     | Info   |
+  | :--------  | :------    | :------ | :------|
+  | *SetName*  | *true* | *string* | Name of items set from *Software.json*  |
+  | *IncludeNames* | *false* | *string[]* | Only the specified items from the set will be downloaded |
+  | *ExcludeNames* | *false* | *string[]* | Exclude the specified items from the set will be downloaded  |
   
 - **InstallMSUpdates.ps1** -  checks and runs windows update on a remote computer. Used ssh session.The data for the job is taken from config file *Network.json* file, section Hosts.  
   
-  | Parameter  | ParameterSet | Type | Info   |
-  | :--------| :------| :------| :------|
-  | *NetworkName*  | Include, Exclude | *string* | Name of Network name from *Networks.json*  |
-  | *IncludeNames* | Include | *string[]* | Only the the specified hosts from the network will be updated |
-  | *ExcludeNames* | Exclude | *string[]* | Exclude the specified hosts from the network will be updated  |
+  | Parameter  | Mandatory  |Type     | Info   |
+  | :--------  | :------    | :------ | :------|
+  | *NetworkName*  | *true* | *string* | Name of Network name from *Networks.json*  |
+  | *IncludeNames* | *false* | *string[]* | Only the the specified hosts from the network will be updated |
+  | *ExcludeNames* | *false* | *string[]* | Exclude the specified hosts from the network will be updated  |
 
 - **InvokeWakeOnLan.ps1** - send magic packet to multiple remote machines. The data for the job is taken from config file *Network.json* file, section Hosts. Host parameter "wolFlag" must be set $true - *"wolFlag": true*.  
   
-  | Parameter  | ParameterSet | Type | Info   |
-  | :--------| :------| :------| :------|
-  | *NetworkName*  | Include, Exclude | *string* | Name of Network name from *Networks.json*   |
-  | *IncludeNames* | Include | *string[]* | Wol packet is sent only to specified remote hosts from network (NetworkName). |
-  | *ExcludeNames* | Exclude | *string[]* | Wol packet is sent to hosts on network (NetworkName), excluding those specified. |
+  | Parameter  | Mandatory  |Type     | Info   |
+  | :--------  | :------    | :------ | :------|
+  | *NetworkName*  | *true* | *string* | Name of Network name from *Networks.json*   |
+  | *IncludeNames* | *false* | *string[]* | Wol packet is sent only to specified remote hosts from network (NetworkName). |
+  | *ExcludeNames* | *false* | *string[]* | Wol packet is sent to hosts on network (NetworkName), excluding those specified. |
 
 - **ScanNetwork.ps1**
 
 - **SetStartupItems.ps1**
 
-- **SetUserSettings.ps1**  
- How many times after a new installation (reinstallation) of Windows do you configure it to its usual state (install applications, change various settings, etc.)  
- This script automate many of this tasks after fresh windows install.
- Actions and data  for work is taken from Users.json file.  
-      
+- **SetUserSettings.ps1**
+  
+  | Parameter  | Mandatory  |Type     | Info   |
+  | :--------  | :------    | :------ | :------|
+  | *UserName*  | *true* | *string* | Name of User from *Users.json*   |
+  | *Operations* | *false* | *string[]* | If not specified, all operations will be performed; if specified, only these ones. |
+  | *ListOperations* | *false* | *switch* | Write out list of operation allowed on specified user. |
+  
+  How many times after a new installation (reinstallation) of Windows did you set it up to its usual state (install applications, change various settings, etc.)
+  This script automates some of these tasks after a new installation of Windows.
+  The actions and data for the work are taken from the Users.json file.
+  List of actions:
+  - *InstallMsvcrt* - Install all Microsoft C and C++ (MSVC) runtime libraries. No parameters.
+  - *SetRdpConnections* - Allow RDP connections to this PC.  No parameters.
+  - *GitConfig* - Config git settings (safe folders = *).  No parameters.
+  - *SetUserFolders* - Set user folders location (Documents, Pictures, Desktop, Videos, Music). Configured in *Users.json*
+    ```json
+    "params": {
+      "Folders": {
+        "Desktop": "D:\\_users\\<?UserName?>\\Desktop",
+        "Documents": "D:\\_users\\<?UserName?>\\Documents",
+        "Pictures": "D:\\_users\\<?UserName?>\\Pictures",
+        "Video": "D:\\_users\\<?UserName?>\\Videos",
+        "Music": "E:\\Music"
+      }
+    }  
+    ```
+  - *InstallApplications*  - Install aplications by winget. Array of software ids to install configured in *Users.json*
+    ```json
+    "params": {
+      "Applications": [
+        "RARLab.WinRAR",
+        "Notepad++.Notepad++",
+        "Telegram.TelegramDesktop",
+        "Microsoft.DotNet.DesktopRuntime.7",
+        "Microsoft.DotNet.AspNetCore.7",
+        "Microsoft.DotNet.Runtime.7"
+      ]
+    }
+    ```
+  - *SetMpPreference* - add exclusion folders to Windows Defender.  Array of folders to exclude, configured in *Users.json*
+    ```json
+    "params": {
+      "Items": ["D:\\_software", "D:\\work\\reverse"]
+    }    
+    ```
+  - *MakeSimLinks* - make simlinks, if simlink exist and correct do nothing.  Configured in *Users.json*
+    - *SimLinks*, type: *hashtable*. Each item *key* - source path, *value* - destination path. If the simlink exist and correct do nothing.
+      ```json
+      "SimLinks": {
+        "<?UserProfile?>\\.ssh\\config": "D:\\work\\network\\users\\bob\\.ssh\\config",
+        "<?UserProfile?>\\.ssh\\id_rsa": "D:\\work\\network\\users\\bob\\.ssh\\id_rsa",
+        "<?UserProfile?>\\.ssh\\id_rsa.pub": "D:\\work\\network\\users\\bob\\.ssh\\id_rsa.pub"
+      }
+      ```
+  - *AddRegFiles* - import reg files to registry.  Configured in *Users.json*
+    - *Items* type: *string[]* - array of relative to *"root\Windows\Registry"* folder reg file paths.
+    ```json
+    "params": {
+      "Items": [
+        "\\Explorer_Expand to current folder_ON.reg",
+        "\\Context Menu\\WIndows 11 classic context menu\\win11_classic_context_menu.reg",
+        "\\Explorer_Activate Windows Photo Viewer on Windows 10.reg",
+        "\\Explorer_Show_extensions_for_known_file_types.reg",
+        "\\Change-KeyboardToggle.reg"
+      ]
+    }    
+    ```
+  - *PrepareHosts* - add records to *C:\Windows\System32\drivers\etc* file. If the record exists do nothing.  Configured in *Users.json*.
+    ```json
+    "params": {
+      "Hosts": {
+        "Common": [
+          "127.0.0.1|compute-1.amazonaws.com",
+          "0.0.0.0|license.sublimehq.com",
+          "83.243.40.67|wiki.bash-hackers.org"
+        ],
+        "Corel": [
+          "127.0.0.1|iws.corel.com",
+          "127.0.0.1|apps.corel.com",
+          "127.0.0.1|mc.corel.com",
+          "127.0.0.1|origin-mc.corel.com",
+          "127.0.0.1|iws.corel.com",
+          "127.0.0.1|deploy.akamaitechnologies.com"
+        ]
+      }    
+    ``` 
 ### config files
   - *software.json*
     - *Name* - just item name
@@ -140,22 +222,134 @@ All scripts that can work on remote machine, uses PSSession (ssh)
     ```
     
   - *Users.json*
-    
-     List of actions:
-    - *InstallMsvcrt* - Install all Microsoft C and C++ (MSVC) runtime libraries. No parameters.
-    - *SetRdpConnections* - Config RDP connections to this PC.  No parameters.
-    - *GitConfig* - Config git settings (safe folders = *).  No parameters.
-    - *SetUserFolders* - Set user folders location (Documents, Pictures, Desktop, Videos, Music).  Parameters:
-    - *Folders*, type: *hashtable* - Each item *Key* - UserFolderName, *Value* - desirable location.
-    - *InstallApplications*  - Install aplications by winget. Parameters:
-    - *Applications*, type: *string[]* - Array of applications ids. Example:
-    - *SetMpPreference* - add exclusion folders to Windows Defender.  Parameters:
-      - *Items*,type: *string[]*  - Array of folder paths. Example:
-    - *MakeSimLinks* - make simlinks, if suimlink exist and correct do nothing.
-      - *SimLinks*,type: *hashtable*. Each item *key* - source path, *value* - destination path. If the simlink exist and correct do nothing. Example:
-    - *AddRegFiles* - import reg files to registry.
-    - *Items* type: *string[]* - array of relative to *"root\Windows\Registry"* folder reg file paths.
-    - *PrepareHosts* - add records to *C:\Windows\System32\drivers\etc* file. If the record exists do nothing.  
+    ```json
+    {
+      "UncleBob": {
+        "Default": true,
+        "Operations": {
+          "InstallMsvcrt": {
+            "order": "001",
+            "params": null
+          },
+          "InstallApplications": {
+            "order": "002",
+            "params": {
+              "Applications": [
+                "RARLab.WinRAR",
+                "--Notepad++.Notepad++",
+                "Telegram.TelegramDesktop",
+                "Logitech.GHUB",
+                "DeepL.DeepL",
+                "OpenVPNTechnologies.OpenVPN",
+                "VideoLAN.VLC",
+                "Git.Git",
+                "TortoiseGit.TortoiseGit",
+                "Microsoft.DotNet.DesktopRuntime.7",
+                "Microsoft.DotNet.AspNetCore.7",
+                "Microsoft.DotNet.Runtime.7"
+              ]
+            }
+          },
+          "SetRdpConnections": {
+            "order": "003",
+            "params": null
+          },
+          "GitConfig": {
+            "order": "004",
+            "params": null
+          },
+          "SetUserFolders": {
+            "order": "005",
+            "params": {
+              "Folders": {
+                "Desktop": "D:\\_users\\<?UserName?>\\Desktop",
+                "Documents": "D:\\_users\\<?UserName?>\\Documents",
+                "Pictures": "D:\\_users\\<?UserName?>\\Pictures",
+                "Video": "D:\\_users\\<?UserName?>\\Videos",
+                "Music": "E:\\Music"
+              }
+            }
+          },
+          "SetMpPreference": {
+            "order": "006",
+            "params": {
+              "Items": ["D:\\_software", "D:\\work\\reverse"]
+            }
+          },
+          "MakeSimLinks": {
+            "order": "008",
+            "params": {
+              "SimLinks": {
+                "<?UserProfile?>\\.ssh\\config": "D:\\work\\network\\users\\bob\\.ssh\\config",
+                "<?UserProfile?>\\.ssh\\id_rsa": "D:\\work\\network\\users\\bob\\.ssh\\id_rsa",
+                "<?UserProfile?>\\.ssh\\id_rsa.pub": "D:\\work\\network\\users\\bob\\.ssh\\id_rsa.pub"
+              }
+            }
+          },
+          "AddRegFiles": {
+            "order": "009",
+            "params": {
+              "Items": [
+                "\\Explorer_Expand to current folder_ON.reg",
+                "\\Context Menu\\WIndows 11 classic context menu\\win11_classic_context_menu.reg",
+                "\\Explorer_Activate Windows Photo Viewer on Windows 10.reg",
+                "\\Explorer_Show_extensions_for_known_file_types.reg",
+                "\\Explorer_Show_SuperHidden.reg",
+                "\\Explorer_Open_to_PC.reg",
+                "\\Change-KeyboardToggle.reg"
+              ]
+            }
+          },
+          "PrepareHosts": {
+            "order": "007",
+            "params": {
+              "Hosts": {
+                "Common": [
+                  "127.0.0.1|compute-1.amazonaws.com",
+                  "0.0.0.0|license.sublimehq.com",
+                  "83.243.40.67|wiki.bash-hackers.org"
+                ],
+                "Corel": [
+                  "127.0.0.1|iws.corel.com",
+                  "127.0.0.1|apps.corel.com",
+                  "127.0.0.1|mc.corel.com",
+                  "127.0.0.1|origin-mc.corel.com",
+                  "127.0.0.1|iws.corel.com",
+                  "127.0.0.1|deploy.akamaitechnologies.com"
+                ]
+              }
+            }
+          }
+        },
+        "StartupItems": {
+          "order": "010",
+          "UniversalMediaServer": {
+            "Path": "C:\\Program Files (x86)\\Universal Media Server\\UMS.exe",
+            "prepare": true
+          },
+          "VirtalHere": {
+            "Path": "D:\\tools\\network\\VirtualHere\\vhui64.exe",
+            "prepare": true
+          },
+          "SimpleDLNA": {
+            "Path": "D:\\software\\simpledlna\\SimpleDLNA.exe",
+            "prepare": true
+          },
+          "OpenVPN": {
+            "Path": "C:\\Program Files\\OpenVPN\\bin\\openvpn-gui.exe",
+            "--Argument": "--connect 'sean_agitech.ovpn'",
+            "prepare": true
+          },
+          "Hiddify": {
+            "Path": "D:\\software\\network\\hiddify\\Hiddify.exe",
+            "--Argument": "--connect 'sean_agitech.ovpn'",
+            "prepare": true
+          }
+        }
+      }
+    }
+    ```    
+
 
   *Substitutions* that used in Users.json:
   ```
