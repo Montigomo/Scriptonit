@@ -1,4 +1,3 @@
-#Requires -RunAsAdministrator
 [CmdletBinding(DefaultParameterSetName = 'NetworkName')]
 param (
     [Parameter(Mandatory = $false, ParameterSetName = 'NetworkName', Position = 0)]
@@ -10,9 +9,8 @@ param (
 )
 
 Set-StrictMode -Version 3.0
-#region Imports
+
 . "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network") | Out-Null
-#endregion
 
 #region ResolveHost ScanIpRangePrinters ScanIpRangePort ScanIpRangePing
 
@@ -63,43 +61,56 @@ function ScanIpRangePing {
 #endregion
 
 #region ScanNetwork
-
 function ScanNetwork {
+    [CmdletBinding(DefaultParameterSetName = 'NetworkName')]
     param (
-        [Parameter(Mandatory = $false, ParameterSetName = 'NetworkName', Position = 0)] [string]$NetworkName,
-        [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange', Position = 0)] [ipaddress]$FromIp,
-        [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange', Position = 1)] [ipaddress]$ToIp
+        [Parameter(Mandatory = $true, ParameterSetName = 'NetworkName', Position = 0)]
+        [string]$NetworkName,
+        [Parameter(Mandatory = $true, ParameterSetName = 'NetworkRange', Position = 0)]
+        [ipaddress]$FromIp,
+        [Parameter(Mandatory = $true, ParameterSetName = 'NetworkRange', Position = 1)]
+        [ipaddress]$ToIp
     )
 
-    $objects = LmGetObjects -ConfigName "Networks.$NetworkName.Scan"
-    $objects = $objects.GetEnumerator() | Sort-Object { $_.order }
 
-    foreach ($item in $objects) {
-        $ipFrom = $item.ipfrom
-        $ipTo = $item.ipto
-        $IpRange = New-IpRange -From $ipFrom -To $ipTo
+    switch ($PSCmdlet.ParameterSetName) {
+        'NetworkName' {
+            $objects = LmGetObjects -ConfigName "Networks.$NetworkName.Scan"
+            $objects = $objects.GetEnumerator() | Sort-Object { $_.order }
+        
+            foreach ($item in $objects) {
+                $ipFrom = $item.ipfrom
+                $ipTo = $item.ipto
+                $IpRange = New-IpRange -From $ipFrom -To $ipTo
+        
+                switch ($item.method) {
+                    "ping" {
+                        Write-Host "Lan: Scan by ping" -ForegroundColor DarkYellow
+                        ScanIpRangePing -IpRange $IpRange
+                        break
+                    }
+                    "port" {
+                        $port = $item.port
+                        Write-Host "Lan: Scan port $port" -ForegroundColor DarkYellow
+                        ScanIpRangePort -IpRange $IpRange -Port $port
+                        break
+                    }
+                }
+            }
+            break
+        }
+        'NetworkRange' {
 
-        switch ($item.method) {
-            "ping" {
-                Write-Host "Lan: Scan by ping" -ForegroundColor DarkYellow
-                ScanIpRangePing -IpRange $IpRange
-                break
-            }
-            "port" {
-                $port = $item.port
-                Write-Host "Lan: Scan port $port" -ForegroundColor DarkYellow
-                ScanIpRangePort -IpRange $IpRange -Port $port
-                break
-            }
+            $IpRange = New-IpRange -From $FromIp -To $ToIp
+            break
         }
     }
 }
 
 #endregion
 
-Get-ModuleAdvanced -ModuleName "PSParallel"
-
-$params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
-if ($params) {
+if ($PSBoundParameters.Count -gt 0) {
+    Get-ModuleAdvanced -ModuleName "PSParallel"    
+    $params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
     ScanNetwork @params
 }

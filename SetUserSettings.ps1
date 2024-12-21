@@ -16,7 +16,6 @@ Set-StrictMode -Version 3.0
 
 . "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "UserFolders", "Network", "UserSettings") -Force | Out-Null
 
-
 function RunOperation {
     param (
         [Parameter(Mandatory = $true)] [string]$OpName,
@@ -70,11 +69,12 @@ function SetUserSettings {
             $UserOperations = LmSortHashtableByPropertyValue -InputHashtable $UserOperations -Key "order"
         
             foreach ($key in $UserOperations.Keys) {
-                if ($Operations -and -not ($Operations.Contains($key))) {
+                # skip if specified operations list and item not in 
+                if ((-not [System.String]::IsNullOrWhiteSpace($Operations) -and $Operations -inotcontains $key)) {
                     continue
-                }
-                if (-not (TestFunction -Name $key) -or
-                    (-not [System.String]::IsNullOrWhiteSpace($Operations) -and $Operations -inotcontains $key)) {
+                }                
+                # skip if operation not a function or start with '--'
+                if (-not (TestFunction -Name $key) -or ($item.StartsWith("--"))) {
                     continue
                 }
                 $operation = $UserOperations["$key"]

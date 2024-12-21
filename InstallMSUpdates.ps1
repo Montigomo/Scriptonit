@@ -73,31 +73,6 @@ function InstallMSUpdates {
 
     Write-Host "*** Updatting $NetworkName network." -ForegroundColor DarkGreen
 
-    # $network = LmGetObjects -ConfigName "Networks.$NetworkName"
-
-    # if(-not $network){
-    #     return
-    # }
-
-    # $hosts = $network.Hosts
-
-    # $keys = $hosts.Keys
-
-    # switch ($PSCmdlet.ParameterSetName) {
-    #     'Include' {
-    #         if ($IncludeNames) {
-    #             $keys = $keys | Where-Object { $IncludeNames -icontains $_ }
-    #         }
-    #         break
-    #     }
-    #     'Exclude' {
-    #         if ($ExcludeNames) {
-    #             $keys = $keys | Where-Object { $ExcludeNames -inotcontains $_ }
-    #         }
-    #         break
-    #     }
-    # }
-
     $objects = LmGetObjects -ConfigName "Networks.$NetworkName.Hosts"
 
     if(-not $objects){
@@ -138,7 +113,7 @@ function InstallMSUpdates {
             Write-Host " Attempting to create ssh session." -ForegroundColor Blue
             $Session = New-PSSession -HostName $_ipAddress -UserName $_userName -ConnectingTimeout 30000 -ErrorAction SilentlyContinue
             if ($Session) {
-                Write-Host "Ssh session created successfully." -ForegroundColor DarkGreen  -NoNewline
+                Write-Host "Ssh session created successfully. " -ForegroundColor DarkGreen  -NoNewline
                 Write-Host "$_hostName will be updated." -ForegroundColor Blue
                 $sb = [ScriptBlock]::Create("powershell.exe -ExecutionPolicy Bypass -Command { function Get-ModuleAdvanced { ${function:Get-ModuleAdvanced} } ; Get-ModuleAdvanced -ModuleName PSWindowsUpdate}")
                 Invoke-Command  -Session $Session  -ScriptBlock $sb
