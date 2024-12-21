@@ -47,7 +47,7 @@ function SetStartupItems {
 
 }
 
-$params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
-if ($params) {
+if ($PSBoundParameters.Count -gt 0) {
+    $params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
     SetStartupItems @params
 }

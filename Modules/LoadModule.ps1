@@ -54,8 +54,7 @@ if (-not (Test-Path "variable:global:ModulesList")) {
 
 #endregion
 
-
-#region Lm functions
+#region LmGetPath LmGetLocalizedResourceName LmGetObjects LmGetParams
 
 # function LmLoadModule01 {
 #     param (
@@ -212,6 +211,10 @@ function LmGetParams {
 
     return $params
 }
+
+#endregion
+
+#region LmTestFunction LmSortHashtableByKey LmSortHashtableByPropertyValue
 
 function LmTestFunction {
     param (
@@ -388,8 +391,7 @@ function LoadModule {
 
 #endregion
 
-
-$params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
-if ($ModuleNames) {
+if ($PSBoundParameters.Count -gt 0) {
+    $params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
     LoadModule @params
 }

@@ -1,4 +1,12 @@
+[CmdletBinding()]
+param (
+    [Parameter(Mandatory = $false)]
+    [ClearType[]]$ClearType = @([ClearType]::All)
+)
+
 Set-StrictMode -Version 3.0
+
+#. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common") | Out-Null
 
 # https://winitpro.ru/index.php/2013/08/07/kak-umenshit-razmer-papki-winsxs-v-windows-8/
 # https://superuser.com/questions/1611311/how-to-delete-the-folder-c-programdata-microsoft-diagnosis-etllogs-and-stop-w
@@ -391,7 +399,7 @@ function Clear-LibreOfficeCacheFiles {
 
 #endregion
 
-function Clear-Space {
+function Clean-Garbage {
     [CmdletBinding()]
     param (
         [Parameter()][ClearType[]]$ClearType = @([ClearType]::All)
@@ -454,4 +462,7 @@ function Clear-Space {
 
 }
 
-Clear-Space
+if ($PSBoundParameters.Count -gt 0) {
+    $params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
+    Clean-Garbage @params
+}

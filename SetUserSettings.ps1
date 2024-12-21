@@ -57,15 +57,11 @@ function SetUserSettings {
     switch ($PSCmdlet.ParameterSetName) {
         'List' {
             $UserOperations = LmGetObjects -ConfigName "Users.$UserName.Operations"
-
             $UserOperations.Keys | Format-Table -AutoSize
-
             break
         }
         'Work' {
-            
             $UserOperations = LmGetObjects -ConfigName "Users.$UserName.Operations"
-
             $UserOperations = LmSortHashtableByPropertyValue -InputHashtable $UserOperations -Key "order"
         
             foreach ($key in $UserOperations.Keys) {
