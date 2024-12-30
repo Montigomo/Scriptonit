@@ -62,6 +62,9 @@ function SetUserSettings {
         }
         'Work' {
             $UserOperations = LmGetObjects -ConfigName "Users.$UserName.Operations"
+            if(-not $UserOperations){
+                return
+            }
             $UserOperations = LmSortHashtableByPropertyValue -InputHashtable $UserOperations -Key "order"
         
             foreach ($key in $UserOperations.Keys) {
@@ -70,7 +73,7 @@ function SetUserSettings {
                     continue
                 }                
                 # skip if operation not a function or start with '--'
-                if (-not (TestFunction -Name $key) -or ($item.StartsWith("--"))) {
+                if (-not (TestFunction -Name $key) -or ($key.StartsWith("--"))) {
                     continue
                 }
                 $operation = $UserOperations["$key"]

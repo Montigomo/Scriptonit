@@ -399,7 +399,7 @@ function Clear-LibreOfficeCacheFiles {
 
 #endregion
 
-function Clean-Garbage {
+function Clean-Space {
     [CmdletBinding()]
     param (
         [Parameter()][ClearType[]]$ClearType = @([ClearType]::All)

@@ -80,7 +80,7 @@ function InstallApplications {
     [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
     $arrss = (winget list --accept-source-agreements) -match '^(\p{L}|-)' | ConvertFrom-FixedColumnTable
 
-    $_idName = LmGetLocalizedResourceName -ResourceName "winget.id"
+    $_idName = "id" #LmGetLocalizedResourceName -ResourceName "winget.id"
     foreach ($item in $Applications) {
         if (-not ($arrss | Where-Object { $_."$_idName" -ieq $item }) -and (-not $item.StartsWith("--"))) {
             #if ((winget search --id "Microsoft.DotNet.DesktopRuntime" --exact) -match '^(\p{L}|-)' -ine "No package found matching input criteria.") {
