@@ -1,11 +1,13 @@
 [CmdletBinding(DefaultParameterSetName = 'NetworkName')]
 param (
-    [Parameter(Mandatory = $false, ParameterSetName = 'NetworkName', Position = 0)]
+    [Parameter(Mandatory = $false, ParameterSetName = 'NetworkName', Position = 3)]
     [string]$NetworkName,
     [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange', Position = 0)]
     [ipaddress]$FromIp,
     [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange', Position = 1)]
-    [ipaddress]$ToIp
+    [ipaddress]$ToIp,
+    [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange', Position = 2)]
+    [int] $Port         
 )
 
 Set-StrictMode -Version 3.0
@@ -32,15 +34,18 @@ function ResolveHost {
 
 function ScanIpRangePrinters {
     param(
-        [Parameter(Mandatory = $true)] [array]$IpRange
+        [Parameter(Mandatory = $true)]
+        [array]$IpRange
     )
     $IpRange | Invoke-Parallel { Test-RemotePort -ComputerName $_ -Port 9100 -TimeoutMilliSec 3000 } -ThrottleLimit 128 | Where-Object Response | Invoke-Parallel { Get-PrinterInfo -ComputerName $_.ComputerName }
 }
 
 function ScanIpRangePort {
     param(
-        [Parameter(Mandatory = $true)] [array]$IpRange,
-        [Parameter(Mandatory = $false)] [int] $Port
+        [Parameter(Mandatory = $true)]
+        [array]$IpRange,
+        [Parameter(Mandatory = $false)]
+        [int] $Port
     )
     $result = $IpRange | Invoke-Parallel { Test-RemotePort -Port $Port -IPAddress $_ -TimeoutMilliSec 1000 } -ThrottleLimit 64 | Where-Object { $_.Response }
     $result = $result | Invoke-Parallel { ResolveHost -Item $_ } -ThrottleLimit 128 
@@ -50,7 +55,8 @@ function ScanIpRangePort {
 
 function ScanIpRangePing {
     param(
-        [Parameter(Mandatory = $true)] [array]$IpRange
+        [Parameter(Mandatory = $true)]
+        [array]$IpRange
     )
     $result = $IpRange | Invoke-Parallel { Test-Ping -IPAddress $_ -TimeoutMilliSec 100 } -ThrottleLimit 128 | Where-Object { $_.Response }
     $result = $result |  Invoke-Parallel { ResolveHost -Item $_ } -ThrottleLimit 128
@@ -64,18 +70,23 @@ function ScanIpRangePing {
 function ScanNetwork {
     [CmdletBinding(DefaultParameterSetName = 'NetworkName')]
     param (
-        [Parameter(Mandatory = $true, ParameterSetName = 'NetworkName', Position = 0)]
+        [Parameter(Mandatory = $true, ParameterSetName = 'NetworkName')]
         [string]$NetworkName,
-        [Parameter(Mandatory = $true, ParameterSetName = 'NetworkRange', Position = 0)]
+        [Parameter(Mandatory = $true, ParameterSetName = 'NetworkRange')]
         [ipaddress]$FromIp,
-        [Parameter(Mandatory = $true, ParameterSetName = 'NetworkRange', Position = 1)]
-        [ipaddress]$ToIp
+        [Parameter(Mandatory = $true, ParameterSetName = 'NetworkRange')]
+        [ipaddress]$ToIp,
+        [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange')]
+        [int] $Port        
     )
 
 
     switch ($PSCmdlet.ParameterSetName) {
         'NetworkName' {
             $objects = LmGetObjects -ConfigName "Networks.$NetworkName.Scan"
+            if(-not $objects){
+                return
+            }
             $objects = $objects.GetEnumerator() | Sort-Object { $_.order }
         
             foreach ($item in $objects) {
@@ -100,8 +111,12 @@ function ScanNetwork {
             break
         }
         'NetworkRange' {
-
             $IpRange = New-IpRange -From $FromIp -To $ToIp
+            if($Port){
+                ScanIpRangePort -IpRange $IpRange -Port $port
+            }else{
+                ScanIpRangePing -IpRange $IpRange
+            }
             break
         }
     }
@@ -111,6 +126,16 @@ function ScanNetwork {
 
 if ($PSBoundParameters.Count -gt 0) {
     Get-ModuleAdvanced -ModuleName "PSParallel"    
-    $params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
-    ScanNetwork @params
+    #$params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
+
+    switch ($PSCmdlet.ParameterSetName) {
+        'NetworkName' {
+            ScanNetwork @PSBoundParameters
+            break
+        }
+        'NetworkRange' {
+            ScanNetwork @PSBoundParameters
+            break
+        }
+    }
 }
