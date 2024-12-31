@@ -56,7 +56,7 @@ All scripts that can work on remote machine, uses PSSession (ssh)
   ```
   # examples:
   . '\ScanNetwork.ps1' "192.168.1.0" "192.168.1.255" 22 - scan ip range by checking open port 22
-  . '\ScanNetwork.ps1' -NetworkName "NetworkA"
+  . '\ScanNetwork.ps1' -NetworkName "NetworkA"  - scans all ranges defined in the configuration file in the "NetworkA" section.
   ```
 
 - **SetStartupItems.ps1**
