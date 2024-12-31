@@ -45,7 +45,19 @@ All scripts that can work on remote machine, uses PSSession (ssh)
   | *IncludeNames* | *false* | *string[]* | Wol packet is sent only to specified remote hosts from network (NetworkName). |
   | *ExcludeNames* | *false* | *string[]* | Wol packet is sent to hosts on network (NetworkName), excluding those specified. |
 
-- **ScanNetwork.ps1**
+- **ScanNetwork.ps1** - scan ip range by ping or open port.
+  | Parameter  | Mandatory  |Type     | Info   |
+  | :--------  | :------    | :------ | :------|
+  | *NetworkName*  | *true* | *string* | Name of Network name from *Networks.json* section scan. The IP address range is taken from the configuration file.|
+  | *FromIp* | *true* | *ipaddress* | Start ip. |
+  | *ToIp* | *true* | *ipaddress* | End ip. |
+  | *Port* | *false* | *int* | Port number. |
+  
+  ```
+  # examples:
+  . '\ScanNetwork.ps1' "192.168.1.0" "192.168.1.255" 22 - scan ip range by checking open port 22
+  . '\ScanNetwork.ps1' -NetworkName "NetworkA"
+  ```
 
 - **SetStartupItems.ps1**
 
@@ -182,7 +194,7 @@ All scripts that can work on remote machine, uses PSSession (ssh)
     ```
   - *Network.json*  
     ```json
-      "NetworkA": {
+    "NetworkA": {
         "Default": true,
         "Hosts": {
           "UserDesktop": {
@@ -217,8 +229,37 @@ All scripts that can work on remote machine, uses PSSession (ssh)
             "wolFlag": true,
             "wolPort": 9
           }
+        },
+        "Scan": [
+        {
+          "order": "01",
+          "method": "ping",
+          "ipfrom": "192.168.1.0",
+          "ipto": "192.168.1.255"
+        },
+        {
+          "order": "02",
+          "method": "port",
+          "ipfrom": "192.168.1.0",
+          "ipto": "192.168.1.255",
+          "port": "22"
+        },
+        {
+          "order": "03",
+          "method": "port",
+          "ipfrom": "192.168.1.0",
+          "ipto": "192.168.1.255",
+          "port": "3389"
+        },
+        {
+          "order": "03",
+          "method": "port",
+          "ipfrom": "192.168.1.0",
+          "ipto": "192.168.1.255",
+          "port": "9100"
         }
-      }
+      ]
+    }
     ```
     
   - *Users.json*
