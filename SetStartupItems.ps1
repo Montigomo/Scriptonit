@@ -16,7 +16,6 @@ function ListStartupItems {
     $objects.Keys | Format-Table -AutoSize
 }
 
-
 function SetStartupItems {
     param (
         [Parameter(Mandatory = $true)] [string]$UserName,
@@ -24,6 +23,10 @@ function SetStartupItems {
     )
 
     $objects = LmGetObjects -ConfigName "Users.$UserName.StartupItems"
+
+    if(-not $objects){
+        return
+    }
 
     if (-not (Get-IsAdmin)) {
         #Start-Process pwsh  -Verb "RunAs" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File ""$PSCommandPath"""
@@ -40,7 +43,7 @@ function SetStartupItems {
             if ($objects[$key].ContainsKey("Argument")) {
                 $itemArgument = $objects[$key].Argument
             }
-            Set-StartUp -Name $key -Path $itemPath -Argument $itemArgument
+            Set-StartUpItem -Name $key -Path $itemPath -Argument $itemArgument
         }
     }
     Start-Sleep -Seconds 3  
