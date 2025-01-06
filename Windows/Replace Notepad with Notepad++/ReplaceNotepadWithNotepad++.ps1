@@ -40,3 +40,11 @@ Windows Registry Editor Version 5.00
 $tmp = New-TemporaryFile
 $regString | Out-File $tmp
 reg import $tmp.FullName
+
+# context menu
+# https://github.com/notepad-plus-plus/nppShell
+# https://npp-user-manual.org/docs/shell-extension/
+
+regsvr32.exe "$path/notepad++/contextmenu/NppShell.dll"
+
+#regsvr32.exe  /U "$path/notepad++/contextmenucNppShell.dll"

@@ -7,7 +7,7 @@ Set-StrictMode -Version 3.0
 #     [Parameter(Mandatory=$false)] [System.Array] public keys for write to authorized_keys
 # .NOTES
 #     Author: Agitech; Version: 1.00.07
-function Set-OpenSsh {  
+function SetOpenSsh {  
     param(
         [Parameter(Mandatory = $false)] [System.Array]$PublicKeys
     )
@@ -20,9 +20,7 @@ function Set-OpenSsh {
         Start-Service ssh-agent
     }
 
-    $sshConfigFile = "$env:ProgramData/ssh/sshd_config"
-
-    CheckSshdConfig -SshdConfigPath $sshConfigFile
+    CheckSshdConfig
 
     if ($PublicKeys) {
         $sshAuKeyPathItems = @{

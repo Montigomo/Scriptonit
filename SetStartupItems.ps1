@@ -4,6 +4,8 @@ param (
     [Parameter(Mandatory = $false)] [array]$StartupItems
 )
 
+Set-StrictMode -Version 3.0
+
 . "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common") | Out-Null
 
 function ListStartupItems {

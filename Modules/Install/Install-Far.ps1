@@ -40,6 +40,7 @@ function Install-Far {
     Write-Host "LocalVersion: $localVersion; RemoteVersion: $remoteVersion" -ForegroundColor DarkYellow
 
     if (($localVersion -lt $remoteVersion) -and ($downloadUri)) {
+        Write-Host "Let's install version $remoteVersion" -ForegroundColor DarkYellow
         $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'msi' } -PassThru
         Invoke-WebRequest -Uri $downloadUri -OutFile $tmp
         Invoke-MsiPackage -MsiPackagePath $tmp.FullName -PackageOptions "ADDLOCAL=ALL" -IsWait

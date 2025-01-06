@@ -51,13 +51,17 @@ function Install-Powershell {
 
     if ($item) {
         
-        $remoteVersion =$item.Version
+        $remoteVersion = $item.Version
         $downloadUri = $item.Url
-        Write-Host "Updating pwsh. Local version $localVersion  Remote version $remoteVersion." -ForegroundColor DarkGreen
-        $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'msi' } -PassThru
-        Invoke-WebRequest -OutFile $tmp $downloadUri
 
-        Invoke-MsiPackage -MsiPackagePath $tmp.FullName -PackageOptions $packageOptions -IsWait:$msiIsWait       
+        if ($remoteVersion -gt $localVersion) {
 
+            Write-Host "Updating pwsh. Local version $localVersion  Remote version $remoteVersion." -ForegroundColor DarkGreen
+            
+            $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'msi' } -PassThru
+            Invoke-WebRequest -OutFile $tmp $downloadUri
+
+            Invoke-MsiPackage -MsiPackagePath $tmp.FullName -PackageOptions $packageOptions -IsWait:$msiIsWait       
+        }
     }
 }

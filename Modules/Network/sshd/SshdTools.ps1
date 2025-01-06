@@ -284,7 +284,7 @@ enum ServiceAction {
     Restart
 }
 
-function Set-Service {
+function SetService {
     param (
         [Parameter(Mandatory=$true)][ServiceAction]$Names,
         [Parameter(Mandatory=$false)][ServiceAction]$Action = [ServiceAction]::Start
