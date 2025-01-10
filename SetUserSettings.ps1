@@ -34,13 +34,6 @@ function RunOperation {
     #Invoke-Expression "$OpName $Arguments"
 }
 
-function ListOperations {
-    param (
-        [Parameter(Mandatory = $true)] [string]$UserName,
-        [Parameter(Mandatory = $false)] [array]$Operations
-    )
-}
-
 function SetUserSettings {
     [CmdletBinding(DefaultParameterSetName = 'Work')]    
     param (

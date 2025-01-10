@@ -52,7 +52,7 @@ function Install-OpenSsh {
         $remoteVersion = $item.Version
         Write-Host "LocalVersion: $localVersion; RemoteVersion: $remoteVersion" -ForegroundColor DarkYellow        
         if ($remoteVersion -gt $localVersion -or $Force) {
-            Write-Host "Let's install version $remoteVersion" -ForegroundColor DarkYellow
+            Write-Host "Let's install version $remoteVersion" -ForegroundColor DarkGreen
             if ($UseZip) {
                 # prepare
                 $services = @("sshd", "ssh-agent")
