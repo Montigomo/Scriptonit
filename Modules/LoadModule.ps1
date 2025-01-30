@@ -189,11 +189,11 @@ function LmGetObjects {
 
 function LmGetParams {
     param (
-        [Parameter(Mandatory = $true)] [hashtable]$InvParams,
+        [Parameter(Mandatory = $true)] [hashtable]$InvocationParams,
         [Parameter(Mandatory = $true)] [hashtable]$PSBoundParams
     )
     $params = $null
-    foreach ($h in $InvParams.GetEnumerator()) {
+    foreach ($h in $InvocationParams.GetEnumerator()) {
         try {
             $key = $h.Key
             $val = Get-Variable -Name $key -ErrorAction Stop | Select-Object -ExpandProperty Value -ErrorAction Stop
@@ -392,6 +392,6 @@ function LoadModule {
 #endregion
 
 if ($PSBoundParameters.Count -gt 0) {
-    $params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
+    $params = LmGetParams -InvocationParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
     LoadModule @params
 }

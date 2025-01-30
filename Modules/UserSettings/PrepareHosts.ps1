@@ -23,7 +23,7 @@ function PrepareHosts {
     param (
         [Parameter(Mandatory = $true)][hashtable]$Hosts
     )
-    Write-Host "[PrepareHosts] started ..." -ForegroundColor Green
+    Write-Host "[PrepareHosts] started ..." -ForegroundColor DarkYellow
 
     foreach ($key in $Hosts.Keys) {
         Write-Host "[PrepareHosts] Adding group: $key" -ForegroundColor DarkGreen

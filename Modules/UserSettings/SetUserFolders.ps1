@@ -11,7 +11,7 @@ function SetUserFolders {
     # https://stackoverflow.com/questions/25049875/getting-any-special-folder-path-in-powershell-using-folder-guid/25094236#25094236
     # https://renenyffenegger.ch/notes/Windows/dirs/_known-folders
   
-    Write-Host "[SetUserFolders] started ..." -ForegroundColor Green
+    Write-Host "[SetUserFolders] started ..." -ForegroundColor DarkYellow
 
     #$userName = [Environment]::UserName
 
@@ -82,12 +82,20 @@ function SetUserFolders {
             Write-Host "Destination - " -NoNewline -ForegroundColor DarkYellow
             Write-Host "$Destination. "  -NoNewline -ForegroundColor DarkGreen
             if ($Destination -ine $Location) {
-                Write-Host "Location changes to $Destination." -ForegroundColor DarkGreen
-                New-Item -ItemType Directory -Force -Path $Destination | Out-Null
+                Write-Host "Location changes to " -NoNewline -ForegroundColor DarkYellow
+                Write-Host "$Destination." -ForegroundColor DarkGreen
+                New-Item -ItemType Directory -Force -Path $Destination -ErrorAction SilentlyContinue | Out-Null
+                #$Error.ForEach('ToString')
+                if(-not (Test-Path $Destination)){
+                    Write-Host "Path $Destination doesn't exisit." -ForegroundColor Red
+                    #Write-Host "$Destination." -ForegroundColor DarkGreen
+                    continue
+                }
                 [KnownFolder]::SetKnownFolderPath($GUID, $Destination) | Out-Null
                 $Location = [KnownFolder]::GetKnownFolderPath($GUID)
                 if ($Location -ieq $Destination) {
-                    Write-Host "Folder $FolderName location changed to $Destination" -ForegroundColor DarkGreen
+                    Write-Host "Folder $FolderName location changed to " -NoNewline -ForegroundColor DarkYellow
+                    Write-Host "$Destination." -ForegroundColor DarkGreen
                 }
                 else {
                     Write-Host "Can't change folder $FolderName location to $Destination" -ForegroundColor Red

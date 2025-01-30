@@ -5,7 +5,7 @@ function SetMpPreference {
         [Parameter(Mandatory = $true)][array]$Items
     )
 
-    Write-Host "[SetMpPreference] started ..." -ForegroundColor Green
+    Write-Host "[SetMpPreference] started ..." -ForegroundColor DarkYellow
 
     $mp = (Get-MpPreference)
     $o = $mp.ExclusionPath

@@ -5,7 +5,7 @@ function SetRdpConnections {
         [Parameter(Mandatory = $false)][switch]$Disable
     )
 
-    Write-Host "[SetRdpConnections] started ..." -ForegroundColor Green
+    Write-Host "[SetRdpConnections] started ..." -ForegroundColor DarkYellow
 
     $resName = LmGetLocalizedResourceName -ResourceName "NetFirewal.DisplayGroup.Remote Desktop"
 

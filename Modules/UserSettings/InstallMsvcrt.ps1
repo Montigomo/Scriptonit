@@ -2,7 +2,7 @@ Set-StrictMode -Version 3.0
 
 function InstallMsvcrt {
 
-    Write-Host "[InstallMsvcrt] started ..." -ForegroundColor Green
+    Write-Host "[InstallMsvcrt] started ..." -ForegroundColor DarkYellow
     
     $items = @(
         "Microsoft.VCRedist.2015+.x86"

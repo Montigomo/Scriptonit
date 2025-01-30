@@ -5,7 +5,7 @@ function MakeSimLinks {
         [Parameter(Mandatory = $true)][hashtable]$SimLinks
     )
 
-    Write-Host "[MakeSimLinks] started ..." -ForegroundColor Green
+    Write-Host "[MakeSimLinks] started ..." -ForegroundColor DarkYellow
 
 
     foreach ($key in $SimLinks.Keys) {

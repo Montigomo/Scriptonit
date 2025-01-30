@@ -30,7 +30,7 @@ function AddRegFiles {
         [Parameter(Mandatory = $false)][string]$Folder = "$PSScriptRoot\..\..\Windows\Registry"
     )
 
-    Write-Host "[AddRegFiles] started ..." -ForegroundColor Green
+    Write-Host "[AddRegFiles] started ..." -ForegroundColor DarkYellow
 
     foreach ($item in $Items) {
         $filePath = "$Folder{0}" -f $item

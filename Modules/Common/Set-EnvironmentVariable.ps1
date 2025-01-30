@@ -31,10 +31,10 @@ function Set-EnvironmentVariable {
   
     switch ($Action) {        
         "Add" {
-            $items = [Environment]::GetEnvironmentVariable($Name, $Scope)
-            #.Split(";")
+            $items = [Environment]::GetEnvironmentVariable($Name, $Scope).Split(";")
             if (!($items.Contains($Value))) {
-                $NewItem = $items + ";$Value"
+                $items = $items + "$Value"
+                $NewItem = $items -join ";"
                 [Environment]::SetEnvironmentVariable($Name, $NewItem, $Scope)
             }
         }

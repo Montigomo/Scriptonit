@@ -75,16 +75,22 @@ function InstallApplications {
         [Parameter(Mandatory = $true)][array]$Applications
     )
 
-    Write-Host "[InstallApplications] started ..." -ForegroundColor Green
+    Write-Host "[InstallApplications] started ..." -ForegroundColor DarkYellow
   
     [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
     $arrss = (winget list --accept-source-agreements) -match '^(\p{L}|-)' | ConvertFrom-FixedColumnTable
 
     $_idName = "id" #LmGetLocalizedResourceName -ResourceName "winget.id"
     foreach ($item in $Applications) {
-        if (-not ($arrss | Where-Object { $_."$_idName" -ieq $item }) -and (-not $item.StartsWith("--"))) {
+        if( $item.StartsWith("--")){
+            continue
+        }
+        if (-not ($arrss | Where-Object { $_."$_idName" -ieq $item })) {
             #if ((winget search --id "Microsoft.DotNet.DesktopRuntime" --exact) -match '^(\p{L}|-)' -ine "No package found matching input criteria.") {
             winget install --id "$item" --exact --source winget --silent
+        }
+        else {
+            Write-Host "[InstallApplications] application $item already installed." -ForegroundColor DarkYellow
         }
     }
 

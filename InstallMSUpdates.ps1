@@ -102,6 +102,6 @@ function InstallMSUpdates {
 }
 
 if ($PSBoundParameters.Count -gt 0) {
-    $params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
+    $params = LmGetParams -InvocationParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
     InstallMSUpdates @params
 }
