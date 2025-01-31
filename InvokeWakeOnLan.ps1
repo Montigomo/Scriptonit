@@ -61,6 +61,7 @@ function InvokeWakeOnLan {
 
 
 if ($PSBoundParameters.Count -gt 0) {
-    $params = LmGetParams -InvocationParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
+    #$params = LmGetParams -InvocationParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
+    $params = $PSCmdlet.MyInvocation.BoundParameters
     InvokeWakeOnLan @params
 }

@@ -1,12 +1,12 @@
 [CmdletBinding(DefaultParameterSetName = 'NetworkName')]
 param (
-    [Parameter(Mandatory = $false, ParameterSetName = 'NetworkName', Position = 3)]
+    [Parameter(Mandatory = $false, ParameterSetName = 'NetworkName')]
     [string]$NetworkName,
-    [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange', Position = 0)]
+    [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange')]
     [ipaddress]$FromIp,
-    [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange', Position = 1)]
+    [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange')]
     [ipaddress]$ToIp,
-    [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange', Position = 2)]
+    [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange')]
     [int] $Port         
 )
 
@@ -70,21 +70,21 @@ function ScanIpRangePing {
 function ScanNetwork {
     [CmdletBinding(DefaultParameterSetName = 'NetworkName')]
     param (
-        [Parameter(Mandatory = $true, ParameterSetName = 'NetworkName')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'NetworkName')]
         [string]$NetworkName,
-        [Parameter(Mandatory = $true, ParameterSetName = 'NetworkRange')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange')]
         [ipaddress]$FromIp,
-        [Parameter(Mandatory = $true, ParameterSetName = 'NetworkRange')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange')]
         [ipaddress]$ToIp,
         [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange')]
-        [int] $Port        
+        [int] $Port         
     )
 
 
     switch ($PSCmdlet.ParameterSetName) {
         'NetworkName' {
             $objects = LmGetObjects -ConfigName "Networks.$NetworkName.Scan"
-            if(-not $objects){
+            if (-not $objects) {
                 return
             }
             $objects = $objects.GetEnumerator() | Sort-Object { $_.order }
@@ -112,9 +112,10 @@ function ScanNetwork {
         }
         'NetworkRange' {
             $IpRange = New-IpRange -From $FromIp -To $ToIp
-            if($Port){
+            if ($Port) {
                 ScanIpRangePort -IpRange $IpRange -Port $port
-            }else{
+            }
+            else {
                 ScanIpRangePing -IpRange $IpRange
             }
             break
@@ -127,15 +128,7 @@ function ScanNetwork {
 if ($PSBoundParameters.Count -gt 0) {
     Get-ModuleAdvanced -ModuleName "PSParallel"    
     #$params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
-
-    switch ($PSCmdlet.ParameterSetName) {
-        'NetworkName' {
-            ScanNetwork @PSBoundParameters
-            break
-        }
-        'NetworkRange' {
-            ScanNetwork @PSBoundParameters
-            break
-        }
-    }
+    $params = $PSCmdlet.MyInvocation.BoundParameters
+    ScanNetwork @params
+    break
 }
