@@ -7,7 +7,7 @@ param (
     [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange')]
     [ipaddress]$ToIp,
     [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange')]
-    [int] $Port         
+    [int] $Port
 )
 
 Set-StrictMode -Version 3.0
@@ -48,7 +48,7 @@ function ScanIpRangePort {
         [int] $Port
     )
     $result = $IpRange | Invoke-Parallel { Test-RemotePort -Port $Port -IPAddress $_ -TimeoutMilliSec 1000 } -ThrottleLimit 64 | Where-Object { $_.Response }
-    $result = $result | Invoke-Parallel { ResolveHost -Item $_ } -ThrottleLimit 128 
+    $result = $result | Invoke-Parallel { ResolveHost -Item $_ } -ThrottleLimit 128
     $result = $result | Select-Object -Property IPAddress, Port, Response, ComputerName | Sort-Object { $_.IPAddress -replace '\d+', { $_.Value.PadLeft(3, '0') } }
     $result | Format-Table -Wrap -AutoSize
 }
@@ -61,7 +61,7 @@ function ScanIpRangePing {
     $result = $IpRange | Invoke-Parallel { Test-Ping -IPAddress $_ -TimeoutMilliSec 100 } -ThrottleLimit 128 | Where-Object { $_.Response }
     $result = $result |  Invoke-Parallel { ResolveHost -Item $_ } -ThrottleLimit 128
     $result = $result | Select-Object -Property IPAddress, Port, Response, ComputerName | Sort-Object { $_.IPAddress -replace '\d+', { $_.Value.PadLeft(3, '0') } }
-    $result | Format-Table -Wrap -AutoSize 
+    $result | Format-Table -Wrap -AutoSize
 }
 
 #endregion
@@ -77,7 +77,7 @@ function ScanNetwork {
         [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange')]
         [ipaddress]$ToIp,
         [Parameter(Mandatory = $false, ParameterSetName = 'NetworkRange')]
-        [int] $Port         
+        [int] $Port
     )
 
 
@@ -88,12 +88,12 @@ function ScanNetwork {
                 return
             }
             $objects = $objects.GetEnumerator() | Sort-Object { $_.order }
-        
+
             foreach ($item in $objects) {
                 $ipFrom = $item.ipfrom
                 $ipTo = $item.ipto
                 $IpRange = New-IpRange -From $ipFrom -To $ipTo
-        
+
                 switch ($item.method) {
                     "ping" {
                         Write-Host "Lan: Scan by ping" -ForegroundColor DarkYellow
@@ -126,8 +126,7 @@ function ScanNetwork {
 #endregion
 
 if ($PSBoundParameters.Count -gt 0) {
-    Get-ModuleAdvanced -ModuleName "PSParallel"    
-    #$params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
+    Get-ModuleAdvanced -ModuleName "PSParallel"
     $params = $PSCmdlet.MyInvocation.BoundParameters
     ScanNetwork @params
     break

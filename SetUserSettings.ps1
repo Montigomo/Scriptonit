@@ -4,12 +4,15 @@
 [CmdletBinding(DefaultParameterSetName = 'Work')]
 param (
     [Parameter(Mandatory = $false, ParameterSetName = 'Work')]
-    [Parameter(Mandatory = $false, ParameterSetName = 'List')]    
+    [Parameter(Mandatory = $false, ParameterSetName = 'ListOperations')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'ListUsers')]
     [string]$UserName,
     [Parameter(Mandatory = $false, ParameterSetName = 'Work')]
     [array]$Operations,
-    [Parameter(Mandatory = $false, ParameterSetName = 'List')]    
-    [switch]$ListOperations
+    [Parameter(Mandatory = $false, ParameterSetName = 'ListOperations')]
+    [switch]$ListOperations,
+    [Parameter(Mandatory = $false, ParameterSetName = 'ListUsers')]
+    [switch]$ListUsers
 )
 
 Set-StrictMode -Version 3.0
@@ -34,10 +37,14 @@ function RunOperation {
     #Invoke-Expression "$OpName $Arguments"
 }
 
+function ListUsers {
+    $objects = LmGetObjects -ConfigName "Users"
+    $objects | Format-Table -AutoSize
+}
 
-function ListUserSettings {
+function ListUserOperations {
     param (
-        [Parameter(Mandatory = $true)]    
+        [Parameter(Mandatory = $true)]
         [string]$UserName
     )
 
@@ -61,12 +68,12 @@ function SetUserSettings {
     }
 
     $objects = LmSortHashtableByPropertyValue -InputHashtable $objects -Key "order"
-        
+
     foreach ($key in $objects.Keys) {
-        # skip if specified operations list and item not in 
+        # skip if specified operations list and item not in
         if ((-not [System.String]::IsNullOrWhiteSpace($Operations) -and $Operations -inotcontains $key)) {
             continue
-        }                
+        }
         # skip if operation not a function or start with '--'
         if (-not (TestFunction -Name $key) -or ($key.StartsWith("--"))) {
             continue
@@ -83,16 +90,22 @@ function SetUserSettings {
 }
 
 if ($PSBoundParameters.Count -gt 0) {
-    #$params = LmGetParams -InvocationParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
-    $params = $PSCmdlet.MyInvocation.BoundParameters
+    $params = $PSBoundParameters
     switch ($PSCmdlet.ParameterSetName) {
         'Work' {
             SetUserSettings @params
             break
         }
-        'List' {
+        'ListOperations' {
             $params.Remove("ListOperations") | Out-Null
-            ListUserSettings @params
+            $params.Remove("ListUsers") | Out-Null
+            ListUserOperations @params
+            break
+        }
+        'ListUsers' {
+            $params.Remove("ListOperations") | Out-Null
+            $params.Remove("ListUsers") | Out-Null
+            ListUsers @params
             break
         }
     }

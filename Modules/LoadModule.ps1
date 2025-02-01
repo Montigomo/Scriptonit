@@ -12,7 +12,7 @@ $TypeParam = @{
     TypeName   = 'System.Array'
     MemberType = 'ScriptMethod'
     MemberName = 'ArrContainsName'
-    Value      = { 
+    Value      = {
         Param($Name)
         #return ($this.BinarySearch($Name, [ObjComparer]::new()) -ge 0)
         if (-not $this) {
@@ -28,7 +28,7 @@ $TypeParam = @{
     TypeName   = 'System.Array'
     MemberType = 'ScriptMethod'
     MemberName = 'ArrFindName'
-    Value      = { 
+    Value      = {
         Param($Name)
         #return ($this.BinarySearch($Name, [ObjComparer]::new()) -ge 0)
         return ([System.Array]::Find($this, [Predicate[pscustomobject]] { param($s)$s.Name -eq $Name }))
@@ -62,14 +62,14 @@ if (-not (Test-Path "variable:global:ModulesList")) {
 #     )ModuleName
 
 #     $ChildPath = $ModuleName.Replace(".", "\")
-    
+
 #     $LibraryPath = (Join-Path $LibraryBaseFolder $ChildPath) | Resolve-Path
 
 #     if (-not (Test-Path -Path $LibraryPath)) {
 #         Write-Host "Library $ModuleName not found." -ForegroundColor DarkYellow
 #         return
 #     }
-    
+
 #     $items = Get-ChildItem -Path $LibraryPath -Filter "*.ps1"
 
 #     foreach ($item in $items) {
@@ -98,7 +98,7 @@ function LmGetPath {
     $rr = (Get-PSCallStack)[1].Command
 
     if (-not $m001.Success) {
-        
+
     }
     else {
         $ind = $m001.Index + $m001.Length
@@ -132,7 +132,7 @@ function LmGetLocalizedResourceName {
             $pointer = $pointer[$_key]
         }
     }
-    
+
     if ($pointer -eq $objects) {
         $pointer = $null
     }
@@ -163,27 +163,30 @@ function LmGetObjects {
         return
     }
 
-    $array = $array[1..($array.length - 1)]
-
     $jsonConfigString = Get-Content $jsonConfigPath | Out-String
 
     $found = $false
-    
-    [hashtable]$objects = ConvertFrom-Json -InputObject $jsonConfigString -AsHashtable -Depth 256
-    $object = $objects
-    for ($i = 0; $i -lt $array.Count; $i++) {
-        $_key = $array[$i]
-        if ($object.ContainsKey($_key)) {
-            $found = $true
-            $object = $object[$_key]
+
+    [hashtable]$object = ConvertFrom-Json -InputObject $jsonConfigString -AsHashtable -Depth 256
+
+    if ($array.Length -gt 1) {
+        $array = $array[1..($array.length - 1)]
+
+        for ($i = 0; $i -lt $array.Count; $i++) {
+            $_key = $array[$i]
+            if ($object.ContainsKey($_key)) {
+                $found = $true
+                $object = $object[$_key]
+            }
+
         }
 
+        if (-not $found) {
+            Write-Host "Object $ConfigName not fiound." -ForegroundColor DarkYellow
+            return $null
+        }
     }
 
-    if (-not $found) {
-        Write-Host "Object $ConfigName not fiound." -ForegroundColor DarkYellow
-        return $null
-    }
     return $object
 }
 
@@ -227,7 +230,7 @@ function LmSortHashtableByKey {
     param (
         [Parameter()][hashtable]$InputHashtable
     )
-    
+
     $_shash = [System.Collections.Specialized.OrderedDictionary]@{}
 
     foreach ($key in $InputHashtable.Keys | Sort-Object) {
@@ -267,7 +270,7 @@ function LmScanModule {
     )
 
     $ChildPath = $ModuleFullName.Replace("$ModulePrefix.", "").Replace(".", "\")
-    
+
     $LibraryPath = (Join-Path $LibraryBaseFolder $ChildPath) | Resolve-Path
 
     $items = Get-ChildItem -Path "$LibraryPath" -Filter "*.ps1"
@@ -317,7 +320,7 @@ function LmLoadModule {
     Write-Host "Loading module $ModuleFullName" -ForegroundColor DarkGreen
 
     $ChildPath = $ModuleFullName.Replace("$ModulePrefix.", "").Replace(".", "\")
-    
+
     $LibraryPath = (Join-Path $LibraryBaseFolder $ChildPath) | Resolve-Path
 
     $items = Get-ChildItem -Path "$LibraryPath" -Filter "*.ps1"
@@ -385,13 +388,13 @@ function LoadModule {
             }
             LmLoadModule -ModuleFullName $ModuleFullName
         }
-        
+
     }
 }
 
 #endregion
 
 if ($PSBoundParameters.Count -gt 0) {
-    $params = LmGetParams -InvocationParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
+    $params = LmGetParams -InvocationParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
     LoadModule @params
 }
