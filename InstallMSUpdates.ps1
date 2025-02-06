@@ -9,7 +9,11 @@ param (
     [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
     [string[]]$IncludeNames,
     [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
-    [string[]]$ExcludeNames
+    [string[]]$ExcludeNames,
+    [Parameter(Mandatory = $true, ParameterSetName = 'SimplePC')]
+    [string]$IpAddress,
+    [Parameter(Mandatory = $true, ParameterSetName = 'SimplePC')]
+    [string]$LoginName
 )
 
 Set-StrictMode -Version 3.0
@@ -21,57 +25,30 @@ function InstallMSUpdatesStub {
     Import-Module "PSWindowsUpdate"
 
     #$scriptBlock = "&{ Get-WindowsUpdate -Criteria 'isinstalled=0 and deploymentaction=*' -Install -Download  -AutoReboot -AcceptAll } 2>&1 > 'C:\Windows\PSWindowsUpdate.log'"
-    
+
     $scriptBlock = "&{ Get-WindowsUpdate -Install -Download  -AutoReboot -AcceptAll } 2>&1 > 'C:\Windows\PSWindowsUpdate.log'"
-    
+
     Get-WindowsUpdate -Criteria "isinstalled=0 and deploymentaction=*" -AcceptAll | Format-Table -Property Status, Size, KB, Title
-    
+
     Invoke-WUJob -Script $scriptBlock -RunNow -Confirm:$false -Verbose
 
 }
 
-function InstallMSUpdates {
-    [CmdletBinding(DefaultParameterSetName = 'Include')]
+function InstallMSUpdates_inner {
     param (
-        [Parameter(Mandatory = $true, ParameterSetName = 'Include')]
-        [Parameter(Mandatory = $true, ParameterSetName = 'Exclude')]
-        [string]$NetworkName,
-        [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
-        [string[]]$IncludeNames,
-        [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
-        [string[]]$ExcludeNames
+        [Parameter(Mandatory = $true)]
+        [array]$objects
     )
 
-    Write-Host "*** Updatting $NetworkName network." -ForegroundColor DarkGreen
-
-    $objects = LmGetObjects -ConfigName "Networks.$NetworkName.Hosts"
-
-    if(-not $objects){
-        return
-    }
-
-    $objects = $objects.GetEnumerator()
-
-    switch ($PSCmdlet.ParameterSetName) {
-        'Include' {
-            if ($IncludeNames) {
-                $objects = $objects | Where-Object { $IncludeNames -icontains $_.Key}
-            }
-            break
-        }
-        'Exclude' {
-            if ($ExcludeNames) {
-                $objects = $objects | Where-Object { $ExcludeNames -inotcontains $_.Key }
-            }
-            break
-        }
-    }
-
     foreach ($object in $objects) {
-        $_hostName = $object.Key
-        $_ipAddress = $object.Value["ip"]
-        $_userName = $object.Value["username"]
-        $_prepare = $object.Value["WUFlag"]
+        $_hostName = $object["HostName"]
+        $_ipAddress = $object["ip"]
+        $_userName = $object["username"]
+        $_prepare = $object["WUFlag"]
+
+        if(-not $_hostName){
+            $_hostName = $_ipAddress
+        }
 
         if (-not $_prepare) {
             continue
@@ -99,6 +76,57 @@ function InstallMSUpdates {
             Write-Host "$_hostName is offline" -ForegroundColor DarkRed
         }
     }
+}
+
+
+function InstallMSUpdates {
+    [CmdletBinding(DefaultParameterSetName = 'Include')]
+    param (
+        [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
+        [string]$NetworkName,
+        [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
+        [string[]]$IncludeNames,
+        [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
+        [string[]]$ExcludeNames,
+        [Parameter(Mandatory = $true, ParameterSetName = 'SimplePC')]
+        [string]$IpAddress,
+        [Parameter(Mandatory = $true, ParameterSetName = 'SimplePC')]
+        [string]$LoginName
+    )
+
+    if ($PSCmdlet.ParameterSetName -eq 'Include' -or $PSCmdlet.ParameterSetName -eq 'Exclude' ) {
+        Write-Host "*** Updatting $NetworkName network." -ForegroundColor DarkGreen
+
+        $objects = LmGetObjects -ConfigName "Networks.$NetworkName.Hosts"
+
+        if (-not $objects) {
+            return
+        }
+
+        $objects = $objects.GetEnumerator()
+    }
+
+    switch ($PSCmdlet.ParameterSetName) {
+        'Include' {
+            if ($IncludeNames) {
+                $objects = $objects | Where-Object { $IncludeNames -icontains $_.Key }
+            }
+            break
+        }
+        'Exclude' {
+            if ($ExcludeNames) {
+                $objects = $objects | Where-Object { $ExcludeNames -inotcontains $_.Key }
+            }
+            break
+        }
+        'SimplePC' {
+            $objects = @(@{"ip" = $IpAddress; "username" = $LoginName; "WUFlag" = $true })
+        }
+    }
+
+    InstallMSUpdates_inner -objects $objects
+
 }
 
 if ($PSBoundParameters.Count -gt 0) {

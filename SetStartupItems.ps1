@@ -34,11 +34,12 @@ function SetStartupItems {
         #Start-Process pwsh  -Verb "RunAs" -ArgumentList "-NoProfile -ExecutionPolicy Bypass -File ""$PSCommandPath"""
         return
     }
-    
+
     foreach ($key in $objects.Keys) {
         if($StartupItems -and ($StartupItems -notcontains $key)){
             continue
-        }        
+        }
+        $key
         if ($StartupItems -or $objects[$key].prepare) {
             $itemPath = $objects[$key].Path
             $itemArgument = $null
@@ -48,7 +49,7 @@ function SetStartupItems {
             Set-StartUpItem -Name $key -Path $itemPath -Argument $itemArgument
         }
     }
-    Start-Sleep -Seconds 3  
+    Start-Sleep -Seconds 3
 
 }
 

@@ -167,7 +167,7 @@ function LmGetObjects {
 
     $found = $false
 
-    [hashtable]$object = ConvertFrom-Json -InputObject $jsonConfigString -AsHashtable -Depth 256
+    $object = ConvertFrom-Json -InputObject $jsonConfigString -AsHashtable -Depth 256
 
     if ($array.Length -gt 1) {
         $array = $array[1..($array.length - 1)]
@@ -395,6 +395,6 @@ function LoadModule {
 #endregion
 
 if ($PSBoundParameters.Count -gt 0) {
-    $params = LmGetParams -InvocationParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters
+    $params = $PSBoundParameters
     LoadModule @params
 }

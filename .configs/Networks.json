@@ -1,8 +1,9 @@
 {
   "NetworkA": {
     "Default": true,
-    "Hosts": {
-      "UserDesktop": {
+    "Hosts": [
+      {
+        "HostName": "UserDesktop",
         "ip": "192.168.1.100",
         "username": "usera@outlook.com",
         "WUFlag": true,
@@ -10,7 +11,8 @@
         "wolFlag": true,
         "wolPort": 9
       },
-      "UserLaptop": {
+      {
+        "HostName": "UserLaptop",
         "ip": "192.168.1.105",
         "username": "userb@outlook.com",
         "WUFlag": true,
@@ -18,7 +20,8 @@
         "wolFlag": true,
         "wolPort": 9
       },
-      "UserLenovo": {
+      {
+        "HostName": "UserLenovo",
         "ip": "192.168.1.110",
         "username": "userb@outlook.com",
         "WUFlag": true,
@@ -26,7 +29,8 @@
         "wolFlag": true,
         "wolPort": 9
       },
-      "UserBeelink": {
+      {
+        "HostName": "UserBeelink",
         "ip": "192.168.1.102",
         "username": "userc@outlook.com",
         "WUFlag": true,
@@ -34,12 +38,13 @@
         "wolFlag": true,
         "wolPort": 9
       }
-    }
+    ]
   },
   "NetworkB": {
     "Default": false,
-    "Hosts": {
-      "NetworkBAdmin": {
+    "Hosts": [
+      {
+        "HostName": "NetworkBAdmin",
         "ip": "192.168.10.70",
         "username": "uuuu@outlook.com",
         "WUFlag": true,
@@ -47,7 +52,8 @@
         "wolFlag": true,
         "wolPort": 9
       },
-      "NetworkBAdvokat": {
+      {
+        "HostName": "NetworkBAdvokat",
         "ip": "192.168.10.92",
         "username": "user",
         "WUFlag": true,
@@ -55,7 +61,7 @@
         "wolFlag": true,
         "wolPort": 9
       }
-    },
+    ],
     "Scan": [
       {
         "order": "01",
