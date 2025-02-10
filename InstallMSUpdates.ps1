@@ -103,8 +103,6 @@ function InstallMSUpdates {
         if (-not $objects) {
             return
         }
-
-        $objects = $objects.GetEnumerator()
     }
 
     switch ($PSCmdlet.ParameterSetName) {
