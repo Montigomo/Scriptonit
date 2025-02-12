@@ -108,19 +108,23 @@ function InstallMSUpdates {
     switch ($PSCmdlet.ParameterSetName) {
         'Include' {
             if ($IncludeNames) {
-                $objects = $objects | Where-Object { $IncludeNames -icontains $_.Key }
+                $objects = $objects | Where-Object { $IncludeNames -icontains $_.HostName }
             }
             break
         }
         'Exclude' {
             if ($ExcludeNames) {
-                $objects = $objects | Where-Object { $ExcludeNames -inotcontains $_.Key }
+                $objects = $objects | Where-Object { $ExcludeNames -inotcontains $_.HostName }
             }
             break
         }
         'SimplePC' {
             $objects = @(@{"ip" = $IpAddress; "username" = $LoginName; "WUFlag" = $true })
         }
+    }
+
+    if (-not $objects) {
+        return
     }
 
     InstallMSUpdates_inner -objects $objects
