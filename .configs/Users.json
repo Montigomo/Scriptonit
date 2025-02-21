@@ -101,31 +101,6 @@
           }
         }
       }
-    },
-    "StartupItems": {
-      "order": "010",
-      "UniversalMediaServer": {
-        "Path": "C:\\Program Files (x86)\\Universal Media Server\\UMS.exe",
-        "prepare": true
-      },
-      "VirtalHere": {
-        "Path": "D:\\tools\\network\\VirtualHere\\vhui64.exe",
-        "prepare": true
-      },
-      "SimpleDLNA": {
-        "Path": "D:\\software\\simpledlna\\SimpleDLNA.exe",
-        "prepare": true
-      },
-      "OpenVPN": {
-        "Path": "C:\\Program Files\\OpenVPN\\bin\\openvpn-gui.exe",
-        "--Argument": "--connect 'sean_agitech.ovpn'",
-        "prepare": true
-      },
-      "Hiddify": {
-        "Path": "D:\\software\\network\\hiddify\\Hiddify.exe",
-        "--Argument": "--connect 'sean_agitech.ovpn'",
-        "prepare": true
-      }
     }
   }
 }
