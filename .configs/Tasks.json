@@ -1,0 +1,92 @@
+{
+    "Autorun": [
+        {
+            "Name": "VirtalHere",
+            "Path": "T1000",
+            "Principal": {
+                "GroupID": "S-1-5-4"
+            },
+            "Triggers": [
+                {
+                    "AtLogon": true,
+                    "##AtStartup": true
+                }
+            ],
+            "Actions": [
+                {
+                    "Execute": "D:\\tools\\network\\VirtualHere\\vhui64.exe",
+                    "##Argument": "--dir"
+                }
+            ],
+            "order": "010",
+            "prepare": true
+        },
+        {
+            "Name": "SimpleDLNA",
+            "Path": "T1000",
+            "Principal": {
+                "GroupID": "S-1-5-4"
+            },
+            "Triggers": [
+                {
+                    "AtLogon": true,
+                    "##AtStartup": true
+                }
+            ],
+            "Actions": [
+                {
+                    "Execute": "D:\\software\\simpledlna\\SimpleDLNA.exe",
+                    "##Argument": "--dir"
+                }
+            ],
+            "order": "010",
+            "prepare": true
+        },
+        {
+            "Name": "Hiddify",
+            "Path": "T1000",
+            "Principal": {
+                "GroupID": "S-1-5-4"
+            },
+            "Triggers": [
+                {
+                    "AtLogon": true,
+                    "##AtStartup": true
+                }
+            ],
+            "Actions": [
+                {
+                    "Execute": "Path:\\hiddify\\Hiddify.exe",
+                    "##Argument": "--dir"
+                }
+            ],
+            "order": "010",
+            "prepare": true
+        },
+        {
+            "Name": "syncthing",
+            "Path": "T1000",
+            "Principal": {
+                "UserId": "NT AUTHORITY\\SYSTEM"
+            },
+            "Triggers": [
+                {
+                    "##AtLogon": true,
+                    "AtStartup": true
+                }
+            ],
+            "Actions": [
+                {
+                    "Execute": "Path:\\syncthing\\syncthing.exe",
+                    "Argument": "--no-console --no-browser"
+                }
+            ],
+            "Settings": {
+                "StopIfGoingOnBatteries": false,
+                "ExecutionTimeLimit": "PT0S"
+            },
+            "order": "010",
+            "prepare": true
+        }
+    ]
+}

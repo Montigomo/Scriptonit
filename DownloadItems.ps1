@@ -25,7 +25,7 @@ function DownloadItems {
         [string[]]$ExcludeNames
     )
 
-    $objects = LmGetObjects -ConfigName "Software.$SetName"
+    $objects = LmGetObjects -ConfigName "Downloads.$SetName"
 
     switch ($PSCmdlet.ParameterSetName) {
         'Include' {
@@ -64,7 +64,7 @@ function DownloadItems {
                 if (TestFunction -Name $JobName) {
                     $Arguments = @{
                         "DestinationFolder" = $object["Destination"]
-                    }                
+                    }
                     &"$JobName" @Arguments
                 }
                 break
@@ -74,6 +74,6 @@ function DownloadItems {
 }
 
 if ($PSBoundParameters.Count -gt 0) {
-    $params = $PSCmdlet.MyInvocation.BoundParameters  
+    $params = $PSCmdlet.MyInvocation.BoundParameters
     DownloadItems @params
 }

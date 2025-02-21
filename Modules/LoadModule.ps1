@@ -217,6 +217,27 @@ function LmGetParams {
 
 #endregion
 
+#region
+
+function LmParamsRemoveComments{
+    param (
+        [Parameter()]
+        [hashtable]$Params
+    )
+    $keystoremove = @()
+    foreach ($skey in $Params.Keys) {
+        if ($skey.StartsWith("##")) {
+            $keystoremove += $skey
+        }
+    }
+    foreach ($skey in $keystoremove) {
+        $Params.Remove($skey)
+    }
+    return $Params
+}
+
+#endregion
+
 #region LmTestFunction LmSortHashtableByKey LmSortHashtableByPropertyValue
 
 function LmTestFunction {
