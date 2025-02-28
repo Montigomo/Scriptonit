@@ -271,7 +271,8 @@ function LmSortHashtableByPropertyValue {
     )
 
     $hash = $InputHashtable.GetEnumerator()
-    $hash = $hash | Sort-Object { $_.Value.$Key }
+
+    $hash = $hash | Sort-Object { if ($_.Value.ContainsKey($Key)) { $_.Value.$Key } else { $_.Value } }
 
     $sorted_hash = [ordered]@{}
     foreach ($item in $hash) {

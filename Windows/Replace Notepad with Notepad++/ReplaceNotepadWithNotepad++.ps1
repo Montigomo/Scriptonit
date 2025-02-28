@@ -7,13 +7,13 @@
 # reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe\1" /v "FilterFullPath" /t REG_SZ /d "D:\tools\software\notepad++\notepad++.exe" /f
 # reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe\2" /v "FilterFullPath" /t REG_SZ /d "D:\tools\software\notepad++\notepad++.exe" /f
 
-
 # reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe" /v "Debugger" /t REG_SZ /d "\"%ProgramFiles%\Notepad++\notepad++.exe\" -notepadStyleCmdline -z" /f
 # reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe\0" /v "FilterFullPath" /t REG_SZ /d "%ProgramFiles%\Notepad++\notepad++.exe" /f
 # reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe\1" /v "FilterFullPath" /t REG_SZ /d "%ProgramFiles%\Notepad++\notepad++.exe" /f
 # reg add "HKLM\Software\Microsoft\Windows NT\CurrentVersion\Image File Execution Options\notepad.exe\2" /v "FilterFullPath" /t REG_SZ /d "%ProgramFiles%\Notepad++\notepad++.exe" /f
 
-$path = "D:\\tools\\software"
+
+$path = "D:\\software"
 $regString = @"
 Windows Registry Editor Version 5.00
 

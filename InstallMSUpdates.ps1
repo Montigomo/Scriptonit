@@ -18,7 +18,7 @@ param (
 
 Set-StrictMode -Version 3.0
 
-. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network") | Out-Null
+#. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network") | Out-Null
 
 function InstallMSUpdatesStub {
 

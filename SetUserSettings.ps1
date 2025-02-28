@@ -39,7 +39,17 @@ function RunOperation {
 
 function ListUsers {
     $objects = LmGetObjects -ConfigName "Users"
-    $objects | Format-Table -AutoSize
+    $objects | Format-Table @{
+        Label      = "Users";
+        Expression = {
+            $color = "93"
+            #$color = "32"
+            #$color = "35"
+            #$color = "0"
+            $e = [char]27
+            "$e[${color}m$($_.Key)${e}[0m"
+        }
+    }
 }
 
 function ListUserOperations {
@@ -49,7 +59,17 @@ function ListUserOperations {
     )
 
     $objects = LmGetObjects -ConfigName "Users.$UserName.Operations"
-    $objects | Format-Table -AutoSize
+    $objects |  Format-Table @{
+        Label      = "Operations";
+        Expression = {
+            #$color = "93"
+            #$color = "32"
+            $color = "35"
+            #$color = "0"
+            $e = [char]27
+            "$e[${color}m$($_.Key)${e}[0m"
+        }
+    }
 }
 
 
