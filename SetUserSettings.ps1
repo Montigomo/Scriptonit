@@ -58,7 +58,7 @@ function ListUserOperations {
         [string]$UserName
     )
 
-    $objects = LmGetObjects -ConfigName "Users.$UserName.Operations"
+    $objects = LmGetObjects -ConfigName @("Users", "$UserName", "Operations")
     $objects |  Format-Table @{
         Label      = "Operations";
         Expression = {
@@ -81,7 +81,7 @@ function SetUserSettings {
         [array]$Operations
     )
 
-    $objects = LmGetObjects -ConfigName "Users.$UserName.Operations"
+    $objects = LmGetObjects -ConfigName @("Users", "$UserName", "Operations")
 
     if (-not $objects) {
         return

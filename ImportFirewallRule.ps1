@@ -14,7 +14,7 @@ param (
     [Parameter(Mandatory = $false, ParameterSetName = 'Work')]
     [Parameter(Mandatory = $false)]
     [switch]$Force,
-    [Parameter(Mandatory = $false, ParameterSetName = 'List')]    
+    [Parameter(Mandatory = $false, ParameterSetName = 'List')]
     [switch]$ListRules
 )
 
@@ -30,8 +30,8 @@ function ListFirewallRule {
         [string]$NetworkName
     )
 
-    $objects = LmGetObjects -ConfigName "Firewall.$NetworkName"
-    
+    $objects = LmGetObjects -ConfigName "Firewall", "$NetworkName"
+
     $objects | Format-Table | Out-String
 }
 
@@ -42,11 +42,11 @@ function ImportFirewallRule {
         [Parameter(Mandatory = $false)]
         [string]$RuleSetName,
         [Parameter(Mandatory = $false)]
-        [switch]$Force 
+        [switch]$Force
     )
 
-    $objects = LmGetObjects -ConfigName "Firewall.$NetworkName"
-    
+    $objects = LmGetObjects -ConfigName "Firewall", "$NetworkName"
+
     if(-not $objects){
         return
     }

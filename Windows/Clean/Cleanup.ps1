@@ -1,12 +1,4 @@
-[CmdletBinding()]
-param (
-    [Parameter(Mandatory = $false)]
-    [ClearType[]]$ClearType = @([ClearType]::All)
-)
-
 Set-StrictMode -Version 3.0
-
-#. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common") | Out-Null
 
 # https://winitpro.ru/index.php/2013/08/07/kak-umenshit-razmer-papki-winsxs-v-windows-8/
 # https://superuser.com/questions/1611311/how-to-delete-the-folder-c-programdata-microsoft-diagnosis-etllogs-and-stop-w
@@ -22,6 +14,7 @@ enum ClearType{
 if (-not (Get-Command "Get-WmiObject" -ErrorAction SilentlyContinue)) {
     New-Alias -Name "Get-WmiObject" -Value "Get-CimInstance"
 }
+
 #endregion
 
 #region Set-ServicesAction FreeDiskSpace Stop-BrowserSessions Get-StorageSize Remove-Dir
@@ -37,7 +30,7 @@ function Set-ServicesAction {
         [Parameter()][array]$Services,
         [Parameter()][ServiceAction]$Action
     )
-    
+
     foreach ($serviceName in $Services) {
         switch ($Action) {
             Restart {
@@ -134,7 +127,7 @@ function Clear-WindowsUpdate {
         }
         else {
             StopWUS
-            $tries--            
+            $tries--
         }
     } until ($tries -gt 0    )
 
@@ -147,7 +140,7 @@ function Clear-WindowsUpdate {
     Write-Host "Cleaning Files..." -ForegroundColor Blue -NoNewline
 
     Get-ChildItem -LiteralPath $env:windir\SoftwareDistribution\Download\ -Recurse | Remove-Item -Force -Recurse -ErrorAction SilentlyContinue
-    
+
     Write-Host "Done..." -ForegroundColor Green
 
     Write-Host "Starting Windows Update Service..." -ForegroundColor Blue
@@ -156,7 +149,7 @@ function Clear-WindowsUpdate {
 }
 
 #endregion
- 
+
 #region Clear-GlobalWindowsCache Clear-UserCacheFiles Clear-WindowsUserCacheFiles
 
 function Clear-GlobalWindowsCache {
@@ -175,6 +168,29 @@ function Clear-GlobalWindowsCache {
 }
 
 function Clear-UserCacheFiles {
+    # Stop-BrowserSessions
+    ForEach ($localUser in (Get-ChildItem "C:\users").Name) {
+        Clear-AcrobatCacheFiles $localUser
+        Clear-AVGCacheFiles $localUser
+        Clear-BattleNetCacheFiles $localUser
+        #Clear-ChromeCacheFiles $localUser
+        Clear-DiscordCacheFiles $localUser
+        #Clear-EdgeCacheFiles $localUser
+        Clear-EpicGamesCacheFiles $localUser
+        #Clear-FirefoxCacheFiles $localUser
+        Clear-GoogleEarth $localUser
+        Clear-iTunesCacheFiles $localUser
+        Clear-LibreOfficeCacheFiles $localUser
+        Clear-LolScreenSaverCacheFiles $localUser
+        Clear-MicrosoftOfficeCacheFiles $localUser
+        Clear-SteamCacheFiles $localUser
+        Clear-TeamsCacheFiles $localUser
+        Clear-ThunderbirdCacheFiles $localUser
+        Clear-WindowsUserCacheFiles $localUser
+    }
+}
+
+function Clear-UserCacheFilesDeep {
     # Stop-BrowserSessions
     ForEach ($localUser in (Get-ChildItem "C:\users").Name) {
         Clear-AcrobatCacheFiles $localUser
@@ -399,32 +415,30 @@ function Clear-LibreOfficeCacheFiles {
 
 #endregion
 
-function Clean-Space {
+function Clean {
+    Clear-WindowsUpdate
+    Clear-UserCacheFiles
+    Clear-GlobalWindowsCache
+    Clear-WindowsUserCacheFiles
+}
+
+function CleanDeep {
+
+}
+
+function Cleanup {
     [CmdletBinding()]
     param (
         [Parameter()][ClearType[]]$ClearType = @([ClearType]::All)
     )
 
-    $freeSpaceBefore = Get-WmiObject Win32_LogicalDisk |    Where-Object { $_.DriveType -eq "3" } 
+    $freeSpaceBefore = Get-WmiObject Win32_LogicalDisk |    Where-Object { $_.DriveType -eq "3" }
+
     $StartTime = (Get-Date)
 
+    Clean
 
-    #$Before = FreeDiskSpace
-    #Write-Host "Free Disk Space before: " -ForegroundColor Blue -NoNewline
-    #Write-Host "$Before MB" -ForegroundColor DarkYellow
-
-    Clear-WindowsUpdate
-    Clear-UserCacheFiles
-    Clear-GlobalWindowsCache
-    Clear-WindowsUserCacheFiles
-    
     $EndTime = (Get-Date)
-
-    # Write-Host "Clean storage." -ForegroundColor DarkYellow
-    # Write-Host  "Storage before" -ForegroundColor DarkGreen
-    # Write-Host  $stBefore -ForegroundColor DarkYellow
-    # Write-Host  "Storage after" -ForegroundColor DarkGreen
-    # Write-Host  $stAfter -ForegroundColor DarkYellow
 
     $sumState = @()
 
@@ -441,7 +455,7 @@ function Clean-Space {
         $sumState += [PSCustomObject]@{
             SystemName              = $item.SystemName
             "Drive"                 = $item.DeviceID
-            "Size (GB)"             = "{0:N1}" -f ( $item.Size / 1gb) 
+            "Size (GB)"             = "{0:N1}" -f ( $item.Size / 1gb)
             "FreeSpace before (GB)" = $fsBeforeStr
             "FreeSpace after (GB)"  = "{0:N1}" -f ( $item.Freespace / 1gb)
             "Cleaned  (GB)"         = "{0:N3}" -f $(if ($cleaned -lt 0) { 0 } else { $cleaned })
@@ -449,20 +463,13 @@ function Clean-Space {
         }
     }
 
-    Write-Host  "Elapsed Time: $(($EndTime - $StartTime).totalseconds) seconds" -ForegroundColor DarkYellow
-
     $sumState | Format-Table -AutoSize | Out-String
-    #$After = FreeDiskSpace
-    #Write-Host "Free Disk Space after: " -ForegroundColor Blue -NoNewline    
-    #Write-Host "$After MB" -ForegroundColor DarkYellow
-    
-    #$Cleaned = $After - $Before
-    #Write-Host "Cleaned: " -ForegroundColor Blue -NoNewline
-    #Write-Host "$Cleaned MB" -ForegroundColor DarkYellow
 
+    Write-Host  "Elapsed Time: $(($EndTime - $StartTime).totalseconds) seconds" -ForegroundColor DarkYellow
 }
 
-if ($PSBoundParameters.Count -gt 0) {
-    $params = LmGetParams -InvParams $MyInvocation.MyCommand.Parameters -PSBoundParams $PSBoundParameters            
-    Clean-Garbage @params
-}
+# if ($PSBoundParameters.Count -gt 0) {
+#     $params = $PSBoundParameters
+#     Cleanup @params
+# }
+Cleanup

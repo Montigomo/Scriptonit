@@ -41,7 +41,7 @@ function DvhGetObjects {
     $UriServer = @{
         "linux" = "https://www.virtualhere.com/usb_server_software"
     }
-    
+
     $root = [ordered]@{}
 
 
@@ -54,7 +54,7 @@ function DvhGetObjects {
 
     $htmlDoc = ConvertFrom-Html -URI $Uri
     $UrlHost = "$($Uri.Scheme)://$($Uri.Host)"
-    
+
     $root.Add("server", [ordered]@{})
 
     $node = $htmlDoc.SelectSingleNode('/html/body/div[2]/main/div/div[2]/div/div/div[3]/article/div/div/table/thead/tr/th/strong')
@@ -102,13 +102,13 @@ function DvhGetObjects {
     # Start-Sleep -Seconds $pause01
 
     # MIPS Little Endian
-    $XPathValue = '/html/body/div[2]/main/div/div[2]/div/div/div[3]/article/div/div/table/tbody/tr[2]/td/ul[4]' 
+    $XPathValue = '/html/body/div[2]/main/div/div[2]/div/div/div[3]/article/div/div/table/tbody/tr[2]/td/ul[4]'
     $_ulrs = DvhGetUrls -HtmlDoc $htmlDoc -XPath $XPathValue -XPathSubNode $_subNode -UrlHost $UrlHost
     $assets.Add("mipsel", $_ulrs)
     # Start-Sleep -Seconds $pause01
 
     # x86_64
-    $XPathValue = '/html/body/div[2]/main/div/div[2]/div/div/div[3]/article/div/div/table/tbody/tr[2]/td/ul[5]' 
+    $XPathValue = '/html/body/div[2]/main/div/div[2]/div/div/div[3]/article/div/div/table/tbody/tr[2]/td/ul[5]'
     $_ulrs = DvhGetUrls -HtmlDoc $htmlDoc -XPath $XPathValue -XPathSubNode $_subNode -UrlHost $UrlHost
     $assets.Add("x86_64", $_ulrs)
     #endregion
@@ -164,7 +164,9 @@ function DvhGetObjects {
             New-Item -Path $folderPath -ItemType Directory | Out-Null
         }
 
-        $folderPath = Join-Path $DestinationFolder $key $version
+        $folderPath = [System.IO.Path]::Combine($DestinationFolder, $key, $version)
+        #$folderPath = Join-Path $DestinationFolder -ChildPath $key | Join-Path -ChildPath $version
+
         if (-not(Test-Path $folderPath -PathType Container)) {
             New-Item -Path $folderPath -ItemType Directory | Out-Null
         }

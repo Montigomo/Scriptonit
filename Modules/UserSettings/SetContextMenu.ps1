@@ -1,3 +1,23 @@
+
+
+function ImportRegString {
+    param (
+        [Parameter()]
+        [string]
+        $RegistryString
+    )
+    $tmp = New-TemporaryFile
+    $RegistryString | Out-File $tmp
+    reg import $tmp.FullName
+}
+
+function SetPwshContextMenu {
+    param (
+        [Parameter()]
+        [switch]$Force
+    )
+
+    $regString = @"
 Windows Registry Editor Version 5.00
 
 [HKEY_CLASSES_ROOT\SystemFileAssociations\.ps1]
@@ -37,3 +57,20 @@ Windows Registry Editor Version 5.00
 
 [HKEY_CLASSES_ROOT\SystemFileAssociations\.ps1\Shell\RunPowershell7AsAdmin\Command]
 @="\"C:\\Program Files\\PowerShell\\7\\pwsh.exe\" \"-Command\" \"\"& {Start-Process pwsh.exe -ArgumentList '-ExecutionPolicy RemoteSigned -File \\\"%1\\\"' -Verb RunAs}\""
+"@
+
+
+    $array00 = @(
+        #HKEY_CLASSES_ROOT\SystemFileAssociations\.ps1\Shell
+        "Registry::HKEY_CLASSES_ROOT\SystemFileAssociations\.ps1\Shell\*"
+        "Registry::HKEY_CLASSES_ROOT\Microsoft.PowerShellScript.1\Shell\*"
+    )
+
+    if ($Force) {
+        foreach($item in $array00){
+            Remove-Item -Path "$item" -Recurse
+        }
+    }
+
+    ImportRegString -RegistryString $regString
+}

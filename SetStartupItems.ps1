@@ -39,7 +39,7 @@ function ListItems {
         [Parameter(Mandatory = $true)]
         [string]$SetName
     )
-    $objects = LmGetObjects -ConfigName "Tasks.$SetName"
+    $objects = LmGetObjects -ConfigName "Tasks", "$SetName"
 
     $objects | Select-Object -Property Name | Format-Table @{
         Label      = "Operations";
@@ -60,7 +60,7 @@ function SetStartupItems {
         [Parameter(Mandatory = $false)] [array]$Items
     )
 
-    $objects = LmGetObjects -ConfigName "Tasks.$SetName"
+    $objects = LmGetObjects -ConfigName "Tasks", "$SetName"
 
     if (-not $objects -or $objects -isnot [array]) {
         Write-Host "Empty objects or wrong type." -ForegroundColor DarkYellow

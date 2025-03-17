@@ -26,7 +26,7 @@ function InvokeWakeOnLan {
         [string[]]$ExcludeNames
     )
 
-    $objects = LmGetObjects -ConfigName "Networks.$NetworkName.Hosts"
+    $objects = LmGetObjects -ConfigName "Networks", "$NetworkName", "Hosts"
 
     if(-not $objects){
         return
@@ -49,7 +49,7 @@ function InvokeWakeOnLan {
         }
     }
 
-    $objects = $objects | Where-Object { $_.Value["wolFlag"] -eq $true }  
+    $objects = $objects | Where-Object { $_.Value["wolFlag"] -eq $true }
 
     foreach ($object in $objects) {
         $objectMAC = $object.Value.MAC

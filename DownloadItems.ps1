@@ -11,7 +11,7 @@ param (
 
 Set-StrictMode -Version 3.0
 
-. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Download") | Out-Null
+. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Download") -Force | Out-Null
 
 function DownloadItems {
     [CmdletBinding(DefaultParameterSetName = 'Include')]
@@ -25,7 +25,7 @@ function DownloadItems {
         [string[]]$ExcludeNames
     )
 
-    $objects = LmGetObjects -ConfigName "Downloads.$SetName"
+    $objects = LmGetObjects -ConfigName "Downloads",  "$SetName"
 
     switch ($PSCmdlet.ParameterSetName) {
         'Include' {

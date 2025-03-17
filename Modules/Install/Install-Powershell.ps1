@@ -5,7 +5,7 @@ Set-StrictMode -Version 3.0
 # .SYNOPSIS
 #     Install latest Powershell core
 # .DESCRIPTION
-#   Install latest Powershell core 
+#   Install latest Powershell core
 #   [version : 1.0.1.0]
 # .PARAMETER IsWait
 #     [switch] Waits for the installation process to complete
@@ -20,7 +20,7 @@ function Install-Powershell {
         [Parameter(Mandatory = $false)] [switch]$UsePreview
     )
 
-    . "$PSScriptRoot\..\LoadModule.ps1" -ModuleNames @("Download") | Out-Null
+    # https://learn.microsoft.com/en-us/powershell/scripting/install/installing-powershell-on-windows?view=powershell-7.5
 
     $IsAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
     if ( -not $IsAdmin) {
@@ -50,16 +50,16 @@ function Install-Powershell {
     $item = GetGitHubItems -Uri "https://api.github.com/repos/powershell/powershell/" -ReleasePattern $ReleasePattern
 
     if ($item) {
-        
+
         $remoteVersion = $item.Version
         $downloadUri = $item.Url
         Write-Host "LocalVersion: $localVersion; RemoteVersion: $remoteVersion" -ForegroundColor DarkYellow
         if ($remoteVersion -gt $localVersion) {
-
             Write-Host "Let's install version $remoteVersion" -ForegroundColor DarkGreen
             $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'msi' } -PassThru
             Invoke-WebRequest -OutFile $tmp $downloadUri
-            Invoke-MsiPackage -MsiPackagePath $tmp.FullName -PackageOptions $packageOptions -IsWait:$msiIsWait       
+            $packageOptions = "ADD_EXPLORER_CONTEXT_MENU_OPENPOWERSHELL=1 ADD_FILE_CONTEXT_MENU_RUNPOWERSHELL=1 ENABLE_PSREMOTING=1 REGISTER_MANIFEST=1 USE_MU=1 ENABLE_MU=1 ADD_PATH=1"
+            Invoke-MsiPackage -MsiPackagePath $tmp.FullName -PackageOptions $packageOptions -IsWait:$IsWait
         }
     }
 }

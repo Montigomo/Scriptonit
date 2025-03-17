@@ -56,57 +56,70 @@ if (-not (Test-Path "variable:global:ModulesList")) {
 
 #region LmGetPath LmGetLocalizedResourceName LmGetObjects LmGetParams
 
-# function LmLoadModule01 {
-#     param (
-#         [Parameter(Mandatory = $true)][string]$ModuleName
-#     )ModuleName
+function ConvertTo-Hashtable {
+    [CmdletBinding()]
+    [OutputType('hashtable')]
+    param (
+        [Parameter(ValueFromPipeline)]
+        $InputObject
+    )
+    process {
 
-#     $ChildPath = $ModuleName.Replace(".", "\")
+        if ($null -eq $InputObject) {
+            return $null
+        }
+        if ($InputObject -is [System.Collections.IEnumerable] -and $InputObject -isnot [string]) {
+            $collection = @(
+                foreach ($object in $InputObject) {
+                    ConvertTo-Hashtable -InputObject $object
+                }
+            )
+            Write-Output -NoEnumerate $collection
+        } elseif ($InputObject -is [psobject]) {
+            $hash = @{}
+            foreach ($property in $InputObject.PSObject.Properties) {
+                $hash[$property.Name] = ConvertTo-Hashtable -InputObject $property.Value
+            }
+            $hash
+        } else {
+            $InputObject
+        }
+    }
+}
 
-#     $LibraryPath = (Join-Path $LibraryBaseFolder $ChildPath) | Resolve-Path
+function ConvertPSObjectToHashtable {
+    [CmdletBinding()]
+    [OutputType('hashtable')]
+    param (
+        [Parameter(ValueFromPipeline)]
+        [object]$InputObject
+    )
 
-#     if (-not (Test-Path -Path $LibraryPath)) {
-#         Write-Host "Library $ModuleName not found." -ForegroundColor DarkYellow
-#         return
-#     }
+    if ($null -eq $InputObject) {
+        return $null
+    }
+    if ($InputObject -is [Hashtable] -or $InputObject.GetType().Name -eq 'OrderedDictionary') {
+        return $InputObject
+    }
+    if ($InputObject -is [System.Collections.IEnumerable] -and $InputObject -isnot [string]) {
+        $collection = @(
+            foreach ($object in $InputObject) { ConvertPSObjectToHashtable($object) }
+        )
 
-#     $items = Get-ChildItem -Path $LibraryPath -Filter "*.ps1"
+        return $collection
+    }
+    elseif ($InputObject -is [psobject]) {
+        $hash = @{}
 
-#     foreach ($item in $items) {
-#         Write-Verbose "Importing $($item.FullName)"
-#         $script = Get-Content $item.FullName
-#         $script = $script -replace '^function\s+((?!global[:]|local[:]|script[:]|private[:])[\w-]+)', 'function Global:$1'
-#         $script = $script -replace '\$PSScriptRoot', "$LibraryBaseFolder"
-#         $ofs = "`r`n"
-#         . ([scriptblock]::Create($script))
+        foreach ($property in $InputObject.PSObject.Properties) {
+            $hash[$property.Name] = ConvertPSObjectToHashtable($property.Value)
+        }
 
-#         #. $item.FullName
-#     }
-#     Write-Host "Library $LibraryName loaded successfully." -ForegroundColor DarkGreen
-# }
-
-function LmGetPath {
-
-    $LogFilePath = "$PSScriptRoot"
-
-    #\$([System.IO.Path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Name)).log"
-
-    $t1 = $PSCommandPath
-    $options = [Text.RegularExpressions.RegexOptions]'IgnoreCase, CultureInvariant'
-    $m001 = [regex]::Match($t1, "\\scripts\\modules", $options)
-
-    $rr = (Get-PSCallStack)[1].Command
-
-    if (-not $m001.Success) {
-
+        return $hash
     }
     else {
-        $ind = $m001.Index + $m001.Length
-        $p01 = $t1.Substring(0, $ind)
-        $t1 = (Join-Path $p01 "Logs" ) | Resolve-Path -ErrorAction SilentlyContinue
+        return $InputObject
     }
-
-    return $t1
 }
 
 function LmGetLocalizedResourceName {
@@ -151,10 +164,10 @@ function LmGetLocalizedResourceName {
 
 function LmGetObjects {
     param (
-        [Parameter()][string]$ConfigName
+        [Parameter()][string[]]$ConfigName
     )
 
-    $array = $ConfigName.Split('.')
+    $array = $ConfigName#.Split('.')
 
     $jsonConfigPath = (Join-Path "$PSScriptRoot" "..\.configs\$($array[0]).json") | Resolve-Path -ErrorAction SilentlyContinue
 
@@ -167,7 +180,7 @@ function LmGetObjects {
 
     $found = $false
 
-    $object = ConvertFrom-Json -InputObject $jsonConfigString -AsHashtable -Depth 256
+    $object = ConvertFrom-Json -InputObject $jsonConfigString | ConvertPSObjectToHashtable
 
     if ($array.Length -gt 1) {
         $array = $array[1..($array.length - 1)]
@@ -274,7 +287,7 @@ function LmSortHashtableByPropertyValue {
 
     $hash = $hash | Sort-Object { if ($_.Value.ContainsKey($Key)) { $_.Value.$Key } else { $_.Value } }
 
-    $sorted_hash = [ordered]@{}
+    $sorted_hash = [System.Collections.Specialized.OrderedDictionary]@{}
     foreach ($item in $hash) {
         $sorted_hash.Add($item.Key, $item.Value)
     }
@@ -327,6 +340,7 @@ function LmScanModule {
     }
 
 }
+
 function LmLoadModule {
     param (
         [Parameter(Mandatory = $true)][string]$ModuleFullName
