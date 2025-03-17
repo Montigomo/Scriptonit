@@ -1,12 +1,8 @@
 #Requires -RunAsAdministrator
-[CmdletBinding(DefaultParameterSetName = 'Include')]
-param (
-    [Parameter(Mandatory = $false)] [string]$NetworkName
-)
 
 Set-StrictMode -Version 3.0
 
-. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network", "Network.WakeOnLan") -Verbose | Out-Null
+. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network", "Network.WakeOnLan") -Force | Out-Null
 
 function ConfigureWakeOnLan {
     $interface = Get-NetAdapter | Where-Object { $_.Status -eq 'Up' -and ($_.ifAlias -ilike "Ethernet*") }

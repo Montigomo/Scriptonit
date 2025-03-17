@@ -1,34 +1,73 @@
 Set-StrictMode -Version 3.0
 
 function Enable-WakeOnLan {
-	param(
-        [Parameter(Mandatory=$true)][ciminstance]$NetAdapter
-	)
+    param(
+        [Parameter(Mandatory = $true)][ciminstance]$NetAdapter
+    )
 
-	$paramsSet = @{
-		"Wake on Magic Packet"      = "Enabled|On"
-		#"Wake on Pattern Match" = ""
-		"Shutdown Wake-On-Lan"      = "Enabled"
-		"Shutdown Wake Up"          = "Enabled"
-		"Energy Efficient Ethernet" = "Disabled|Off"
-		"Green Ethernet"            = "Disabled"
-	}
+    $paramsSet = @{
+        "*EEE"                        = "0"
+        "AdvancedEEE"                 = "0"
+        "Green Ethernet"              = "0"
+        "EnableGreenEthernet"         = "0"
+        "*WakeOnMagicPacket"          = "1"
+        "*WakeOnPattern"              = "1"
+        "S5WakeOnLan"                 = "1"
+        "PowerSavingMode"             = "0"
+        "ModernStandbyWoLMagicPacket" = "1"
+    }
 
-    $adapterProperties = Get-NetAdapterAdvancedProperty -InterfaceDescription $NetAdapter.InterfaceDescription
+    $adapterProperties = Get-NetAdapterAdvancedProperty -InterfaceDescription $NetAdapter.InterfaceDescription -IncludeHidden
 
-	$paramsKey = $paramsSet.Keys | Where-Object { [System.Array]::Exists($adapterProperties, ([Predicate[Object]] { param($s) 	 $s.DisplayName -eq $_ })) }
+    #$paramsKey = $paramsSet.Keys | Where-Object { [System.Array]::Exists($adapterProperties, ([Predicate[Object]] { param($s) $s.RegistryKeyword -eq $_ })) }
 
-	foreach ($item in $paramsKey) {
-		foreach ($value in $paramsSet[$item].Split("|")) {
-			try {
-                $valueAdapter =Get-NetAdapterAdvancedProperty -InterfaceDescription $NetAdapter.InterfaceDescription -DisplayName $item
-                Write-Host "$item is set $($valueAdapter.DisplayValue) must be $value" -ForegroundColor Green
-				Set-NetAdapterAdvancedProperty -InterfaceDescription $NetAdapter.InterfaceDescription -DisplayName $item -DisplayValue $value -ErrorAction Stop
-				break;
-			}
-			catch [Microsoft.Management.Infrastructure.CimException] {
-				Write-Verbose $_.Exception.Message
-			}
-		}
-	}
+    foreach ($property in $adapterProperties) {
+
+        $propertyName = $property.RegistryKeyword
+        $propertyValue = $property.RegistryValue
+        $propertyValidValues = $property.ValidRegistryValues
+
+        $items = @($paramsSet.Keys | Where-Object { $propertyName -eq $_ })
+
+        if (-not $items ) {
+            continue
+        }
+        elseif ($items.Count -gt 1) {
+            Write-Host "Property " -ForegroundColor DarkGreen -NoNewline
+            Write-Host "$propertyName " -ForegroundColor DarkYellow -NoNewline
+            Write-Host "collision." -ForegroundColor DarkGreen
+
+        }
+        else {
+            try {
+                $value = $paramsSet[$propertyName]
+                $colorWarning = [System.ConsoleColor]::DarkGreen
+                if ($propertyValue -ne $value) {
+                    $colorWarning = [System.ConsoleColor]::DarkRed
+                }
+                Write-Host "Property " -ForegroundColor DarkGreen -NoNewline
+                Write-Host "$propertyName " -ForegroundColor DarkYellow -NoNewline
+                Write-Host "value is " -ForegroundColor DarkGreen -NoNewline
+                Write-Host "$propertyValue " -ForegroundColor DarkYellow -NoNewline
+                Write-Host "must be " -ForegroundColor $colorWarning -NoNewline
+                Write-Host "$value" -ForegroundColor DarkYellow
+
+                if ($propertyValidValues -notcontains $value) {
+                    Write-Host "Value " -ForegroundColor DarkGreen -NoNewline
+                    Write-Host "$value " -ForegroundColor DarkYellow -NoNewline
+                    Write-Host "is not valid for this property." -ForegroundColor DarkGreen
+
+                }
+                else {
+                    if ($propertyValue -ne $value) {
+                        Set-NetAdapterAdvancedProperty -InterfaceDescription $NetAdapter.InterfaceDescription -RegistryKeyword $propertyName -RegistryValue $value -ErrorAction Stop
+                    }
+                }
+            }
+            catch [Microsoft.Management.Infrastructure.CimException] {
+                Write-Verbose $_.Exception.Message
+            }
+        }
+    }
+
 }
