@@ -60,7 +60,14 @@ function Enable-WakeOnLan {
                 }
                 else {
                     if ($propertyValue -ne $value) {
+
                         Set-NetAdapterAdvancedProperty -InterfaceDescription $NetAdapter.InterfaceDescription -RegistryKeyword $propertyName -RegistryValue $value -ErrorAction Stop
+
+                        $propertyValue = $property.RegistryValue
+                        Write-Host "Property " -ForegroundColor DarkGreen -NoNewline
+                        Write-Host "$propertyName " -ForegroundColor DarkYellow -NoNewline
+                        Write-Host "value changed to " -ForegroundColor DarkGreen -NoNewline
+                        Write-Host "$propertyValue." -ForegroundColor DarkYellow
                     }
                 }
             }
