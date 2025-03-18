@@ -64,6 +64,11 @@ function Install-Far {
 
     Write-Host "LocalVersion: $localVersion; RemoteVersion: $remoteVersion" -ForegroundColor DarkYellow
 
+    if(-not (Get-7zipArchiver)){
+        Write-Host "Can't find 7zip archiver." -ForegroundColor DarkYellow
+        return $false
+    }
+
     if (($localVersion -lt $remoteVersion) -and ($downloadUri)) {
         Write-Host "Let's install version $remoteVersion" -ForegroundColor DarkGreen
         if ($UseZip) {
@@ -93,4 +98,5 @@ function Install-Far {
         }
         Set-EnvironmentVariable -Value $farFolder -Scope "Machine" -Action "Add"
     }
+    return $true
 }

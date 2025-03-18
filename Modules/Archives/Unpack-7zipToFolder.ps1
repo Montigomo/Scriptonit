@@ -10,6 +10,7 @@ Set-StrictMode -Version 3.0
 #     [switch] folder to where archive will be extracted
 # .NOTES
 #     Author : Agitech  Version : 0.0.0.1
+# https://7-zip.opensource.jp/chm/cmdline/index.htm
 function Unpack-7zipToFolder {
     param
     (
