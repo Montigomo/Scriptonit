@@ -3,17 +3,20 @@ Set-StrictMode -Version 3.0
 # .SYNOPSIS
 #     Install far
 # .DESCRIPTION
+# .PARAMETER DestinationFolder
+#   [string] folder where far will be installed
 # .PARAMETER IsWait
-#       wait until program will be installed
+#   [switch] wait until program will be installed
 # .PARAMETER UseMsi
-#       msi or 7zip used to install program
+#   [switch] msi or 7zip used to install program
 # .PARAMETER UsePreview
-#       preview or release
+#   [switch] preview or release
 # .NOTES
 #     Author: Agitech; Version: 1.00.11
 function Install-Far {
     [CmdletBinding()]
     param(
+        [Parameter(Mandatory = $false)] [string]$DestinationFolder = "C:\Program Files\Far Manager\",
         [Parameter(Mandatory = $false)] [switch]$IsWait,
         [Parameter(Mandatory = $false)] [switch]$UseMsi,
         [Parameter(Mandatory = $false)] [switch]$UsePreview
@@ -23,10 +26,25 @@ function Install-Far {
 
     # https://forum.farmanager.com/viewtopic.php?t=9889
 
-    $farPath = "C:\Program Files\Far Manager\Far.exe"
     $UseZip = -not $UseMsi
-    if ($UseZip) {
-        $farPath = "D:\software\far\Far.exe"
+
+    $farName = "far.exe"
+
+    $farPath = [System.IO.Path]::Combine($DestinationFolder, $farName)
+
+    if (-not (Test-Path $farPath -PathType Leaf)) {
+
+        $items = @(
+            "C:\Program Files\Far Manager\"
+            "D:\software\far00\"
+        )
+
+        foreach ($item in $items) {
+            $itemPath = [System.IO.Path]::Combine($item, $farName)
+            if (Test-Path $itemPath -PathType Leaf) {
+                $farPath = $itemPath
+            }
+        }
     }
 
     $farFolder = [System.IO.Path]::GetDirectoryName($farPath)
@@ -64,7 +82,7 @@ function Install-Far {
 
     Write-Host "LocalVersion: $localVersion; RemoteVersion: $remoteVersion" -ForegroundColor DarkYellow
 
-    if(-not (Get-7zipArchiver)){
+    if (-not (Get-7zipArchiver)) {
         Write-Host "Can't find 7zip archiver." -ForegroundColor DarkYellow
         return $false
     }
@@ -98,5 +116,6 @@ function Install-Far {
         }
         Set-EnvironmentVariable -Value $farFolder -Scope "Machine" -Action "Add"
     }
+
     return $true
 }
