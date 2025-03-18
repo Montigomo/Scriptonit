@@ -39,3 +39,23 @@ Set-StrictMode -Version 3.0
 # function WriteLog {
 #     Write-Log @args
 # }
+
+# if (-not (Get-Variable -Name "LogFile" -Scope Global -ErrorAction SilentlyContinue)) {
+#     $Logfile = "$PSScriptRoot\$([System.IO.Path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Name)).log"
+# }
+
+# if (-not (Get-Command "WriteLog" -ErrorAction SilentlyContinue)) {
+#     function WriteLog {
+#         Param (
+#             [Parameter()][string]$LogString,
+#             [Parameter()][switch]$WithoutFunctionName
+#         )
+#         $Stamp = Get-Date -Format "yyyy.MM.dd HH:mm:ss"
+#         if (-not $WithoutFunctionName) {
+#             $LogString = "[$((Get-PSCallStack)[1].Command)]: $LogString"
+#         }
+#         Write-Host $LogString -ForegroundColor DarkYellow
+#         $LogString = "$Stamp $LogString"
+#         Add-content $LogFile -value $LogString
+#     }
+# }

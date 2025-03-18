@@ -24,7 +24,7 @@ enum NvDriverType{
 #     [switch] Force - install(reinstall) the driver even if remote version is the same
 # .NOTES
 #     Author: Agitech; Version : 1.0.22
-function Install-NvDriver {  
+function Install-NvDriver {
     [CmdletBinding(DefaultParameterSetName = 'Install')]
     param (
         [ValidateSet("en-us", "en-uk", "en-in", "cn", "tw", "jp", "kr", "de", "es", "la", "fr", "it", "pl", "br", "ru", "tr", "int")]
@@ -39,9 +39,9 @@ function Install-NvDriver {
         [Parameter(Mandatory = $false, ParameterSetName = 'Check')]
         [switch]$OnlyCheck
     )
-  
+
     #region functions & class & enums
-    
+
     # https://www.nvidia.com/download/find.aspx
 
     class DriverData {
@@ -83,8 +83,8 @@ function Install-NvDriver {
             # ???
             $this.isSLB = 0
             # Windows Driver Type: 0 - Standard, 1 - DCH
-            if ($DCH) { 
-                $this.dtcid = 1 
+            if ($DCH) {
+                $this.dtcid = 1
             }
             else {
                 $this.dtcid = 0
@@ -96,8 +96,8 @@ function Install-NvDriver {
             if ($this.dtcid) {
                 $dtcid_str = "&dtcid=$($this.dtcid)"
             }
-            else { 
-                $dtcid_str = "" 
+            else {
+                $dtcid_str = ""
             }
             # samples
             # https://www.nvidia.com/download/processFind.aspx?psid=101&pfid=825&osid=135&lid=1&whql=&lang=en-us&ctk=0&qnfslb=00&dtcid=1
@@ -105,7 +105,7 @@ function Install-NvDriver {
             $uri = "https://www.nvidia.com/Download/processFind.aspx?psid={0}&pfid={1}&osid={2}&lid={3}&whql={4}&lang={5}&ctk={6}&qnfslb={7}{8}" `
                 -f $($this.productSeriesId), $($this.productId), $($this.operationSystemId), $($this.languageId), $($this.whql), $($this.language), $($this.ctk), $qnfslb, $dtcid_str
             return $uri
-        }        
+        }
     }
 
     #region Imported functions v 0.0.001
@@ -122,9 +122,9 @@ function Install-NvDriver {
             $Stamp = Get-Date -Format "yyyy.MM.dd HH:mm:ss"
             if (-not $WithoutFunctionName) {
                 $LogString = "[$((Get-PSCallStack)[1].Command)]: $LogString"
-            }  
+            }
             Write-Host $LogString -ForegroundColor DarkYellow
-            $LogString = "$Stamp $LogString"  
+            $LogString = "$Stamp $LogString"
             Add-content $LogFile -value $LogString
         }
     }
@@ -184,31 +184,31 @@ function Install-NvDriver {
 
         $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'exe' } -PassThru
         Invoke-WebRequest -Uri $DriverUrl -OutFile $tmp
-    
+
         $fileName = $tmp.FullName
         $fileFolder = [System.IO.Path]::Combine([System.IO.Path]::GetDirectoryName($fileName), [System.IO.Path]::GetFileNameWithoutExtension($fileName));
-    
+
         $filesToExtract = "Display.Driver HDAudio NVI2 PhysX EULA.txt ListDevices.txt setup.cfg setup.exe"
-    
+
         if ($archiver) {
             Start-Process -FilePath $archiver -NoNewWindow -ArgumentList "x -bso0 -bsp1 -bse1 -aoa $fileName $filesToExtract -o""$fileFolder""" -wait
         }
         #elseif ($archiverProgram -eq $winrarpath) {
         #    Start-Process -FilePath $archiverProgram -NoNewWindow -ArgumentList 'x $dlFile $extractFolder -IBCK $filesToExtract' -wait
         #}
-    
+
         # Get-Content in brackets for file handler release!!!
         (Get-Content -LiteralPath "$fileFolder\setup.cfg") | Where-Object { $_ -notmatch 'name="\${{(EulaHtmlFile|FunctionalConsentFile|PrivacyPolicyFile)}}' } | Set-Content "$fileFolder\setup.cfg" -Encoding UTF8 -Force
-    
+
         $iargs = "-passive -noreboot -noeula -nofinish -s"
-    
+
         if ($Force) {
             $iargs += " -clean"
         }
-    
+
         Start-Process -FilePath "$($fileFolder)\setup.exe" -ArgumentList $iargs -wait
-    
-        WriteLog "Installation successfully completed. Computer must be restarted for fihish up."        
+
+        WriteLog "Installation successfully completed. Computer must be restarted for fihish up."
     }
 
     #endregion
@@ -282,7 +282,7 @@ function Install-NvDriver {
                 $searchSuccess = $true
                 break
             }
-        
+
         }
     }
 
@@ -309,7 +309,7 @@ function Install-NvDriver {
         $os = Get-CimInstance -ClassName "Win32_OperatingSystem"
         $osName = $os.Caption
         $osVersion = [System.Version]$os.Version
-    
+
         # windows 11
         if ($osVersion -ge ([System.Version]"10.0.22000")) {
             switch ($step) {
@@ -346,11 +346,11 @@ function Install-NvDriver {
                     $searchSuccess = $true
                     break
                 }
-        
+
             }
         }
         #endregion
-        
+
         $url = $_driverData.GetSearchUrl()
         $response = Invoke-RestMethod -Method Get -Uri $url
 
@@ -392,7 +392,7 @@ function Install-NvDriver {
     }
     $lastDriver = $drivers | Sort-Object { $_.version } -Descending | Select-Object -First 1
     $drvLastVersion = $lastDriver["version"]
-    Write-Host $_driverData.productSeriesId | select *
+    Write-Host $_driverData.productSeriesId | Select-Object *
     WriteLog "Installed driver version: $drvCurrentVersion, found $drvLastVersion version."
     if ($drvCurrentVersion -ge $drvLastVersion) {
         WriteLog "The installed version is the latest."
@@ -420,7 +420,7 @@ function Install-NvDriver {
 
     switch ($PSCmdlet.ParameterSetName) {
         'Check' {
-            
+
             break
         }
         'Install' {
@@ -430,8 +430,8 @@ function Install-NvDriver {
             break
         }
     }
-    
-    
+
+
     #return $true
 
     #endregion

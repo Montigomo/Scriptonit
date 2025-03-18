@@ -1,65 +1,39 @@
 Set-StrictMode -Version 3.0
 
-. "$PSScriptRoot\..\LoadModule.ps1" -ModuleNames @("Common", "Download") | Out-Null
-
 # .SYNOPSIS
-#     Install 7zip
+#       Install 7zip
 # .DESCRIPTION
-# .PARAMETER IsWait
-# .PARAMETER UsePreview
+# .PARAMETER InstallFolder
+#       Folder to where 7zip will be installed.
 # .NOTES
 #     Author: Agitech; Version: 1.00.07
 function Install-7zip {
     param
-    (   
+    (
         [Parameter(Mandatory = $false)][string]$InstallFolder
     )
+
+    . "$PSScriptRoot\..\LoadModule.ps1" -ModuleNames @("Common", "Archives", "Download") -Force | Out-Null
 
     #How can I install 7-Zip in silent mode?
     #For exe installer: Use the "/S" parameter to do a silent installation and the /D="C:\Program Files\7-Zip" parameter to specify the "output directory". These options are case-sensitive.
     #For msi installer: Use the /q INSTALLDIR="C:\Program Files\7-Zip" parameters.
 
     #region Variables
-    
+
     [bool]$IsOs64 = $([System.IntPtr]::Size -eq 8)
     [version]$localVersion = [System.Version]::new(0, 0, 0)
 
-    $filePath = "C:\Program Files\7-Zip\7z.exe"
+    $filePath = Get-7zipArchiver
 
     #endregion
 
     #region functions
-    if (Test-path "HKLM:\SOFTWARE\7-Zip") {
-        $value = Get-ItemProperty "HKLM:\SOFTWARE\7-Zip\" -Name "Path" -ErrorAction SilentlyContinue
-        if ($value) {
-            $filePath = "{0}7z.exe" -f $value.Path
-        }
-    }
 
-    if (Test-Path $filePath) {
+    if ($filePath -and (Test-Path -Path $filePath -ErrorAction SilentlyContinue)) {
         $verinfo = [System.Diagnostics.FileVersionInfo]::GetVersionInfo($filePath)
         #$localVersion = $verinfo.ProductVersion
         $null = [System.Version]::TryParse($verinfo.ProductVersion, [ref]$localVersion);
-    }
-
-    if (-not (Get-Variable -Name "LogFile" -Scope Global -ErrorAction SilentlyContinue)) {
-        $Logfile = "$PSScriptRoot\$([System.IO.Path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Name)).log"
-    }
-
-    if (-not (Get-Command "WriteLog" -ErrorAction SilentlyContinue)) {
-        function WriteLog {
-            Param (
-                [Parameter()][string]$LogString,
-                [Parameter()][switch]$WithoutFunctionName
-            )
-            $Stamp = Get-Date -Format "yyyy.MM.dd HH:mm:ss"
-            if (-not $WithoutFunctionName) {
-                $LogString = "[$((Get-PSCallStack)[1].Command)]: $LogString"
-            }  
-            Write-Host $LogString -ForegroundColor DarkYellow
-            $LogString = "$Stamp $LogString"  
-            Add-content $LogFile -value $LogString
-        }
     }
 
     if (-not (Get-Command "Get-ModuleAdvanced" -ErrorAction SilentlyContinue)) {
@@ -98,18 +72,16 @@ function Install-7zip {
         $downloadUri = "https://7-zip.org/{0}" -f $node.Attributes["href"].Value
     }
 
-    if ($localVersion -ge $remoteVersion) {
-        return $true;
-    }
+    if ($localVersion -lt $remoteVersion) {
+        $requestUri = $downloadUrix64
+        if (-not $IsOs64) {
+            $requestUri = $downloadUri
+        }
 
-    $requestUri = $downloadUrix64
-    if (-not $IsOs64) {
-        $requestUri = $downloadUri
+        $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'msi' } -PassThru
+        Invoke-WebRequest -OutFile $tmp $requestUri
+        $PackageParams = "/q"
+        Invoke-MsiPackage -MsiPackagePath $tmp.FullName -PackageOptions $PackageParams -IsWait
     }
-
-    $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'msi' } -PassThru
-    Invoke-WebRequest -OutFile $tmp $requestUri
-    $PackageParams = "/q"
-    Invoke-MsiPackage -MsiPackagePath $tmp.FullName -PackageOptions $PackageParams -IsWait
     return $true
 }
