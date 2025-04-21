@@ -10,7 +10,7 @@ function SetUserFolders {
     # help
     # https://stackoverflow.com/questions/25049875/getting-any-special-folder-path-in-powershell-using-folder-guid/25094236#25094236
     # https://renenyffenegger.ch/notes/Windows/dirs/_known-folders
-  
+
     Write-Host "[SetUserFolders] started ..." -ForegroundColor DarkYellow
 
     #$userName = [Environment]::UserName
@@ -47,13 +47,13 @@ function SetUserFolders {
             ComfortName = "Music"
         };
     }
-    
+
     function UpdateUserFoldersByReg {
         [CmdletBinding()]
         param (
             [Parameter()][string]$UserProfilesFolder = $env:USERPROFILE
         )
-        
+
         Set-ItemProperty -Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" `
             -Name $UserFolderName -Value $UserFolderPath -Type String -Force
         Set-ItemProperty -Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" `
@@ -61,7 +61,7 @@ function SetUserFolders {
         Set-ItemProperty -Path "Registry::HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\User Shell Folders" `
             -Name $UserFolderName -Value $UserFolderPath -Type ExpandString
     }
-    
+
     foreach ($key in $Folders.Keys) {
         if ($KnownFolders.ContainsKey($key)) {
 
@@ -75,12 +75,13 @@ function SetUserFolders {
 
             $Location = [KnownFolder]::GetKnownFolderPath($GUID)
 
-            Write-Host "User Forder " -NoNewline -ForegroundColor DarkYellow
+            Write-Host "User Forder " -NoNewline -ForegroundColor DarkCyan
             Write-Host """$ComfortName"" " -NoNewline -ForegroundColor DarkGreen
-            Write-Host "preparing. Location - " -NoNewline -ForegroundColor DarkYellow
-            Write-Host "$Location. " -NoNewline -ForegroundColor DarkGreen 
+            Write-Host "preparing." -ForegroundColor DarkCyan
+            Write-Host "Location    - " -NoNewline -ForegroundColor DarkYellow
+            Write-Host "$Location. " -ForegroundColor DarkGreen
             Write-Host "Destination - " -NoNewline -ForegroundColor DarkYellow
-            Write-Host "$Destination. "  -NoNewline -ForegroundColor DarkGreen
+            Write-Host "$Destination. " -ForegroundColor DarkGreen
             if ($Destination -ine $Location) {
                 Write-Host "Location changes to " -NoNewline -ForegroundColor DarkYellow
                 Write-Host "$Destination." -ForegroundColor DarkGreen

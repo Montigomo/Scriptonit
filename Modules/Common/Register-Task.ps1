@@ -1,7 +1,7 @@
 Set-StrictMode -Version 3.0
 
 # .SYNOPSIS
-#     Is powershell session runned in admin mode 
+#     Is powershell session runned in admin mode
 # .DESCRIPTION
 # .PARAMETER TaskData
 #     [hashtable] data for task, key = value
@@ -27,57 +27,18 @@ Set-StrictMode -Version 3.0
 # .LINK
 # .NOTES
 #     Author: Agitech Version: 0.0.0.1
-function Register-Task {  
-    [CmdletBinding()]
-    param
-    (
-        [Parameter(Mandatory)]
-        [hashtable]$TaskData,
-        [ValidateSet('system', 'author', 'none')]
-        [string]$Principal = 'none',
-        [switch]$OnlyCheck,
-        [switch]$Force
+function Register-Task {
+    param(
+        [Parameter(Mandatory = $true)] [hashtable]$TaskData,
+        [Parameter(Mandatory = $false)] [string[]]$ProcessNames,
+        [Parameter(Mandatory = $false)] [switch]$AndExit,
+        [Parameter(Mandatory = $false)] [switch]$AndRun,
+        [Parameter(Mandatory = $false)] [switch]$Force
     )
-
-    $taskName = $TaskData["Name"];
+    $TaskName = $TaskData["Name"];
     $xml = [xml]$TaskData["XmlDefinition"];
-  
     $ns = New-Object System.Xml.XmlNamespaceManager($xml.NameTable)
     $ns.AddNamespace("ns", $xml.DocumentElement.NamespaceURI)
-  
-    $registredTask = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
-  
-    $needRegister = $false;
-  
-    if ($registredTask) {
-        $registrationInfo = $xml.SelectSingleNode("/ns:Task/ns:RegistrationInfo/ns:Version", $ns);
-        if ($registrationInfo) {
-   
-            $currentVersion = [System.Version]::Parse("0.0.0")
-            $result = [System.Version]::TryParse($registrationInfo.InnerText, [ref]$currentVersion)
-            $installedVersion = [System.Version]::Parse("0.0.0")
-            $result = [System.Version]::TryParse($registredTask.Version, [ref]$installedVersion)
-            $needRegister = ($currentVersion -gt $installedVersion)
-  
-        }
-        if ( (-not $needRegister)) {
-            $needRegister = ($registredTask.State -eq "Disabled")
-        }
-    }
-    else {
-        $needRegister = $true
-    }
-  
-    if ($OnlyCheck) {
-        return -not $needRegister
-    }
-  
-    if (!$needRegister) {
-        return $needRegister
-    }
-  
-    # replace values
-
     if ($TaskData["Values"]) {
         foreach ($item in $TaskData["Values"].Keys) {
             $xmlNode = $xml.SelectSingleNode($item, $ns);
@@ -88,27 +49,40 @@ function Register-Task {
         }
     }
 
-    if ($registredTask) {
-        Unregister-ScheduledTask -TaskName $taskName -Confirm:$false
-    }
-  
-    $principals = @{"author" = '<Principal id="Author"><GroupId>S-1-1-0</GroupId><RunLevel>HighestAvailable</RunLevel></Principal>' };
-    $contexts = @{"author" = "Author" }
-  
-    #<Principal id="Author" xmlns="http://schemas.microsoft.com/windows/2004/02/mit/task"><GroupId>S-1-1-0</GroupId><RunLevel>HighestAvailable</RunLevel></Principal>
-  
-    switch ($principal) {
-        'none' {
-            Register-ScheduledTask -Xml $xml.OuterXml -TaskName $taskName
+    $registredTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+    $needRegister = (-not $registredTask) -or $Force;
+    if ($registredTask -and (-not $needRegister)) {
+        $registrationInfo = $xml.SelectSingleNode("/ns:Task/ns:RegistrationInfo/ns:Version", $ns);
+        if ($registrationInfo) {
+            $currentVersion = [System.Version]::Parse("0.0.0")
+            $null = [System.Version]::TryParse($registrationInfo.InnerText, [ref]$currentVersion)
+            $installedVersion = [System.Version]::Parse("0.0.0")
+            $null = [System.Version]::TryParse($registredTask.Version, [ref]$installedVersion)
+            $needRegister = ($currentVersion -gt $installedVersion)
         }
-        'system' {
-            Register-ScheduledTask -Xml $xml.OuterXml -TaskName $taskName -User System
-        }
-        'author' {
-            $xml.Task.Principals.InnerXml = $principals["author"];
-            $xml.Task.Actions.SetAttribute("Context", $contexts["author"])
-            Register-ScheduledTask -Xml $xml.OuterXml -TaskName $TaskName
-        }    
+        $needRegister = $needRegister -or ($registredTask.State -eq "Disabled");
     }
-    return $true
+
+    if ($needRegister) {
+        KillProcesses -ProcessNames $ProcessNames
+        if ($registredTask) {
+            Stop-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+            Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false -ErrorAction SilentlyContinue
+        }
+        Register-ScheduledTask -Xml $xml.OuterXml -TaskName $TaskName | Out-Null
+        WriteLog "Task $TaskName successfully registered."
+
+        if ($AndRun) {
+            Start-Sleep -Seconds 3
+            $registredTask = Get-ScheduledTask -TaskName $TaskName -ErrorAction SilentlyContinue
+            if ($registredTask -and ($registredTask.State -ne "Running")) {
+                $registredTask | Start-ScheduledTask
+                WriteLog "Task $TaskName started."
+            }
+        }
+        if ($AndExit) {
+            exit
+        }
+    }
+    #return $needRegister
 }

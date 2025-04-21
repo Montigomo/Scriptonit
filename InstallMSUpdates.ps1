@@ -3,6 +3,7 @@
 #Requires -RunAsAdministrator
 [CmdletBinding(DefaultParameterSetName = 'Include')]
 param (
+    [Parameter(Mandatory = $false, ParameterSetName = 'ListHosts')]
     [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
     [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
     [string]$NetworkName,
@@ -13,12 +14,28 @@ param (
     [Parameter(Mandatory = $true, ParameterSetName = 'SimplePC')]
     [string]$IpAddress,
     [Parameter(Mandatory = $true, ParameterSetName = 'SimplePC')]
-    [string]$LoginName
+    [string]$LoginName,
+    [Parameter(Mandatory = $false, ParameterSetName = 'ListNetworks')]
+    [switch]$ListNetworks,
+    [Parameter(Mandatory = $false, ParameterSetName = 'ListHosts')]
+    [switch]$ListHosts
 )
 
 Set-StrictMode -Version 3.0
 
-. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network") | Out-Null
+. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network") -Force | Out-Null
+
+function ListNetworks {
+    LmListObjects -ConfigName "Networks"
+}
+
+function ListHosts {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$NetworkName
+    )
+    LmListObjects -ConfigName "Networks", "$NetworkName", "Hosts" -Property "HostName"
+}
 
 function InstallMSUpdatesStub {
 
@@ -46,7 +63,7 @@ function InstallMSUpdates_inner {
         $_userName = $object["username"]
         $_prepare = $object["WUFlag"]
 
-        if(-not $_hostName){
+        if (-not $_hostName) {
             $_hostName = $_ipAddress
         }
 
@@ -77,7 +94,6 @@ function InstallMSUpdates_inner {
         }
     }
 }
-
 
 function InstallMSUpdates {
     [CmdletBinding(DefaultParameterSetName = 'Include')]
@@ -133,5 +149,19 @@ function InstallMSUpdates {
 
 if ($PSBoundParameters.Count -gt 0) {
     $params = $PSBoundParameters
-    InstallMSUpdates @params
+    switch ($PSCmdlet.ParameterSetName) {
+        'ListNetworks' {
+            ListNetworks
+            break
+        }
+        'ListHosts' {
+            $params.Remove("ListNetworks") | Out-Null
+            $params.Remove("ListHosts") | Out-Null
+            ListHosts @params
+            break
+        }
+        Default {
+            InstallMSUpdates @params
+        }
+    }
 }

@@ -33,7 +33,7 @@ function Get-ModuleAdvanced {
             Install-Module PowerShellGet -Force -AllowClobber
         }
     }
-    
+
     # $sourceArgs = @{
     #     Name         = 'nuget.org'
     #     Location     = 'https://api.nuget.org/v3/index.json'

@@ -11,7 +11,7 @@ Set-StrictMode -Version 3.0
 # .NOTES
 #     Author : Agitech  Version : 0.0.0.1
 # https://learn.microsoft.com/en-us/windows/win32/msi/command-line-options
-function Unzip-ToFolder {
+function Unpack-ZipToFolder {
     param
     (
         [Parameter(Mandatory = $true)]  [string]$ZipArchivePath,
