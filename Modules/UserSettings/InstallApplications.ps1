@@ -1,97 +1,56 @@
 Set-StrictMode -Version 3.0
 
-function ConvertFrom-FixedColumnTable {
-    [CmdletBinding()]
-    param(
-        [Parameter(ValueFromPipeline)] [string] $InputObject
-    )
-    # Note:
-    #  * Accepts input only via the pipeline, either line by line,
-    #    or as a single, multi-line string.
-    #  * The input is assumed to have a header line whose column names
-    #    mark the start of each field
-    #    * Column names are assumed to be *single words* (must not contain spaces).
-    #  * The header line is assumed to be followed by a separator line
-    #    (its format doesn't matter).
-    begin {
-        Set-StrictMode -Version 1
-        $lineNdx = 0
-    }
-
-    process {
-        $lines =
-        if ($InputObject.Contains("`n")) { $InputObject.TrimEnd("`r", "`n") -split '\r?\n' }
-        else { $InputObject }
-        foreach ($line in $lines) {
-            ++$lineNdx
-            if ($lineNdx -eq 1) {
-                # header line
-                $headerLine = $line
-            }
-            elseif ($lineNdx -eq 2) {
-                # separator line
-                # Get the indices where the fields start.
-                $fieldStartIndices = [regex]::Matches($headerLine, '\b\S').Index
-                # Calculate the field lengths.
-                $fieldLengths = foreach ($i in 1..($fieldStartIndices.Count - 1)) {
-                    $fieldStartIndices[$i] - $fieldStartIndices[$i - 1] - 1
-                }
-                # Get the column names
-                $colNames = foreach ($i in 0..($fieldStartIndices.Count - 1)) {
-                    if ($i -eq $fieldStartIndices.Count - 1) {
-                        $headerLine.Substring($fieldStartIndices[$i]).Trim()
-                    }
-                    else {
-                        $headerLine.Substring($fieldStartIndices[$i], $fieldLengths[$i]).Trim()
-                    }
-                }
-            }
-            else {
-                # data line
-                $oht = [ordered] @{} # ordered helper hashtable for object constructions.
-                $i = 0
-                foreach ($colName in $colNames) {
-                    $oht[$colName] =
-                    if ($fieldStartIndices[$i] -lt $line.Length) {
-                        if ($fieldLengths[$i] -and $fieldStartIndices[$i] + $fieldLengths[$i] -le $line.Length) {
-                            $line.Substring($fieldStartIndices[$i], $fieldLengths[$i]).Trim()
-                        }
-                        else {
-                            $line.Substring($fieldStartIndices[$i]).Trim()
-                        }
-                    }
-                    ++$i
-                }
-                # Convert the helper hashable to an object and output it.
-                [pscustomobject] $oht
-            }
-        }
-    }
-
-}
+. "$PSScriptRoot\..\LoadModule.ps1" -ModuleNames @("Common", "Network.Hosts") | Out-Null
 
 function InstallApplications {
     param (
         [Parameter(Mandatory = $true)][array]$Applications
     )
 
+    Get-ModuleAdvanced "Microsoft.WinGet.Client"
+
     Write-Host "[InstallApplications] started ..." -ForegroundColor DarkYellow
 
-    [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
-    $arrss = (winget list --accept-source-agreements) -match '^(\p{L}|-)' | ConvertFrom-FixedColumnTable
+    # [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new()
+    # # winget now outputs UTF-8 e.g. for '…' in the 'Available' column, we need to account for this
+    # [Console]::InputEncoding = [Console]::OutputEncoding = $InputEncoding = $OutputEncoding = [System.Text.Utf8Encoding]::new()
+    # # get rid of PSSA warning
+    # $null = $InputEncoding
 
-    $_idName = LmGetLocalizedResourceName -ResourceName "winget.id"
-    foreach ($item in $Applications) {
-        if( $item.StartsWith("--")){
+    foreach ($id in $Applications) {
+        if( $id.StartsWith("--")){
             continue
         }
-        if (-not ($arrss | Where-Object { $_."$_idName" -ieq $item })) {
-            #if ((winget search --id "Microsoft.DotNet.DesktopRuntime" --exact) -match '^(\p{L}|-)' -ine "No package found matching input criteria.") {
-            winget install --id "$item" --exact --source winget --silent
+        $packageLocal = Get-WinGetPackage -Id $id -MatchOption Equals
+        $packageRemote = Find-WinGetPackage -Id $id -MatchOption Equals
+
+        if (-not $packageLocal) {
+            Write-Host "Package with id " -ForegroundColor DarkYellow -NoNewline
+            Write-Host """$id"" " -ForegroundColor DarkGreen -NoNewline
+            Write-Host "not installed." -ForegroundColor DarkYellow
+            Install-WinGetPackage -Id $id -Mode Silent -Source "winget" -MatchOption Equals | Out-Null
+            continue
         }
-        else {
-            Write-Host "[InstallApplications] application $item already installed." -ForegroundColor DarkYellow
+
+        if(-not $packageRemote){
+             Write-Host "Can't find Package with id " -ForegroundColor DarkYellow -NoNewline
+            Write-Host """$id""." -NoNewline -ForegroundColor DarkGreen
+            continue
+        }
+
+        Write-Host "Package" -ForegroundColor DarkYellow -NoNewline
+        Write-Host """$id"" " -ForegroundColor DarkGreen -NoNewline
+        Write-Host "local version: " -ForegroundColor DarkYellow -NoNewline
+        Write-Host "$($packageLocal.InstalledVersion), " -ForegroundColor DarkCyan -NoNewline
+        Write-Host "remove version: " -ForegroundColor DarkYellow -NoNewline
+        Write-Host "$($packageRemote.Version)." -ForegroundColor DarkCyan
+
+        if($packageLocal.IsUpdateAvailable){
+             Write-Host "The Package " -ForegroundColor DarkYellow -NoNewline
+             Write-Host """$id"" " -ForegroundColor DarkGreen -NoNewline
+             Write-Host "needs to be updated." -ForegroundColor DarkYellow
+             Update-WinGetPackage -Id $id -Mode Silent -Force -Source "winget" | Out-Null
+             continue
         }
     }
-
 }

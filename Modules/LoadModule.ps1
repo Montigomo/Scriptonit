@@ -110,7 +110,6 @@ if (-not (Test-Path "variable:global:ModulesList")) {
 
 #endregion
 
-
 #region EvalParams
 
 function EvalParams{
@@ -201,7 +200,6 @@ function EvalParams{
 }
 
 #endregion
-
 
 #region LmGetPath LmGetLocalizedResourceName LmGetObjects LmGetParams
 
