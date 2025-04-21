@@ -63,11 +63,7 @@ All scripts that can work on remote machine, uses PSSession (ssh)
 
 - **SetUserSettings.ps1**
   
-  | Parameter  | Mandatory  |Type     | Info   |
-  | :--------  | :------    | :------ | :------|
-  | *UserName*  | *true* | *string* | Name of User from *Users.json*   |
-  | *Operations* | *false* | *string[]* | If not specified, all operations will be performed; if specified, only these ones. |
-  | *ListOperations* | *false* | *switch* | Write out list of operation allowed on specified user. |
+  No parameters. Script read config file and generate on fly menu.
   
   How many times after a new installation (reinstallation) of Windows did you set it up to its usual state (install applications, change various settings, etc.)
   This script automates some of these tasks after a new installation of Windows.
