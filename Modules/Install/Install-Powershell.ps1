@@ -1,6 +1,6 @@
 Set-StrictMode -Version 3.0
 
-. "$PSScriptRoot\..\LoadModule.ps1" -ModuleNames @("Common", "Download") | Out-Null
+. "$PSScriptRoot\..\LoadModule.ps1" -ModuleNames @("Common", "Download") -Force | Out-Null
 
 # .SYNOPSIS
 #     Install latest Powershell core
@@ -45,7 +45,33 @@ function Install-Powershell {
     else {
         $localVersion = $PSVersionTable.PSVersion
     }
-    $ReleasePattern = if ($IsOs64) { "PowerShell-\d.\d.\d-win-x64.msi" } else { "PowerShell-\d.\d.\d-win-x86.msi" }
+
+    #region Release pattern
+
+    # PowerShell-7.4.10-win-arm64.exe
+    # PowerShell-7.4.10-win-arm64.msi
+    # PowerShell-7.4.10-win-arm64.zip
+    # PowerShell-7.4.10-win-fxdependent.zip
+    # PowerShell-7.4.10-win-fxdependentWinDesktop.zip
+    # PowerShell-7.4.10-win-x64.exe
+    # PowerShell-7.4.10-win-x64.msi
+    # PowerShell-7.4.10-win-x64.zip
+    # PowerShell-7.4.10-win-x86.exe
+    # PowerShell-7.4.10-win-x86.msi
+    # PowerShell-7.4.10-win-x86.zip
+    # PowerShell-7.4.10.msixbundle
+
+    $ReleasePattern = "PowerShell-\d?\d.\d?\d.\d?\d"
+
+    if ($IsOs64) {
+        $ReleasePattern = "$ReleasePattern-win-x64.msi"
+    }
+    else {
+        $ReleasePattern = "$ReleasePattern-win-x86.msi"
+
+    }
+
+    #endregion
 
     $item = GetGitHubItems -Uri "https://api.github.com/repos/powershell/powershell/" -ReleasePattern $ReleasePattern
 

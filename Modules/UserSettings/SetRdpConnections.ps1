@@ -7,6 +7,8 @@ function SetRdpConnections {
 
     Write-Host "[SetRdpConnections] started ..." -ForegroundColor DarkYellow
 
+    Get-ModuleAdvanced -ModuleName "NetSecurity"
+
     $resName = LmGetLocalizedResourceName -ResourceName "NetFirewal.DisplayGroup.Remote Desktop"
 
     if ($Disable) {

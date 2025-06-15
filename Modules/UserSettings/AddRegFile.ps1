@@ -1,6 +1,5 @@
 Set-StrictMode -Version 3.0
 
-
 function AddRegFile {
     [CmdletBinding()]
     param (
@@ -15,7 +14,7 @@ function AddRegFile {
         Wait         = $true
     }
     $proc = Start-Process @startprocessParams
-    
+
     # if ($proc.ExitCode -eq 0) {
     #     'Success!'
     # }

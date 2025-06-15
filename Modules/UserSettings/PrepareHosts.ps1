@@ -1,7 +1,5 @@
 Set-StrictMode -Version 3.0
 
-. "$PSScriptRoot\..\LoadModule.ps1" -ModuleNames @("Network.Hosts") | Out-Null
-
 function PrepareHostsRaw {
     param (
         [Parameter(Mandatory = $true)] [string[]]$Hosts

@@ -1,7 +1,5 @@
 Set-StrictMode -Version 3.0
 
-#. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("UserFolders") | Out-Null
-
 function SetUserFolders {
     param (
         [Parameter(Mandatory = $true)][hashtable]$Folders

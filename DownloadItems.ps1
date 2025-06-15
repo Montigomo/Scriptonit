@@ -25,12 +25,12 @@ function DownloadItems {
         [string[]]$ExcludeNames
     )
 
-    $objects = LmGetObjects -ConfigName "Downloads",  "$SetName"
+    $objects = LmGetObjects -ConfigName "Downloads", "$SetName"
 
     switch ($PSCmdlet.ParameterSetName) {
         'Include' {
             if ($IncludeNames) {
-                $objects = $objects | Where-Object { $IncludeNames -icontains $_.Name}
+                $objects = $objects | Where-Object { $IncludeNames -icontains $_.Name }
             }
             break
         }
@@ -43,30 +43,21 @@ function DownloadItems {
     }
 
     foreach ($object in $objects) {
+        Write-Host "Project name $($object["Name"])" -ForegroundColor Blue
         switch ($object["Type"]) {
             "github" {
-                $Arguments = @{
-                    "GitProjectUrl"     = $object["Url"]
-                    "DestinationFolder" = $object["Destination"]
-                    "UsePreview"        = $object["UsePreview"]
-                    "Force"             = $object["Force"]
-                    "Deep"              = $object["Deep"]
-                }
-                if (-not $Arguments.Deep) {
-                    $Arguments.Deep = 1
-                }
-                DownloadGitHubItems @Arguments
+                $params = $object."params"
+                DownloadGitHubItems @params
                 break
             }
             "direct" {
-                $name = $object["Url"]
+                $name = $object["JobName"]
                 $JobName = "Download$name"
-                if (TestFunction -Name $JobName) {
-                    $Arguments = @{
-                        "DestinationFolder" = $object["Destination"]
-                    }
-                    &"$JobName" @Arguments
+                if (-not (TestFunction -Name $JobName)) {
+                    break
                 }
+                $params = $object."params"
+                &"$JobName" @params
                 break
             }
         }

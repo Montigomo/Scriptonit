@@ -4,6 +4,8 @@ function InstallMsvcrt {
 
     Write-Host "[InstallMsvcrt] started ..." -ForegroundColor DarkYellow
 
+    Get-ModuleAdvanced "Microsoft.WinGet.Client"
+
     $items = @(
         "Microsoft.VCRedist.2015+.x86"
         "Microsoft.VCRedist.2015+.x64"

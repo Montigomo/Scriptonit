@@ -11,7 +11,7 @@ Set-StrictMode -Version 3.0
 #     [Parameter(Mandatory = $false)][switch] Install from msi or zip
 # .NOTES
 #     Author: Agitech; Version: 0.1.0.0
-function Install-OpenSsh {  
+function Install-OpenSsh {
     [CmdletBinding()]
     param (
         [Parameter(Mandatory = $false)][switch]$UseZip,
@@ -24,7 +24,7 @@ function Install-OpenSsh {
         exit
     }
     $localVersion = [System.Version]::Parse("0.0.0")
-    
+
     $gitUri = "https://api.github.com/repos/powershell/Win32-OpenSSH"
     [bool]$IsOs64 = $([System.IntPtr]::Size -eq 8);
     $exePath = if ($IsOs64) {
@@ -48,9 +48,9 @@ function Install-OpenSsh {
 
     $item = GetGitHubItems -Uri $gitUri -ReleasePattern $ReleasePattern
     if ($item) {
-        $downloadUri = $item.Url            
+        $downloadUri = $item.Url
         $remoteVersion = $item.Version
-        Write-Host "LocalVersion: $localVersion; RemoteVersion: $remoteVersion" -ForegroundColor DarkYellow        
+        Write-Host "LocalVersion: $localVersion; RemoteVersion: $remoteVersion" -ForegroundColor DarkYellow
         if ($remoteVersion -gt $localVersion -or $Force) {
             Write-Host "Let's install version $remoteVersion" -ForegroundColor DarkGreen
             if ($UseZip) {
@@ -58,7 +58,7 @@ function Install-OpenSsh {
                 $services = @("sshd", "ssh-agent")
                 foreach ($serviceName in $services) {
                     $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
-                    if ($service  -and ($service.Status -eq "Running")) {
+                    if ($service -and ($service.Status -eq "Running")) {
                         Stop-Service -Name $serviceName
                     }
                 }
@@ -77,7 +77,7 @@ function Install-OpenSsh {
                 Invoke-WebRequest -OutFile $tmp $downloadUri
                 Add-Type -Assembly System.IO.Compression.FileSystem
                 $zip = [IO.Compression.ZipFile]::OpenRead($tmp.FullName)
-                $entries = $zip.Entries | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Name) } #| where {$_.FullName -like 'myzipdir/c/*' -and $_.FullName -ne 'myzipdir/c/'} 
+                $entries = $zip.Entries | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Name) } #| where {$_.FullName -like 'myzipdir/c/*' -and $_.FullName -ne 'myzipdir/c/'}
                 foreach ($entry in $entries) {
                     $dpath = $destPath + $entry.Name
                     [IO.Compression.ZipFileExtensions]::ExtractToFile( $entry, $dpath, $true)
@@ -93,38 +93,6 @@ function Install-OpenSsh {
                 Invoke-WebRequest -OutFile $tmp $downloadUri
                 Install-MsiPackage -MsiPackagePath $tmp.FullName
             }
-        }
-    }
-    
-
-    # remove old capabilities
-    $windowsCapabilities = @("OpenSSH.Server*", "OpenSSH.Client*")
-    foreach ($item  in $windowsCapabilities) {
-        $caps = Get-WindowsCapability -Online | Where-Object Name -like $item
-        foreach ($cap in $caps) {
-            if ($cap.State -eq "Installed") {
-                Remove-WindowsCapability -Online  -Name  $cap.Name
-            }
-        }
-    }
-
-    # change default ssh shell to powershell
-    # "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
-    $pwshPath = "C:\Program Files\PowerShell\7\pwsh.exe"
-    if (Test-Path $pwshPath -PathType Leaf) {
-        if (!(Test-Path "HKLM:\SOFTWARE\OpenSSH")) {
-            New-Item 'HKLM:\Software\OpenSSH' -Force
-        }
-        New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name DefaultShell -Value $pwshPath -PropertyType String -Force | Out-Null
-    }
-
-    #setup service startup type and start it
-    $services = @("sshd", "ssh-agent")
-    foreach ($serviceName in $services) {
-        $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
-        if ($service) {
-            $service | Set-Service -StartupType 'Automatic' 
-            Start-Service -Name $serviceName
         }
     }
 }

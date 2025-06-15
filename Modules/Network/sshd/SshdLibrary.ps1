@@ -2,16 +2,18 @@ Set-StrictMode -Version 3.0
 
 
 # .SYNOPSIS
-#   sshd functions
+#   sshd library
 # .DESCRIPTION
 # .PARAMETER IsWait
 # .PARAMETER UsePreview
 # .NOTES
 #   Author: Agitech; Version: 00.00.04
 
+#region SshLibrary
+
 #region Data
 
-$sshdConfigJsonString = @"
+$stringJson = @"
 {
   "AuthorizedKeysFile": {
     "order": "00",
@@ -36,54 +38,56 @@ $sshdConfigJsonString = @"
   "Subsystem sftp": {
     "order": "00",
     "type": "leaf",
-    "value": "sftp-server.exe"},
-  "Match Group administrators": {
-    "order": "90",
-    "type": "branch",
-    "value": {
-      "AuthorizedKeysFile": {
-        "order": "00",
-        "type": "leaf",
-        "value": "__PROGRAMDATA__/ssh/administrators_authorized_keys"
-      }
-    }
-  },
-  "Match User anoncvs": {
-    "order": "90",
-    "type": "branch",
-    "value": {
-      "AllowTcpForwarding": {
-        "order": "00",
-        "type": "leaf",
-        "value": "no"
-      },
-      "ForceCommand": {
-        "order": "00",
-        "type": "leaf",
-        "value": "cvs server"
-      },
-      "PermitTTY": {
-        "order": "00",
-        "type": "leaf",
-        "value": "no"
-      }
-    }
-  }  
+    "value": "sftp-server.exe"}
 }
 "@
+
 #endregion
 
-#region common functions
-function ConvertPSObjectToHashtable([Parameter(Mandatory=$true)][object]$InputObject){
+#region DoActionServices ConvertPSObjectToHashtable SortHashtableSshd SortHashtable JsonStringToHashtable
 
-    if ($null -eq $InputObject) { 
-        return $null 
+function DoActionServices {
+    param (
+        [Parameter(Mandatory = $true)]
+        [array]$Services,
+        [Parameter(Mandatory = $true)]
+        [ValidateSet('Restart', 'Stop', 'Start')]
+        [string]$Action
+    )
+
+    foreach ($serviceName in $Services) {
+        switch ($Action) {
+            'Restart' {
+                $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+                if ($service) {
+                    $service | Restart-Service
+                }
+                break
+            }
+            'Stop' {
+                $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+                if ($service) {
+                    $service | Stop-Service -ErrorAction SilentlyContinue
+                }
+                break
+            }
+            'Start' {
+                $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+                if ($service) {
+                    $service | Set-Service -StartupType 'Automatic' | Start-Service
+                }
+            }
+        }
     }
+}
 
+function ConvertPSObjectToHashtable ([object]$InputObject) {
+    if ($null -eq $InputObject) {
+        return $null
+    }
     if ($InputObject -is [Hashtable] -or $InputObject.GetType().Name -eq 'OrderedDictionary') {
-        return $InputObject 
+        return $InputObject
     }
-
     if ($InputObject -is [System.Collections.IEnumerable] -and $InputObject -isnot [string]) {
         $collection = @(
             foreach ($object in $InputObject) { ConvertPSObjectToHashtable($object) }
@@ -108,7 +112,7 @@ function ConvertPSObjectToHashtable([Parameter(Mandatory=$true)][object]$InputOb
 
 function SortHashtableSshd {
     param (
-        [Parameter(Mandatory=$true)][hashtable]$InputHashtable
+        [Parameter()][hashtable]$InputHashtable
     )
     $_shash = [System.Collections.Specialized.OrderedDictionary]@{}
     $_obj = @($InputHashtable.GetEnumerator() |  Sort-Object {
@@ -129,7 +133,7 @@ function SortHashtableSshd {
         $value = ($_obj[$i]).Value
         if ($value -is [hashtable]) {
             $value = SortHashtableSshd -InputHashtable $value
-        }        
+        }
         $_shash[$key] = $value
     }
 
@@ -138,7 +142,7 @@ function SortHashtableSshd {
 
 function SortHashtable {
     param (
-        [Parameter(Mandatory=$true)][hashtable]$InputHashtable
+        [Parameter()][hashtable]$InputHashtable
     )
     $_shash = [System.Collections.Specialized.OrderedDictionary]@{}
 
@@ -154,23 +158,124 @@ function SortHashtable {
 
 function JsonStringToHashtable {
     param (
-        [Parameter(Mandatory=$true)][string]$JsonString
+        [Parameter()][string]$JsonString
     )
     $hashtable = [hashtable]::new()
     $jsonObject = ConvertFrom-Json $JsonString
     $hashtable = ConvertPSObjectToHashtable -InputObject $jsonObject
     return $hashtable
 }
+
 #endregion
 
-#region sshd functions
+#region SshlibTuneServices SshlibRemoveOldCapabilities SshlibSetDefaultShell
 
-#region ConvertJsonToSshdConfig ConvertSshdConfigToJson
+function Sshlib_TuneServices {
+    #setup service startup type and start it
+    $services = @("sshd", "ssh-agent")
+    foreach ($serviceName in $services) {
+        $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+        if ($service) {
+            $service | Set-Service -StartupType 'Automatic'
+            Start-Service -Name $serviceName
+        }
+    }
+    # if (Get-Service  ssh-agent -ErrorAction SilentlyContinue) {
+    #     if ((get-service sshd).StartType -ne [System.ServiceProcess.ServiceStartMode]::Manual) {
+    #         Get-Service -Name ssh-agent | Set-Service -StartupType 'Automatic'
+    #     }
+    #     Start-Service ssh-agent
+    # }
+}
 
-function HashToSshdConfig {
+function Sshlib_RemoveOldCapabilities {
+    # remove old capabilities
+    $windowsCapabilities = @("OpenSSH.Server*", "OpenSSH.Client*")
+    foreach ($item  in $windowsCapabilities) {
+        $caps = Get-WindowsCapability -Online | Where-Object Name -like $item
+        foreach ($cap in $caps) {
+            if ($cap.State -eq "Installed") {
+                Remove-WindowsCapability -Online  -Name  $cap.Name
+            }
+        }
+    }
+}
+
+function Sshlib_SetDefaultShell {
+
+    $_pathes = @(
+        "C:\Program Files\PowerShell\7\pwsh.exe"
+        "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe"
+    )
+
+    if (!(Test-Path "HKLM:\SOFTWARE\OpenSSH")) {
+        New-Item 'HKLM:\Software\OpenSSH' -Force
+    }
+
+    if (Test-Path $_pathes[0] -PathType Leaf) {
+        New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name "DefaultShell" -Value $_pathes[0] -PropertyType String -Force | Out-Null
+    }
+    elseif (Test-Path $_pathes[1] -PathType Leaf) {
+        New-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name "DefaultShell" -Value $_pathes[1] -PropertyType String -Force | Out-Null
+    }
+    else {
+        Remove-ItemProperty -Path "HKLM:\SOFTWARE\OpenSSH" -Name "DefaultShell"
+    }
+}
+
+
+function Sshlib_SetPubKeys {
+    param(
+        [Parameter(Mandatory = $true)]
+        [System.Array]$PublicKeys
+    )
+
+    $sshAuKeyPathItems = @{
+        #[System.IO.Path]::GetFullPath((Join-Path "$PSScriptRoot" "..\.ssh"))
+        #local       = "$([System.IO.Path]::GetFullPath([System.IO.Path]::Combine("$PSScriptRoot","..\..\.ssh")))\authorized_keys"
+        local = "$([System.IO.Path]::GetFullPath([System.IO.Path]::Combine("$env:USERPROFILE",".ssh")))\authorized_keys"
+        #globalAdmin = "$env:ProgramData\ssh\administrators_authorized_keys"
+    }
+
+    foreach ($key in $sshAuKeyPathItems.Keys) {
+        $item = $sshAuKeyPathItems[$key]
+        if (!(Test-Path $item)) {
+            new-item -Path $item  -itemtype File -Force
+        }
+        if ($sshPublicKeys -is [System.Array]) {
+            foreach ($key in $PublicKeys) {
+                If (!(Select-String -Path $item -pattern $key -SimpleMatch)) {
+                    Add-Content $item $key
+                }
+            }
+        }
+    }
+}
+
+function Sshlib_ConfigFirewall {
+    ### Config firewall
+
+    $rule = Get-NetFirewallRule -Name "OpenSSH-Server-In-TCP" -ErrorAction SilentlyContinue
+
+    $portFilter = $rule | Get-NetFirewallPortFilter
+
+    if (($rule.Enabled -ne "True") -or ($rule.Direction -ne "Inbound") -or ($portFilter.Protocol -ne "TCP") -or ($portFilter.LocalPort -ne 22)) {
+        Remove-NetFirewallRule -Name "OpenSSH-Server-In-TCP" | Out-Null
+    }
+
+    if (-not (Get-NetFirewallRule -Name "OpenSSH-Server-In-TCP" -ErrorAction SilentlyContinue)) {
+        New-NetFirewallRule -Name "OpenSSH-Server-In-TCP" -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 | Out-Null
+    }
+}
+
+#endregion
+
+#region HashToSshdConfig ConvertJsonToSshdConfig ConvertSshdConfigToJson
+
+function Sshlib_HashToSshdConfig {
     param (
-        [Parameter(Mandatory=$true)][hashtable]$InputHashtable,
-        [Parameter(Mandatory=$false)][string]$Indent = ""
+        [Parameter()][hashtable]$InputHashtable,
+        [Parameter()][string]$Indent = ""
     )
     $hash = SortHashtableSshd -InputHashtable $InputHashtable
     $outputString = ""
@@ -178,7 +283,7 @@ function HashToSshdConfig {
         $value = $hash.$key.value
         if (($value -is [hashtable]) -or ($value -is [System.Collections.Specialized.OrderedDictionary])) {
             $outputString = $outputString + "$key$([System.Environment]::NewLine)"
-            $value = HashToSshdConfig -InputHashtable $value -Indent "  "
+            $value = Sshlib_HashToSshdConfig -InputHashtable $value -Indent "  "
             $outputString = $outputString + "$value$([System.Environment]::NewLine)"
         }
         else {
@@ -189,21 +294,21 @@ function HashToSshdConfig {
     return $outputString
 }
 
-function ConvertJsonToSshdConfig {
+function Sshlib_ConvertJsonToSshdConfig {
     param (
-        [Parameter(Mandatory=$true)][string]$JsonString
+        [Parameter()][string]$JsonString
     )
     $hash = JsonStringToHashtable $JsonString
     #$hash = SortHashtableSshd -InputHashtable $hash
-    $outputString = HashToSshdConfig -InputHashtable $hash
+    $outputString = Sshlib_HashToSshdConfig -InputHashtable $hash
     return $outputString
 }
 
 function ConvertSshdConfigToJson {
     param (
-        [Parameter(Mandatory=$true)][string]$FilePath
+        [Parameter()][string]$FilePath
     )
-    $items = Get-Content -Path $FilePath -Encoding utf8
+    $items = Get-Content -Path $FilePath
     $_hash = [hashtable]::new()
     $currentNode = $_hash
     #$parsing_error = $false
@@ -278,59 +383,19 @@ function ConvertSshdConfigToJson {
 
 #endregion
 
-enum ServiceAction {
-    Start
-    Stop
-    Restart
-}
+#region CompareSshdConfig WriteSshdConfig CheckSshdConfig
 
-function SetService {
+function Sshlib_CompareSshdConfig {
     param (
-        [Parameter(Mandatory=$true)][ServiceAction]$Names,
-        [Parameter(Mandatory=$false)][ServiceAction]$Action = [ServiceAction]::Start
-    )
-    
-    switch ($Action) {
-        Restart{
-            foreach ($serviceName in $services) {
-                $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
-                if ($service) {
-                    $service | Restart-Service
-                }
-            }
-            break
-        }
-        Stop{
-            foreach ($serviceName in $services) {
-                $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
-                if ($service) {
-                    $service | Stop-Service -ErrorAction SilentlyContinue
-                }
-            }            
-            break
-        }
-        Start {
-            foreach ($serviceName in $services) {
-                $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
-                if ($service) {
-                    $service | Set-Service -StartupType 'Automatic' | Start-Service
-                }
-            }
-        }
-    }
-}
-
-function CompareSshdConfig {
-    param (
-        [Parameter(Mandatory=$false)][string]$FilePath,
-        [Parameter(Mandatory=$true)][string]$SshdConfigJson
+        [Parameter()][string]$FilePath,
+        [Parameter()][string]$JsonString
     )
 
     $result = $false
 
     $_fileJson = ConvertSshdConfigToJson -FilePath $FilePath
 
-    $hash = JsonStringToHashtable -JsonString $SshdConfigJson
+    $hash = JsonStringToHashtable -JsonString $JsonString
     $hash = SortHashtableSshd -InputHashtable $hash
     $_stringJson = $hash | ConvertTo-Json -Depth 10
 
@@ -348,75 +413,68 @@ function CompareSshdConfig {
     return $result
 }
 
-function WriteSshdConfig {
+function Sshlib_WriteSshdConfig {
     param (
-        [Parameter(Mandatory=$false)][string]$FilePath,
-        [Parameter(Mandatory=$false)][string]$JsonString
+        [Parameter()][string]$FilePath,
+        [Parameter()][string]$JsonString
     )
-    $string = ConvertJsonToSshdConfig -JsonString $JsonString
+    $string = Sshlib_ConvertJsonToSshdConfig -JsonString $JsonString
     $string | Out-File -FilePath $FilePath  -Encoding utf8
 }
 
-function CheckSshdService01 {
+function Sshlib_CheckSshdConfig {
+    param (
+        [Parameter()][string]$SshdConfigPath,
+        [Parameter()][string]$OutFile,
+        [Parameter()][string]$JsonString
+    )
+
+    $result = Sshlib_CompareSshdConfig -FilePath $SshdConfigPath -JsonString $JsonString
+
+    if (-not $result) {
+        Sshlib_WriteSshdConfig -FilePath $OutFile -JsonString $JsonString
+        RestartSshdServices
+        return $false
+    }
+    return $true
+}
+
+#endregion
+
+#region CheckSshdService CheckSshd RestartSshdServices
+
+function Sshlib_CheckSshdService {
+
     $result = $true
+
     for ($i = 0; $i -lt 5; $i++) {
         if ((Get-Service sshd).Status -ine "running") {
             $result = $false
             break
         }
-        Start-Sleep -Seconds 1
+        Start-Sleep -Milliseconds 250
     }
     return $result
 }
 
-function CheckSshdServices {
+function Sshlib_CheckSshd {
     param (
-        [Parameter(Mandatory=$false)][string]$SshdConfigPath,
-        [Parameter(Mandatory=$true)][string]$SshdConfigJson,
-        [Parameter(Mandatory=$false)][switch]$Force
+        [Parameter()][string]$SshdConfigPath,
+        [Parameter()][string]$JsonString
     )
-    if(-not $SshdConfigPath){
-        $SshdConfigPath = "$env:ProgramData\ssh\sshd_config"
+    if (-not (Sshlib_CheckSshdService)) {
+        Sshlib_WriteSshdConfig -FilePath $SshdConfigPath -JsonString $JsonString
+        Sshlib_RestartSshdServices
+        return $false
     }
-    if(-not (Test-Path $SshdConfigPath)){
-        Write-Host "File $SshdConfigPath does not exist." -ForegroundColor DarkYellow
-        return
-    }
-    if ($Force -or -not (CheckSshdService01)) {
-        Set-Service -Names @("sshd", "ssh-agent") -Action Stop
-        WriteSshdConfig -FilePath $SshdConfigPath -JsonString $SshdConfigJson
-        Set-Service -Names @("sshd", "ssh-agent") -Action Start
-    }
+    return $true
 }
 
-function CheckSshdConfig {
-    param (
-        [Parameter(Mandatory=$false)][string]$SshdConfigPath,
-        [Parameter(Mandatory=$false)][string]$OutFile,
-        [Parameter(Mandatory=$false)][string]$SshdConfigJson
-    )
-
-    if(-not $SshdConfigPath){
-        $SshdConfigPath = "$env:ProgramData\ssh\sshd_config"
-    }
-    if(-not (Test-Path $SshdConfigPath)){
-        Write-Host "File $SshdConfigPath does not exist." -ForegroundColor DarkYellow
-        return
-    }
-    if(-not $OutFile){
-        $OutFile = $SshdConfigPath
-    }
-    if([String]::IsNullOrWhiteSpace($SshdConfigJson)){
-        $SshdConfigJson = $sshdConfigJsonString
-    }
-    $result = CompareSshdConfig -FilePath $SshdConfigPath -SshdConfigJson $SshdConfigJson
-
-    if (-not $result) {
-        Write-Verbose "Sshd config need to be repaired."
-        WriteSshdConfig -FilePath $OutFile -JsonString $SshdConfigJson
-    }else{
-        Write-Verbose "Sshd config is to be ok."
-    }
+function Sshlib_RestartSshdServices {
+    $services = @("sshd", "ssh-agent")
+    DoActionServices -Services $services -Action Restart
 }
+
+#endregion
 
 #endregion

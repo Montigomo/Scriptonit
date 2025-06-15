@@ -74,7 +74,7 @@ function InstallMSUpdates_inner {
         Write-Host "** Trying to connect to $_hostName..." -ForegroundColor DarkYellow
         $result = Test-RemotePort -IPAddress $_ipAddress -Port 22 -TimeoutMilliSec 3000
         if ($result.Response) {
-            Write-Host "$_hostName is online." -ForegroundColor DarkGreen -NoNewline
+            Write-Host "$_hostName is online." -ForegroundColor Cyan -NoNewline
             Write-Host " Attempting to create ssh session." -ForegroundColor Blue
             $Session = New-PSSession -HostName $_ipAddress -UserName $_userName -ConnectingTimeout 30000 -ErrorAction SilentlyContinue
             if ($Session) {
@@ -114,7 +114,7 @@ function InstallMSUpdates {
     if ($PSCmdlet.ParameterSetName -eq 'Include' -or $PSCmdlet.ParameterSetName -eq 'Exclude' ) {
         Write-Host "*** Updatting $NetworkName network." -ForegroundColor DarkGreen
 
-        $objects = LmGetObjects -ConfigName "Networks", "$NetworkName", "Hosts"
+        $objects = LmGetObjects -ConfigName "Networks" | Where-Object {$_.name -eq $NetworkName} | Select-Object -ExpandProperty "Hosts"
 
         if (-not $objects) {
             return

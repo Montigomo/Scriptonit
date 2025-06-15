@@ -4,52 +4,66 @@ function GetGitHubItems {
     param(
         [Parameter(Mandatory = $true)] [string]$Uri,
         [Parameter(Mandatory = $false)] [string]$ReleasePattern,
-        [Parameter(Mandatory = $false)] [string[]]$VersionPattern,
+        [Parameter(Mandatory = $false)] [string]$VersionPattern,
         [Parameter(Mandatory = $false)] [int]$Deep = 1,
         [Parameter(Mandatory = $false)] [switch]$UsePreview
     )
 
+    if([String]::IsNullOrWhiteSpace($VersionPattern)){
+        #$VersionPattern =  "v?(?<version>\d?\d\.\d?\d\.?\d?\d?\.?\d?\d?)"
+        $VersionPattern =  "v?(?<version>\d?\d\.\d?\d\.?\d?\d?(\.\d\d?)?)"
+    }
+
     $Uri = "$Uri/releases" -replace "(?<!:)/{2,}", "/"
+
     $json = (Invoke-RestMethod -Method Get -Uri $Uri)
-    $objects = $json | Where-Object { (-not $_.prerelease) -or ($UsePreview -and $_.prerelease) } | Sort-Object -Property published_at -Descending
-    $objects = $objects | Select-Object -First $Deep
-    $_remoteVersion = [System.Version]::Parse("0.0.0")
-    $_objects = @()
 
-    foreach ($object in $objects) {
-        $vpresult = $false
-        $vstring = $object.tag_name
+    $a_objects = $json | Where-Object { -not ($UsePreview -xor $_.prerelease) }
+    $vresult = $true
+    $b_objects = @()
+    foreach ($a_object in $a_objects) {
 
-        if ($VersionPattern) {
-            if ($vstring -match $VersionPattern) {
-                $vpresult = [System.Version]::TryParse($Matches["version"], [ref]$_remoteVersion)
-            }        
-        }
-    
-        if (-not $vpresult) {
-            switch -Regex ($vstring) {
-                "(?<v1>\d?\d\.\d\d?)-beta(?<v2>\d\d?)" {
-                    $vpresult = [System.Version]::TryParse("$($Matches["v1"]).$($Matches["v2"])", [ref]$_remoteVersion)
-                    break 
-                }            
-                "v?(?<version>\d?\d\.\d?\d\.?\d?\d?\.?\d?\d?)" { 
-                    $vpresult = [System.Version]::TryParse($Matches["version"], [ref]$_remoteVersion)
-                    break 
-                }
+        $_version = [System.Version]::Parse("0.0.0")
 
-            }
+        if ($a_object."tag_name" -match $VersionPattern) {
+            $vresult = $vresult -and [System.Version]::TryParse($Matches["version"], [ref]$_version)
         }
-        if (-not $vpresult) {
-            throw "Can't parse version info."
+
+        $b_object = @{
+            "published_at" = $a_object."published_at"
+            "version"      = [version]$_version
+            "assets"       = $a_object."assets"
         }
+        $b_objects += $b_object
+    }
+
+    if ($vresult) {
+        $b_objects = $b_objects | Sort-Object -Property { $_."version" } -Descending
+    }
+    else {
+        Write-Host "Problem with version pattern." -ForegroundColor DarkYellow
+        $b_objects = $b_objects | Sort-Object -Property "published_at" -Descending
+    }
+
+    $b_objects = $b_objects | Select-Object -First $Deep
+
+    $ret_objects = @()
+
+    foreach ($b_object in $b_objects) {
         $browser_download_url = ""
         if ($ReleasePattern) {
-            $browser_download_url = $object.assets | Where-Object name -match $ReleasePattern | Select-Object -ExpandProperty 'browser_download_url'
+            $browser_download_url = $b_object.assets | Where-Object name -match $ReleasePattern | Select-Object -ExpandProperty 'browser_download_url'
         }
         else {
-            $browser_download_url = $object.assets | Select-Object -ExpandProperty 'browser_download_url'
+            $browser_download_url = $b_object.assets | Select-Object -ExpandProperty 'browser_download_url'
         }
-        $_objects = $_objects + @{Version = $_remoteVersion; "Url" = $browser_download_url}
+        $ret_item = @{
+            Version = $b_object."version"
+            "Url"   = $browser_download_url
+        }
+
+        $ret_objects = $ret_objects + $ret_item
     }
-    return $_objects
+
+    return $ret_objects
 }

@@ -40,9 +40,9 @@ function Install-NvDriver {
         [switch]$OnlyCheck
     )
 
-    #region functions & class & enums
-
     # https://www.nvidia.com/download/find.aspx
+
+    #region DriverData
 
     class DriverData {
         [int]$productTypeId = 0
@@ -108,7 +108,10 @@ function Install-NvDriver {
         }
     }
 
-    #region Imported functions v 0.0.001
+    #endregion
+
+    #region WriteLog
+
     if (-not (Get-Variable -Name "LogFile" -Scope Global -ErrorAction SilentlyContinue)) {
         $Logfile = "$PSScriptRoot\$([System.IO.Path]::GetFileNameWithoutExtension($MyInvocation.MyCommand.Name)).log"
     }
@@ -128,6 +131,8 @@ function Install-NvDriver {
             Add-content $LogFile -value $LogString
         }
     }
+
+    #endregion
 
     #region Get-ModuleAdvanced
     if (-not (Get-Command "Get-ModuleAdvanced" -ErrorAction SilentlyContinue)) {
@@ -176,6 +181,8 @@ function Install-NvDriver {
         fnGetLookupRequestBase -typeId 4 -parentId $productSeriesTypeId
     }
     #endregion
+
+    #region DownloadAndInstall
 
     function DownloadAndInstall {
         param (
@@ -392,8 +399,11 @@ function Install-NvDriver {
     }
     $lastDriver = $drivers | Sort-Object { $_.version } -Descending | Select-Object -First 1
     $drvLastVersion = $lastDriver["version"]
+
     Write-Host $_driverData.productSeriesId | Select-Object *
+
     WriteLog "Installed driver version: $drvCurrentVersion, found $drvLastVersion version."
+
     if ($drvCurrentVersion -ge $drvLastVersion) {
         WriteLog "The installed version is the latest."
         $_driverUrl = $null
@@ -402,18 +412,18 @@ function Install-NvDriver {
 
         $_driverUrl = "https:{0}" -f $lastDriver["url"]
 
-        $htmlDoc = ConvertFrom-Html -URI $_driverUrl
-        $node = $htmlDoc.SelectSingleNode('//a[@id="lnkDwnldBtn"]')
-        if ($node) {
-            [System.Uri]$_driverUrl = "https://www.nvidia.com/{0}" -f $node.Attributes["href"].Value
-        }
+        [System.Uri]$url = "https:{0}" -f $lastDriver["url"]
+        $_someSeed = $url.Segments[3] -replace "/", ""
 
-        $query = $_driverUrl.Query
-        $params = [System.Web.HttpUtility]::ParseQueryString($query)
-        $_driverUrl = "https://us.download.nvidia.com{0}" -f $params["url"]
+        $_url01 = 'https://www.nvidia.com:/services/com.nvidia.services/AEMDriversContent/getDownloadDetails?{"ddID":"' + $_someSeed + '"}'
+
+        $response = Invoke-RestMethod -Method Get -Uri $_url01
+        $_downloadInfo = $response.driverDetails.IDS[0].downloadInfo
+        $_driverUrl = $_downloadInfo.DownloadURL
 
         WriteLog "Last driver url $_driverUrl"
     }
+
     #endregion
 
     #region Download and install
@@ -425,7 +435,7 @@ function Install-NvDriver {
         }
         'Install' {
             if ($_driverUrl) {
-                DownloadAndInstall -DriverUrl  $url
+                DownloadAndInstall -DriverUrl  $_driverUrl
             }
             break
         }
