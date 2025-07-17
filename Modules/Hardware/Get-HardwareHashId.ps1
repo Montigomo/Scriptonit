@@ -26,7 +26,7 @@ function Get-HardwareHashId {
     }
 
     $hstr = GetIdentifier -ClassName "Win32_Processor" -Properties "UniqueId"
-    
+
     if ([System.String]::IsNullOrWhiteSpace($hstr)) {
         $hstr = GetIdentifier -ClassName "Win32_Processor" -Properties "ProcessorId"
         if ([System.String]::IsNullOrWhiteSpace($hstr)) {
@@ -42,5 +42,5 @@ function Get-HardwareHashId {
     $md5 = New-Object -TypeName System.Security.Cryptography.MD5CryptoServiceProvider
     $utf8 = New-Object -TypeName System.Text.UTF8Encoding
     $hash = [System.BitConverter]::ToString($md5.ComputeHash($utf8.GetBytes($hstr))) -replace "-", ""
-    return $hash
+    return $hash.ToLower()
 }

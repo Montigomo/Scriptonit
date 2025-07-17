@@ -207,7 +207,7 @@ function EvalParams {
 
 function LmConvertObjectToHashtable {
     [CmdletBinding()]
-    [OutputType('hashtable')]
+    #[OutputType('hashtable')]
     param (
         [Parameter(ValueFromPipeline)]
         [object]$InputObject
@@ -287,12 +287,24 @@ function LmGetLocalizedResourceName {
 #region LmGetObjects LmGetParams
 function LmGetObjects {
     param (
-        [Parameter()][string[]]$ConfigName
+        [Parameter(Mandatory = $true)]
+        [object[]]$ConfigName,
+        [Parameter(Mandatory = $false)]
+        [string]$SelectorProperty = "name",
+        [Parameter(Mandatory = $false)]
+        [string]$LocationFolder = ".configs"
     )
 
-    $array = $ConfigName#.Split('.')
+    $array = $ConfigName
 
-    $jsonConfigPath = (Join-Path "$PSScriptRoot" "..\.configs\$($array[0]).json") | Resolve-Path -ErrorAction SilentlyContinue
+    $jsonConfigsFolder = Join-Path $PSScriptRoot "..\$LocationFolder" | Resolve-Path -ErrorAction SilentlyContinue
+
+    if (-not (Test-Path -Path $jsonConfigsFolder -PathType Container)) {
+        Write-Host "Invalid configs location folder $LocationFolder" -ForegroundColor Red
+        return
+    }
+
+    $jsonConfigPath = (Join-Path $jsonConfigsFolder "$($array[0]).json") | Resolve-Path -ErrorAction SilentlyContinue
 
     if ((-not $jsonConfigPath) -or -not (Test-Path $jsonConfigPath)) {
         Write-Host "Config $ConfigName not found." -ForegroundColor DarkRed
@@ -301,29 +313,52 @@ function LmGetObjects {
 
     $jsonConfigString = Get-Content $jsonConfigPath | Out-String
 
-    $found = $false
+    $found = $true
 
     $object = ConvertFrom-Json -InputObject $jsonConfigString
+
     $object = $object | LmConvertObjectToHashtable
 
-    if ($array.Length -gt 1) {
-        $array = $array[1..($array.length - 1)]
+    $array = $array[1..($array.length - 1)]
 
-        for ($i = 0; $i -lt $array.Count; $i++) {
-            $_key = $array[$i]
-            if ($object.ContainsKey($_key)) {
-                $found = $true
-                $object = $object[$_key]
+    for ($i = 0; $i -lt $array.Count; $i++) {
+        $_item = $array[$i]
+        if ($object -is [array]) {
+            $_key = $null
+            $_value = $null
+            if ($_item -is [hashtable] -and $_item.Keys.Count -eq 1) {
+                $_key = $_item.Keys[0]
+                $_value = $_item[$_key]
             }
-
+            elseif ($_item.ContainsKey($SelectorProperty)) {
+                $_key = $SelectorProperty
+                $_value = $_item[$_key]
+            }
+            else {
+                $found = $false
+                break
+            }
+            $object = $object | Where-Object { $_[$_key] -eq $_value }
+        }
+        elseif ($object -is [hashtable]) {
+            if ($object.ContainsKey($_item)) {
+                $object = $object[$_item]
+            }
+            else {
+                $found = $false
+                break
+            }
+        }
+        else {
+            Write-Host "The variable is of an unrecognized type."
         }
 
-        if (-not $found) {
-            Write-Host "Object $ConfigName not fiound." -ForegroundColor DarkYellow
-            return $null
-        }
     }
 
+    if (-not $found) {
+        Write-Host "Object $ConfigName not found." -ForegroundColor DarkYellow
+        return $null
+    }
     return $object
 }
 
@@ -387,8 +422,11 @@ function LmListObjects {
     }
     $e = [char]27
     $objects = LmGetObjects -ConfigName $ConfigName
+
     if ($Property -and ($objects -is [array])) {
-        $objects = $objects | Select-Object -ExpandProperty $Property
+        #$objects = $objects | Select-Object {$_.$Property}
+        $objects = $objects | Select-Object @{n = "name"; e = { $_.$Property } }
+        $objects = $objects | Select-Object -ExpandProperty "name"
         $str = ($objects -join "=0`n") + "=0"
         $objects = ConvertFrom-StringData $str
     }
@@ -403,13 +441,46 @@ function LmListObjects {
 }
 #endregion
 
-#region LmTestFunction LmSortHashtableByKey LmSortHashtableByPropertyValue
+#region LmTestFunction
 
 function LmTestFunction {
     param (
         [Parameter(Mandatory = $true)] [string]$Name
     )
     Test-Path -Path "function:${Name}"
+}
+
+#endregion
+
+#region  LmSortHashtableByKey LmSortHashtableByPropertyValue
+
+function LmSortCollectionByPropertyValue {
+    param (
+        [Parameter(Mandatory = $true)][System.Collections.IEnumerable]$InputObject,
+        [Parameter(Mandatory = $true)][string]$Key
+    )
+    $_retObject = $InputObject
+    $_flag = $true
+    if ($InputObject -is [array]) {
+        $_retObject = $InputObject | Sort-Object {
+            if ($_.ContainsKey($Key)) {
+                $_.$Key
+            }
+            else {
+                $_
+            }
+        }
+    }
+    elseif ($InputObject -is [hashtable]) {
+        $_retObject = LmSortHashtableByPropertyValue -InputHashtable $InputObject -Key $Key
+    }
+    else {
+        $_flag = $false
+    }
+    if (-not $_flag) {
+        Write-Host "Unsupported for sorting object type." -ForegroundColor DarkYellow
+    }
+    return  $_retObject
 }
 
 function LmSortHashtableByKey {
@@ -808,7 +879,7 @@ function LmMenu {
             break
         }
         'JsonFilePath' {
-            $Object = LmGetObjects -ConfigName $JsonFilePath
+            $Object = LmGetObjects -ConfigName $JsonFilePath -LocationFolder ".menu"
             break
         }
         'Object' {

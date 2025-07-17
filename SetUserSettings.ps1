@@ -18,7 +18,7 @@ param (
 
 Set-StrictMode -Version 3.0
 
-. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "UserFolders", "Network", "UserSettings") -Force | Out-Null
+. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "UserFolders", "Network", "Network.Hosts", "UserSettings") -Force | Out-Null
 
 function RunOperation {
     param (
@@ -39,7 +39,7 @@ function RunOperation {
 }
 
 function ListUsers {
-    LmListObjects -ConfigName "Users"
+    LmListObjects -ConfigName "Users" -Property "Name"
 }
 
 function ListUserOperations {
@@ -47,7 +47,7 @@ function ListUserOperations {
         [Parameter(Mandatory = $true)]
         [string]$UserName
     )
-    LmListObjects -ConfigName "Users", "$UserName", "Operations"
+    LmListObjects -ConfigName "Users", @{"name" = "$UserName"}, "Operations"
 }
 
 
@@ -59,31 +59,34 @@ function SetUserSettings {
         [array]$Operations
     )
 
-    $objects = LmGetObjects -ConfigName @("Users", "$UserName", "Operations")
+    #$objects = LmGetObjects -ConfigName @("Users", "$UserName", "Operations")
+    $objects = LmGetObjects -ConfigName @("Users", @{"name" = "$UserName"}, "Operations")
 
     if (-not $objects) {
         return
     }
 
-    $objects = LmSortHashtableByPropertyValue -InputHashtable $objects -Key "order"
+    $objects = LmSortCollectionByPropertyValue -InputObject $objects -Key "order"
 
-    foreach ($key in $objects.Keys) {
+    foreach ($operation in $objects) {
+        $_functionName = $operation.name
+
         # skip if specified operations list and item not in
-        if ((-not [System.String]::IsNullOrWhiteSpace($Operations) -and $Operations -inotcontains $key)) {
+        if ((-not [System.String]::IsNullOrWhiteSpace($Operations) -and $Operations -inotcontains $_functionName)) {
             continue
         }
         # skip if operation not a function or start with '--'
-        if (-not (TestFunction -Name $key) -or ($key.StartsWith("--"))) {
+        if (-not (TestFunction -Name $_functionName) -or ($_functionName.StartsWith("--"))) {
             continue
         }
-        $operation = $objects["$key"]
+
         if ($operation.ContainsKey("params")) {
             $params = $operation["params"]
         }
         else {
             $params = $null
         }
-        RunOperation -OpName $key -Arguments $params
+        RunOperation -OpName $_functionName -Arguments $params
     }
 }
 

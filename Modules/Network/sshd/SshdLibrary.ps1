@@ -7,7 +7,7 @@ Set-StrictMode -Version 3.0
 # .PARAMETER IsWait
 # .PARAMETER UsePreview
 # .NOTES
-#   Author: Agitech; Version: 00.00.04
+#   Author: Agitech; Version: 00.00.05
 
 #region SshLibrary
 
@@ -230,16 +230,19 @@ function Sshlib_SetPubKeys {
         [System.Array]$PublicKeys
     )
 
+    $_userProfileFolder = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($PSScriptRoot, "..\..\"))
+    #$_userProfileFolder = ""$env:USERPROFILE"
+    $_userProfileSshFolder = [System.IO.Path]::GetFullPath([System.IO.Path]::Combine($_userProfileFolder, ".ssh"))
+
     $sshAuKeyPathItems = @{
         #[System.IO.Path]::GetFullPath((Join-Path "$PSScriptRoot" "..\.ssh"))
-        #local       = "$([System.IO.Path]::GetFullPath([System.IO.Path]::Combine("$PSScriptRoot","..\..\.ssh")))\authorized_keys"
-        local = "$([System.IO.Path]::GetFullPath([System.IO.Path]::Combine("$env:USERPROFILE",".ssh")))\authorized_keys"
+        local = "$_userProfileSshFolder\authorized_keys"
         #globalAdmin = "$env:ProgramData\ssh\administrators_authorized_keys"
     }
 
     foreach ($key in $sshAuKeyPathItems.Keys) {
         $item = $sshAuKeyPathItems[$key]
-        if (!(Test-Path $item)) {
+        if (-not (Test-Path $item)) {
             new-item -Path $item  -itemtype File -Force
         }
         if ($sshPublicKeys -is [System.Array]) {
@@ -253,19 +256,22 @@ function Sshlib_SetPubKeys {
 }
 
 function Sshlib_ConfigFirewall {
-    ### Config firewall
+    $ruleName = "OpenSSH-Server-In-TCP"
 
-    $rule = Get-NetFirewallRule -Name "OpenSSH-Server-In-TCP" -ErrorAction SilentlyContinue
+    $rule = Get-NetFirewallRule -Name "$ruleName" -ErrorAction SilentlyContinue
 
     $portFilter = $rule | Get-NetFirewallPortFilter
 
-    if (($rule.Enabled -ne "True") -or ($rule.Direction -ne "Inbound") -or ($portFilter.Protocol -ne "TCP") -or ($portFilter.LocalPort -ne 22)) {
-        Remove-NetFirewallRule -Name "OpenSSH-Server-In-TCP" | Out-Null
+    if ($rule) {
+        if (($rule.Enabled -ne "True") -or ($rule.Direction -ne "Inbound") -or ($portFilter.Protocol -ne "TCP") -or ($portFilter.LocalPort -ne 22)) {
+            Remove-NetFirewallRule -Name "$ruleName" | Out-Null
+        }
     }
 
-    if (-not (Get-NetFirewallRule -Name "OpenSSH-Server-In-TCP" -ErrorAction SilentlyContinue)) {
-        New-NetFirewallRule -Name "OpenSSH-Server-In-TCP" -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 | Out-Null
+    if (-not (Get-NetFirewallRule -Name "$ruleName" -ErrorAction SilentlyContinue)) {
+        New-NetFirewallRule -Name "$ruleName" -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22 | Out-Null
     }
+
 }
 
 #endregion
@@ -433,7 +439,7 @@ function Sshlib_CheckSshdConfig {
 
     if (-not $result) {
         Sshlib_WriteSshdConfig -FilePath $OutFile -JsonString $JsonString
-        RestartSshdServices
+        Sshlib_RestartSshdServices
         return $false
     }
     return $true
