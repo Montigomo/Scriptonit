@@ -304,25 +304,21 @@ function LmGetObjects {
         return
     }
 
-    $jsonConfigPath = (Join-Path $jsonConfigsFolder "$($array[0]).json") | Resolve-Path -ErrorAction SilentlyContinue
-
-    if ((-not $jsonConfigPath) -or -not (Test-Path $jsonConfigPath)) {
-        Write-Host "Config $ConfigName not found." -ForegroundColor DarkRed
-        return
-    }
-
-    $jsonConfigString = Get-Content $jsonConfigPath | Out-String
-
     $found = $true
 
-    $object = ConvertFrom-Json -InputObject $jsonConfigString
-
-    $object = $object | LmConvertObjectToHashtable
-
-    $array = $array[1..($array.length - 1)]
-
-    for ($i = 0; $i -lt $array.Count; $i++) {
+    for ($i = 0; $i -lt $array.Length; $i++) {
         $_item = $array[$i]
+        if ($i -eq 0) {
+            $jsonConfigPath = (Join-Path $jsonConfigsFolder "$($array[0]).json") | Resolve-Path -ErrorAction SilentlyContinue
+            if ((-not $jsonConfigPath) -or -not (Test-Path $jsonConfigPath)) {
+                $found = $false
+                break
+            }
+            $jsonConfigString = Get-Content $jsonConfigPath | Out-String
+            $object = ConvertFrom-Json -InputObject $jsonConfigString
+            $object = $object | LmConvertObjectToHashtable
+            continue
+        }
         if ($object -is [array]) {
             $_key = $null
             $_value = $null
@@ -352,13 +348,14 @@ function LmGetObjects {
         else {
             Write-Host "The variable is of an unrecognized type."
         }
-
     }
 
     if (-not $found) {
-        Write-Host "Object $ConfigName not found." -ForegroundColor DarkYellow
+        Write-Host "Object $($ConfigName -join "-") not found." -ForegroundColor DarkRed
         return $null
     }
+
+
     return $object
 }
 
@@ -413,7 +410,7 @@ function LmParamsRemoveComments {
 #region LmListObjects
 function LmListObjects {
     param (
-        [Parameter()][string[]]$ConfigName,
+        [Parameter()][object[]]$ConfigName,
         [Parameter()][string]$Property,
         [Parameter()][int]$Color
     )

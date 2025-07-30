@@ -47,7 +47,7 @@ function ListUserOperations {
         [Parameter(Mandatory = $true)]
         [string]$UserName
     )
-    LmListObjects -ConfigName "Users", @{"name" = "$UserName"}, "Operations"
+    LmListObjects -ConfigName "Users", @{"name" = "$UserName"}, "Operations" -Property "name"
 }
 
 

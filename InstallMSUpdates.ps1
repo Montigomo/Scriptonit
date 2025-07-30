@@ -26,7 +26,7 @@ Set-StrictMode -Version 3.0
 . "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network") -Force | Out-Null
 
 function ListNetworks {
-    LmListObjects -ConfigName "Networks"
+    LmListObjects -ConfigName "Networks" -Property "name"
 }
 
 function ListHosts {
@@ -34,7 +34,7 @@ function ListHosts {
         [Parameter(Mandatory = $true)]
         [string]$NetworkName
     )
-    LmListObjects -ConfigName "Networks", "$NetworkName", "Hosts" -Property "HostName"
+    LmListObjects -ConfigName "Networks", @{"name" = "$NetworkName"}, "Hosts" -Property "HostName"
 }
 
 function InstallMSUpdatesStub {

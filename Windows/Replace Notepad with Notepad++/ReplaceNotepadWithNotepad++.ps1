@@ -45,6 +45,25 @@ reg import $tmp.FullName
 # https://github.com/notepad-plus-plus/nppShell
 # https://npp-user-manual.org/docs/shell-extension/
 
-regsvr32.exe "$path/notepad++/contextmenu/NppShell.dll"
-
-#regsvr32.exe  /U "$path/notepad++/contextmenucNppShell.dll"
+function NppRegisterShell {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$ProgramFolder,
+        [Parameter(Mandatory = $false)]
+        [switch]$Register
+    )
+    $shellExePath = "$ProgramFolder/contextmenu/NppShell.dll"
+    if (Test-Path $shellExePath) {
+        if ($Register) {
+            Write-Host "Registering NppShell.dll" -ForegroundColor DarkGreen
+            regsvr32.exe "$shellExePath"
+        }
+        else {
+            Write-Host "Unregistering NppShell.dll" -ForegroundColor DarkGreen
+            regsvr32.exe /U "$shellExePath"
+        }
+    }
+    else {
+        Write-Host "NppShell.dll not found at $shellExePath" -ForegroundColor Red
+    }
+}

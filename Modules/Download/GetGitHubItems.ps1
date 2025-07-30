@@ -9,11 +9,17 @@ function GetGitHubItems {
         [Parameter(Mandatory = $false)] [switch]$UsePreview
     )
 
-    if([String]::IsNullOrWhiteSpace($VersionPattern)){
+    if ([String]::IsNullOrWhiteSpace($VersionPattern)) {
         #$VersionPattern =  "v?(?<version>\d?\d\.\d?\d\.?\d?\d?\.?\d?\d?)"
-        $VersionPattern =  "v?(?<version>\d?\d\.\d?\d\.?\d?\d?(\.\d\d?)?)"
+        $VersionPattern = "v?(?<version>\d?\d\.\d?\d\.?\d?\d?(\.\d\d?)?)"
     }
 
+    if ([String]::IsNullOrWhiteSpace($Uri)) {
+        Write-Host "Uri is empty." -ForegroundColor DarkYellow
+        return @()
+    }
+
+    $Uri = GetGitHubApiUri -GitProjectUrl  $Uri
     $Uri = "$Uri/releases" -replace "(?<!:)/{2,}", "/"
 
     $json = (Invoke-RestMethod -Method Get -Uri $Uri)
