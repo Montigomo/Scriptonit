@@ -47,7 +47,7 @@ function ListUserOperations {
         [Parameter(Mandatory = $true)]
         [string]$UserName
     )
-    LmListObjects -ConfigName "Users", @{"name" = "$UserName"}, "Operations" -Property "name"
+    LmListObjects -ConfigName "Users\$UserName", "Operations" -Property "name"
 }
 
 
@@ -59,8 +59,8 @@ function SetUserSettings {
         [array]$Operations
     )
 
-    #$objects = LmGetObjects -ConfigName @("Users", "$UserName", "Operations")
-    $objects = LmGetObjects -ConfigName @("Users", @{"name" = "$UserName"}, "Operations")
+    $objects = LmGetObjects -ConfigName "Users\$UserName", "Operations"
+    #$objects = LmGetObjects -ConfigName @("Users", @{"name" = "$UserName"}, "Operations")
 
     if (-not $objects) {
         return

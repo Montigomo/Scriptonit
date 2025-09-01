@@ -19,20 +19,24 @@ function Install-OpenSsh {
     )
 
     $IsAdmin = [bool]([Security.Principal.WindowsIdentity]::GetCurrent().Groups -match 'S-1-5-32-544')
+
     if ( -not $IsAdmin) {
         Write-Error "Run as admin!"
         exit
     }
-    $localVersion = [System.Version]::Parse("0.0.0")
 
+    $localVersion = [System.Version]::Parse("0.0.0")
     $gitUri = "https://api.github.com/repos/powershell/Win32-OpenSSH"
     [bool]$IsOs64 = $([System.IntPtr]::Size -eq 8);
-    $exePath = if ($IsOs64) {
-        "C:\Program Files\OpenSSH\ssh.exe"
+
+    $programFolder = "C:\Program Files\OpenSSH"
+
+    if (-not $IsOs64) {
+        $programFolder = "C:\Program Files (x86)\OpenSSH"
     }
-    else {
-        "C:\Program Files (x86)\OpenSSH\ssh.exe"
-    }
+
+    $exePath = [System.IO.Path]::Combine($programFolder, "ssh.exe")
+    $exePath = [System.IO.Path]::GetFullPath([System.Uri]::new($exePath).LocalPath)
 
     if (Test-Path $exePath) {
         $vtext = ([System.Diagnostics.FileVersionInfo]::GetVersionInfo($exePath)).FileVersion
@@ -62,11 +66,8 @@ function Install-OpenSsh {
                         Stop-Service -Name $serviceName
                     }
                 }
-                # if ((Get-Service sshd -ErrorAction SilentlyContinue) -and ((Get-Service sshd).Status -eq "Running")) {
-                #     Stop-Service sshd
-                # }
                 # uninstall
-                $destPath = "c:\Program Files\OpenSSH\"
+                $destPath = $programFolder
                 if (Test-Path -Path $destPath) {
                     Remove-Item -Path "$destPath\*" -Recurse -Force
                 }
@@ -79,7 +80,7 @@ function Install-OpenSsh {
                 $zip = [IO.Compression.ZipFile]::OpenRead($tmp.FullName)
                 $entries = $zip.Entries | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Name) } #| where {$_.FullName -like 'myzipdir/c/*' -and $_.FullName -ne 'myzipdir/c/'}
                 foreach ($entry in $entries) {
-                    $dpath = $destPath + $entry.Name
+                    $dpath = [System.IO.Path]::Combine($destPath, $entry.Name)
                     [IO.Compression.ZipFileExtensions]::ExtractToFile( $entry, $dpath, $true)
                 }
                 $zip.Dispose()

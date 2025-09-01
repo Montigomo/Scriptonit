@@ -1,0 +1,154 @@
+{
+    "name": "UncleBen",
+    "id": "02",
+    "operations": [
+        {
+            "name": "InstallMsvcrt",
+            "order": 1,
+            "type": "function",
+            "modules": [
+                "Common",
+                "UserSettings"
+            ],
+            "params": null
+        },
+        {
+            "name": "InstallApplications",
+            "order": 2,
+            "type": "function",
+            "modules": [
+                "Common",
+                "UserSettings"
+            ],
+            "params": {
+                "Applications": [
+                    "RARLab.WinRAR",
+                    "Git.Git",
+                    "TortoiseGit.TortoiseGit",
+                    "Microsoft.DotNet.DesktopRuntime.7",
+                    "Microsoft.DotNet.AspNetCore.7",
+                    "Microsoft.DotNet.Runtime.7"
+                ]
+            }
+        },
+        {
+            "name": "SetRdpConnections",
+            "order": 3,
+            "type": "function",
+            "modules": [
+                "Common",
+                "UserSettings"
+            ],
+            "params": null
+        },
+        {
+            "name": "GitConfig",
+            "order": 4,
+            "type": "function",
+            "modules": [
+                "Common",
+                "UserSettings"
+            ],
+            "params": null
+        },
+        {
+            "name": "SetUserFolders",
+            "order": 5,
+            "type": "function",
+            "modules": [
+                "Common",
+                "UserSettings",
+                "UserFolders"
+            ],
+            "params": {
+                "Folders": {
+                    "Desktop": "D:\\_users\\<?UserName?>\\Desktop",
+                    "Documents": "D:\\_users\\<?UserName?>\\Documents",
+                    "Pictures": "D:\\_users\\<?UserName?>\\Pictures",
+                    "Video": "D:\\_users\\<?UserName?>\\Videos",
+                    "Music": "D:\\_users\\<?UserName?>\\Music"
+                }
+            }
+        },
+        {
+            "name": "SetMpPreference",
+            "order": 6,
+            "type": "function",
+            "modules": [
+                "Common",
+                "UserSettings"
+            ],
+            "params": {
+                "Items": [
+                    "\\\\Storage\\software",
+                    "D:\\work",
+                    "D:\\software"
+                ]
+            }
+        },
+        {
+            "name": "MakeSimLinks",
+            "order": 7,
+            "type": "function",
+            "modules": [
+                "Common",
+                "UserSettings"
+            ],
+            "params": {
+                "SimLinks": {
+                    "<?UserProfile?>\\.ssh\\config": "D:\\work\\admin\\users\\uben\\.ssh\\config",
+                    "<?UserProfile?>\\.ssh\\id_ed25519": "D:\\work\\admin\\users\\uben\\.ssh\\id_ed25519",
+                    "D:\\_software": "\\\\SomePC\\d\\_software",
+                    "D:\\_hardware": "\\\\SomePC\\d\\_hardware"
+                }
+            }
+        },
+        {
+            "name": "AddRegFiles",
+            "order": 8,
+            "type": "function",
+            "modules": [
+                "Common",
+                "UserSettings"
+            ],
+            "params": {
+                "Items": [
+                    "\\Explorer_Expand to current folder_ON.reg",
+                    "\\Context Menu\\Windows 11 classic context menu\\win11_classic_context_menu.reg",
+                    "\\Explorer_Activate Windows Photo Viewer on Windows 10.reg",
+                    "\\Explorer_Show_extensions_for_known_file_types.reg",
+                    "\\Explorer_Show_SuperHidden.reg",
+                    "\\Explorer_Open_to_PC.reg",
+                    "\\Change-KeyboardToggle.reg"
+                ]
+            }
+        },
+        {
+            "name": "PrepareHosts",
+            "order": 9,
+            "type": "function",
+            "modules": [
+                "Common",
+                "UserSettings",
+                "Network.Hosts"
+            ],
+            "params": {
+                "Hosts": {
+                    "Common": [
+                        "127.0.0.1|compute-1.amazonaws.com",
+                        "0.0.0.0|license.sublimehq.com",
+                        "83.243.40.67|wiki.bash-hackers.org"
+                    ],
+                    "Corel": [
+                        "127.0.0.1|iws.corel.com",
+                        "127.0.0.1|apps.corel.com",
+                        "127.0.0.1|mc.corel.com",
+                        "127.0.0.1|origin-mc.corel.com",
+                        "127.0.0.1|iws.corel.com",
+                        "127.0.0.1|deploy.akamaitechnologies.com"
+                    ]
+                }
+            }
+        }
+    ]
+}

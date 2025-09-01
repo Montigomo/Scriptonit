@@ -25,7 +25,7 @@ function DownloadItems {
         [string[]]$ExcludeNames
     )
 
-    $objects = LmGetObjects -ConfigName "Downloads", "$SetName"
+    $objects = LmGetObjects -ConfigName "downloads\$SetName", "items"
 
     switch ($PSCmdlet.ParameterSetName) {
         'Include' {

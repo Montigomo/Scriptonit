@@ -284,7 +284,53 @@ function LmGetLocalizedResourceName {
 
 #endregion
 
+#region LmListObjects
+function LmListObjects {
+    param (
+        [Parameter()][object[]]$ConfigName,
+        [Parameter()][string]$Property,
+        [Parameter()][int]$Color
+    )
+    if (-not $Color ) {
+        $Color = "35"
+    }
+    $e = [char]27
+    $objects = LmGetObjects -ConfigName $ConfigName
+
+    if ($Property -and ($objects -is [array])) {
+        #$objects = $objects | Select-Object {$_.$Property}
+        $objects = $objects | Select-Object @{n = "name"; e = { $_.$Property } }
+        $objects = $objects | Select-Object -ExpandProperty "name"
+        $str = ($objects -join "=0`n") + "=0"
+        $objects = ConvertFrom-StringData $str
+    }
+
+    $objects | Format-Table @{
+        Label      = "$($ConfigName -join ".")";
+        Expression = {
+            "$e[${Color}m$($_.Key)${e}[0m"
+        }
+    }
+
+}
+#endregion
+
 #region LmGetObjects LmGetParams
+
+# .SYNOPSIS
+#     Get object from json config Filed
+# .PARAMETER ConfigName
+#     [Parameter(Mandatory = $true)] [string[]] Config name in config file
+# .PARAMETER SelectorProperty
+#     [Parameter(Mandatory = $false)] [string] Property name for select object in array
+# .PARAMETER $LocationFolder
+#     [Parameter(Mandatory = $false)] [string] Configs location folder
+# .NOTES
+#     ConfigName - array of names for get object from json config file
+#     First element must be path to the folder where config file is located and config file name without extension
+#     Second and next elements are names or hashtables for select object in array
+#     Author : Agitech
+#     Version : 0.0.1
 function LmGetObjects {
     param (
         [Parameter(Mandatory = $true)]
@@ -304,12 +350,14 @@ function LmGetObjects {
         return
     }
 
+    $object = $null
+    $jsonConfigPath = $null
     $found = $true
 
     for ($i = 0; $i -lt $array.Length; $i++) {
         $_item = $array[$i]
         if ($i -eq 0) {
-            $jsonConfigPath = (Join-Path $jsonConfigsFolder "$($array[0]).json") | Resolve-Path -ErrorAction SilentlyContinue
+            $jsonConfigPath = (Join-Path $jsonConfigsFolder "$_item.json") | Resolve-Path -ErrorAction SilentlyContinue
             if ((-not $jsonConfigPath) -or -not (Test-Path $jsonConfigPath)) {
                 $found = $false
                 break
@@ -405,37 +453,6 @@ function LmParamsRemoveComments {
     return $Params
 }
 
-#endregion
-
-#region LmListObjects
-function LmListObjects {
-    param (
-        [Parameter()][object[]]$ConfigName,
-        [Parameter()][string]$Property,
-        [Parameter()][int]$Color
-    )
-    if (-not $Color ) {
-        $Color = "35"
-    }
-    $e = [char]27
-    $objects = LmGetObjects -ConfigName $ConfigName
-
-    if ($Property -and ($objects -is [array])) {
-        #$objects = $objects | Select-Object {$_.$Property}
-        $objects = $objects | Select-Object @{n = "name"; e = { $_.$Property } }
-        $objects = $objects | Select-Object -ExpandProperty "name"
-        $str = ($objects -join "=0`n") + "=0"
-        $objects = ConvertFrom-StringData $str
-    }
-
-    $objects | Format-Table @{
-        Label      = "$($ConfigName -join ".")";
-        Expression = {
-            "$e[${Color}m$($_.Key)${e}[0m"
-        }
-    }
-
-}
 #endregion
 
 #region LmTestFunction

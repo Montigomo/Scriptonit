@@ -40,7 +40,7 @@ function InstallApplications {
         Write-Host """$id"" " -ForegroundColor DarkGreen -NoNewline
         Write-Host "local version: " -ForegroundColor DarkYellow -NoNewline
         Write-Host "$($packageLocal.InstalledVersion), " -ForegroundColor DarkCyan -NoNewline
-        Write-Host "remove version: " -ForegroundColor DarkYellow -NoNewline
+        Write-Host "remote version: " -ForegroundColor DarkYellow -NoNewline
         Write-Host "$($packageRemote.Version)." -ForegroundColor DarkCyan
 
         if ($packageLocal.IsUpdateAvailable) {
