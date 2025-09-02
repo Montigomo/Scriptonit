@@ -1,60 +1,60 @@
 ﻿#Requires -RunAsAdministrator
-[CmdletBinding(DefaultParameterSetName = 'Include')]
+[CmdletBinding(DefaultParameterSetName = 'Only')]
 param (
-    [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'Only')]
     [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
     [string]$NetworkName,
-    [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
-    [string[]]$IncludeNames,
+    [Parameter(Mandatory = $false, ParameterSetName = 'Only')]
+    [string[]]$OnlyNames,
     [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
     [string[]]$ExcludeNames
 )
 
 Set-StrictMode -Version 3.0
 
-. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network", "Network.WakeOnLan") | Out-Null
+. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network", "Network.WakeOnLan") -Force | Out-Null
 
 function InvokeWakeOnLan {
-    [CmdletBinding(DefaultParameterSetName = 'Include')]
+    [CmdletBinding(DefaultParameterSetName = 'Only')]
     param (
-        [Parameter(Mandatory = $true, ParameterSetName = 'Include')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Only')]
         [Parameter(Mandatory = $true, ParameterSetName = 'Exclude')]
         [string]$NetworkName,
-        [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
-        [string[]]$IncludeNames,
+        [Parameter(Mandatory = $false, ParameterSetName = 'Only')]
+        [string[]]$OnlyNames,
         [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
         [string[]]$ExcludeNames
     )
 
-    $objects = LmGetObjects -ConfigName "Networks", "$NetworkName", "Hosts"
+    $objects = LmGetObjects -ConfigName "networks", "$networkName", "Hosts"
 
-    if(-not $objects){
+    if (-not $objects) {
         return
     }
 
-    $objects = $objects.GetEnumerator()
 
     switch ($PSCmdlet.ParameterSetName) {
-        'Include' {
-            if ($IncludeNames) {
-                $objects = $objects | Where-Object { $IncludeNames -icontains $_.Key}
+        'Only' {
+            if ($OnlyNames) {
+                $objects = $objects | Where-Object { $OnlyNames -icontains $_.HostName }
             }
             break
         }
         'Exclude' {
             if ($ExcludeNames) {
-                $objects = $objects | Where-Object { $ExcludeNames -inotcontains $_.Key }
+                $objects = $objects | Where-Object { $ExcludeNames -inotcontains $_.HostName }
             }
             break
         }
     }
 
-    $objects = $objects | Where-Object { $_.Value["wolFlag"] -eq $true }
+    $objects = $objects | Where-Object { $_.wolFlag -eq $true }
 
     foreach ($object in $objects) {
-        $objectMAC = $object.Value.MAC
-        $objectName = $object.Key
-        Write-Host "Sending wol packet to $objectName" -ForegroundColor DarkGreen
+        $objectMAC = $object.MAC
+        $objectName = $object.HostName
+        Write-Host "Sending wol packet to " -ForegroundColor DarkGreen -NoNewline
+        Write-Host "$objectName." -ForegroundColor Blue
         Send-MagicPacket -MacAddresses $objectMAC #-BroadcastProxy 192.168.1.255
     }
 }

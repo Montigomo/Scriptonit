@@ -34,8 +34,6 @@ function RunOperation {
     else {
         &"$OpName"
     }
-
-    #Invoke-Expression "$OpName $Arguments"
 }
 
 function ListUsers {
@@ -59,8 +57,7 @@ function SetUserSettings {
         [array]$Operations
     )
 
-    $objects = LmGetObjects -ConfigName "Users\$UserName", "Operations"
-    #$objects = LmGetObjects -ConfigName @("Users", @{"name" = "$UserName"}, "Operations")
+    $objects = LmGetObjects -ConfigName "users\$UserName\operations"
 
     if (-not $objects) {
         return

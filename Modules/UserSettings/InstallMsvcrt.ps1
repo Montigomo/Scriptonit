@@ -22,39 +22,31 @@ function InstallMsvcrt {
     )
 
     foreach ($id in $items) {
-        if( $id.StartsWith("--")){
+        if ( $id.StartsWith("--")) {
             continue
         }
         $packageLocal = Get-WinGetPackage -Id $id -MatchOption Equals
         $packageRemote = Find-WinGetPackage -Id $id -MatchOption Equals
 
         if (-not $packageLocal) {
-            Write-Host "Package with id " -ForegroundColor DarkYellow -NoNewline
-            Write-Host """$id"" " -ForegroundColor DarkGreen -NoNewline
-            Write-Host "not installed." -ForegroundColor DarkYellow
+            Write-HostColorable @("Package with id", """$id""", "not installed.")  @("DarkYellow", "DarkGreen", "DarkYellow")
             Install-WinGetPackage -Id $id -Mode Silent -Source "winget" -MatchOption Equals | Out-Null
             continue
         }
 
-        if(-not $packageRemote){
-             Write-Host "Can't find Package with id " -ForegroundColor DarkYellow -NoNewline
-            Write-Host """$id""." -NoNewline -ForegroundColor DarkGreen
+        if (-not $packageRemote) {
+            Write-HostColorable @("Package with id", """$id""", "not installed.")  @("DarkYellow", "DarkGreen", "DarkYellow")
             continue
         }
 
-        Write-Host "Package" -ForegroundColor DarkYellow -NoNewline
-        Write-Host """$id"" " -ForegroundColor DarkGreen -NoNewline
-        Write-Host "local version: " -ForegroundColor DarkYellow -NoNewline
-        Write-Host "$($packageLocal.InstalledVersion), " -ForegroundColor DarkCyan -NoNewline
-        Write-Host "remove version: " -ForegroundColor DarkYellow -NoNewline
-        Write-Host "$($packageRemote.Version)." -ForegroundColor DarkCyan
+        Write-HostColorable @("Package", """$id""", "local version:", "$($packageLocal.InstalledVersion),", "remove version:", "$($packageRemote.Version).")  @("DarkYellow", "DarkGreen", "DarkYellow", "DarkCyan", "DarkYellow", "DarkCyan")
 
-        if($packageLocal.IsUpdateAvailable){
-             Write-Host "The Package " -ForegroundColor DarkYellow -NoNewline
-             Write-Host """$id"" " -ForegroundColor DarkGreen -NoNewline
-             Write-Host "needs to be updated." -ForegroundColor DarkYellow
-             Update-WinGetPackage -Id $id -Mode Silent -Force -Source "winget" | Out-Null
-             continue
+        if ($packageLocal.IsUpdateAvailable) {
+            Write-Host "The Package " -ForegroundColor DarkYellow -NoNewline
+            Write-Host """$id"" " -ForegroundColor DarkGreen -NoNewline
+            Write-Host "needs to be updated." -ForegroundColor DarkYellow
+            Update-WinGetPackage -Id $id -Mode Silent -Force -Source "winget" | Out-Null
+            continue
         }
     }
 }

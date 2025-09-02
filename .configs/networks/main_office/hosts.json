@@ -1,0 +1,38 @@
+[
+	{
+		"HostName": "SomeOfficeAdmin",
+		"ip": "192.168.10.70",
+		"username": "montigomo@outlook.com",
+		"WUFlag": true,
+		"MAC": "ff:e2:ff:65:ff:4c",
+		"wolFlag": true,
+		"wolPort": 9
+	},
+	{
+		"HostName": "SomeOfficeAdvokat",
+		"ip": "192.168.10.92",
+		"username": "user",
+		"WUFlag": true,
+		"MAC": "ff:e2:ff:65:ff:4c",
+		"wolFlag": true,
+		"wolPort": 9
+	},
+	{
+		"HostName": "SomeOfficeBuh1",
+		"ip": "192.168.10.80",
+		"username": "user",
+		"WUFlag": true,
+		"MAC": "ff:e2:ff:65:ff:4c",
+		"wolFlag": true,
+		"wolPort": 9
+	},
+	{
+		"HostName": "SomeOfficeBuh2",
+		"ip": "192.168.10.84",
+		"username": "user",
+		"WUFlag": true,
+		"MAC": "ff:e2:ff:65:ff:4c",
+		"wolFlag": true,
+		"wolPort": 9
+	}
+]

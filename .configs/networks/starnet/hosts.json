@@ -1,0 +1,29 @@
+[
+	{
+		"HostName": "AgiDesktop",
+		"ip": "192.168.31.100",
+		"username": "agitech@outlook.com",
+		"WUFlag": true,
+		"MAC": "74:d0:2b:a2:5c:45",
+		"wolFlag": true,
+		"wolPort": 9
+	},
+	{
+		"HostName": "AgiLaptop",
+		"ip": "192.168.31.104",
+		"username": "agitech@outlook.com",
+		"WUFlag": true,
+		"MAC": "54:a0:50:bc:29:70",
+		"wolFlag": true,
+		"wolPort": 9
+	},
+	{
+		"HostName": "AgiBeelink",
+		"ip": "192.168.31.102",
+		"username": "agitech@outlook.com",
+		"WUFlag": true,
+		"MAC": "70:70:fc:01:3a:33",
+		"wolFlag": true,
+		"wolPort": 9
+	}
+]

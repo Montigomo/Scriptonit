@@ -2,7 +2,7 @@
 param (
     [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
     [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
-    [Parameter(Mandatory = $false)] [string]$SetName,
+    [Parameter(Mandatory = $false)] [string]$UserName,
     [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
     [string[]]$IncludeNames,
     [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
@@ -18,14 +18,14 @@ function DownloadItems {
     param (
         [Parameter(Mandatory = $true, ParameterSetName = 'Include')]
         [Parameter(Mandatory = $true, ParameterSetName = 'Exclude')]
-        [Parameter(Mandatory = $false)] [string]$SetName,
+        [Parameter(Mandatory = $false)] [string]$UserName,
         [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
         [string[]]$IncludeNames,
         [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
         [string[]]$ExcludeNames
     )
 
-    $objects = LmGetObjects -ConfigName "downloads\$SetName", "items"
+    $objects = LmGetObjects -ConfigName "users\$UserName\downloads"
 
     switch ($PSCmdlet.ParameterSetName) {
         'Include' {

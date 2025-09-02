@@ -7,7 +7,7 @@ param (
     [Parameter(Mandatory = $false, ParameterSetName = 'Work')]
     [Parameter(Mandatory = $false, ParameterSetName = 'List')]
     [Parameter(Mandatory = $false)]
-    [string]$NetworkName,
+    [string]$UserName,
     [Parameter(Mandatory = $false, ParameterSetName = 'Work')]
     [Parameter(Mandatory = $false)]
     [string]$RuleSetName,
@@ -27,10 +27,10 @@ Get-ModuleAdvanced -ModuleName "NetSecurity"
 function ListFirewallRule {
     param (
         [Parameter(Mandatory = $true)]
-        [string]$NetworkName
+        [string]$UserName
     )
 
-    $objects = LmGetObjects -ConfigName "Firewall", "$NetworkName"
+    $objects = LmGetObjects -ConfigName "users\$UserName", "firewall"
 
     $objects | Format-Table | Out-String
 }
@@ -38,14 +38,14 @@ function ListFirewallRule {
 function ImportFirewallRule {
     param (
         [Parameter(Mandatory = $true)]
-        [string]$NetworkName,
+        [string]$UserName,
         [Parameter(Mandatory = $false)]
         [string]$RuleSetName,
         [Parameter(Mandatory = $false)]
         [switch]$Force
     )
 
-    $objects = LmGetObjects -ConfigName "Firewall", "$NetworkName"
+    $objects = LmGetObjects -ConfigName @("users\$UserName", "firewall")
 
     if(-not $objects){
         return

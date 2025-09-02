@@ -23,9 +23,10 @@ function InstallApplications {
         $packageRemote = Find-WinGetPackage -Id $id -MatchOption Equals
 
         if (-not $packageLocal) {
-            Write-Host "Package with id " -ForegroundColor DarkYellow -NoNewline
-            Write-Host """$id"" " -ForegroundColor DarkGreen -NoNewline
-            Write-Host "not installed." -ForegroundColor DarkYellow
+            # Write-Host "Package with id " -ForegroundColor DarkYellow -NoNewline
+            # Write-Host """$id"" " -ForegroundColor DarkGreen -NoNewline
+            # Write-Host "not installed." -ForegroundColor DarkYellow
+            Write-HostColorable @("Package with id", """$id""", "not installed.")  @("DarkYellow", "DarkGreen", "DarkYellow")
             Install-WinGetPackage -Id $id -Mode Silent -Source "winget" -MatchOption Equals | Out-Null
             continue
         }

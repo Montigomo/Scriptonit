@@ -12,7 +12,7 @@ param (
 
 Set-StrictMode -Version 3.0
 
-. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network") | Out-Null
+. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network") -Force | Out-Null
 
 #region ResolveHost ScanIpRangePrinters ScanIpRangePort ScanIpRangePing
 
@@ -83,7 +83,7 @@ function ScanNetwork {
 
     switch ($PSCmdlet.ParameterSetName) {
         'NetworkName' {
-            $objects = LmGetObjects -ConfigName "Networks", "$NetworkName", "Scan"
+            $objects = LmGetObjects -ConfigName "networks\$NetworkName\scan"
             if (-not $objects) {
                 return
             }

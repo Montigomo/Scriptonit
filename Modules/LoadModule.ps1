@@ -356,11 +356,20 @@ function LmGetObjects {
 
     for ($i = 0; $i -lt $array.Length; $i++) {
         $_item = $array[$i]
-        if ($i -eq 0) {
-            $jsonConfigPath = (Join-Path $jsonConfigsFolder "$_item.json") | Resolve-Path -ErrorAction SilentlyContinue
-            if ((-not $jsonConfigPath) -or -not (Test-Path $jsonConfigPath)) {
-                $found = $false
-                break
+        if ($null -eq $jsonConfigPath) {
+            #$jsonConfigPath = (Join-Path $jsonConfigsFolder "$_item.json") | Resolve-Path -ErrorAction SilentlyContinue
+
+            $jsonConfigPath = "$([System.IO.Path]::Combine([string[]]$(@($jsonConfigsFolder) + [string[]]$array[0..$i]))).json"
+
+            if (-not (Test-Path $jsonConfigPath)) {
+                if ($i -eq ($array.Length - 1)) {
+                    $found = $false
+                    break
+                }
+                else {
+                    $jsonConfigPath = $null
+                    continue
+                }
             }
             $jsonConfigString = Get-Content $jsonConfigPath | Out-String
             $object = ConvertFrom-Json -InputObject $jsonConfigString
@@ -455,7 +464,46 @@ function LmParamsRemoveComments {
 
 #endregion
 
-#region LmTestFunction
+#region LmWriteHostColorable LmTestFunction
+function Write-HostColorable {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true, Position = 0)]
+        [object]$Messages,
+        [Parameter(Mandatory = $true, Position = 1)]
+        [array]$Colors
+    )
+    LmWriteHostColorable @PSBoundParameters
+}
+
+function LmWriteHostColorable {
+    [CmdletBinding()]
+    param (
+        [Parameter(Mandatory = $true, Position = 0)]
+        [object]$Messages,
+        [Parameter(Mandatory = $true, Position = 1)]
+        [array]$Colors
+    )
+    $Colors = @($Colors)
+    $c_index = 0
+    for ($i = 0; $i -lt $Messages.Length; $i++) {
+        $_message = $Messages[$i]
+        if (-not [string]::IsNullOrEmpty($_message)) {
+            if ($c_index -gt $Colors.Length - 1) {
+                $c_index = 0
+            }
+            $params = @{
+                "Object"          = "$($Messages[$i]) "
+                "ForegroundColor" = $Colors[$c_index]
+            }
+            if ($i -lt $Messages.Length - 1) {
+                $params["NoNewline"] = $true
+            }
+            Write-Host @params
+        }
+        $c_index++
+    }
+}
 
 function LmTestFunction {
     param (

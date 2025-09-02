@@ -1,15 +1,15 @@
 ﻿
 Set-StrictMode -Version 3.0
 
-function Send-MagicPacket{
+function Send-MagicPacket {
     param
     (
         [Parameter(Mandatory, ValueFromPipeline, ValueFromPipelineByPropertyName)]
         [ValidatePattern('^([0-9A-F]{2}[:-]){5}([0-9A-F]{2})$')] [string[]]$MacAddresses,
-        [Parameter(Mandatory = $false)] [string]$BroadcastProxy, 
-        [Parameter(Mandatory = $false)] [int]$Port = 9        
+        [Parameter(Mandatory = $false)] [string]$BroadcastProxy,
+        [Parameter(Mandatory = $false)] [int]$Port = 9
     )
- 
+
     begin {
         # instantiate a UDP client:
         $UDPclient = [System.Net.Sockets.UdpClient]::new()
@@ -30,11 +30,11 @@ function Send-MagicPacket{
 
                 $packet = [byte[]](, 0xFF) * 102
                 6..101 | Foreach-Object { $packet[$_] = $bmac[($_ % 6)] }
-                
+
                 # $synchronization = [byte[]](, 0xFF) * 6
                 # $packet = $synchronization + $bmac * 16
 
-                # $packet = (, [byte]255 * 6) + ($bmac * 16)                
+                # $packet = (, [byte]255 * 6) + ($bmac * 16)
                 #endregion
 
                 #region getting broadcast address
@@ -46,7 +46,12 @@ function Send-MagicPacket{
 
                 $UDPclient.Connect($bip, $Port)
                 $UDPclient.Send($packet, $packet.Length) | Out-Null
-                Write-Host "Magic packet with MAC-address $mac sended to broadcast address $($bip.ToString())" -ForegroundColor DarkGreen
+
+                Write-Host "Magic packet with MAC-address " -ForegroundColor DarkGreen -NoNewline
+                Write-Host "$mac " -ForegroundColor DarkYellow  -NoNewline
+                Write-Host "sended to broadcast address " -ForegroundColor DarkGreen -NoNewline
+                Write-Host "$($bip.ToString())" -ForegroundColor DarkYellow
+
             }
             catch {
                 Write-Warning "Unable to send ${mac}: $_"

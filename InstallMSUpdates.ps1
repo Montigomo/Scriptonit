@@ -1,14 +1,14 @@
 #Requires -Version 6.0
 #Requires -PSEdition Core
 #Requires -RunAsAdministrator
-[CmdletBinding(DefaultParameterSetName = 'Include')]
+[CmdletBinding(DefaultParameterSetName = 'Only')]
 param (
     [Parameter(Mandatory = $false, ParameterSetName = 'ListHosts')]
-    [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'Only')]
     [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
     [string]$NetworkName,
-    [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
-    [string[]]$IncludeNames,
+    [Parameter(Mandatory = $false, ParameterSetName = 'Only')]
+    [string[]]$OnlyNames,
     [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
     [string[]]$ExcludeNames,
     [Parameter(Mandatory = $true, ParameterSetName = 'SimplePC')]
@@ -34,7 +34,7 @@ function ListHosts {
         [Parameter(Mandatory = $true)]
         [string]$NetworkName
     )
-    LmListObjects -ConfigName "Networks", @{"name" = "$NetworkName"}, "Hosts" -Property "HostName"
+    LmListObjects -ConfigName "networks\$NetworkName", "Hosts" -Property "HostName"
 }
 
 function InstallMSUpdatesStub {
@@ -96,13 +96,13 @@ function InstallMSUpdates_inner {
 }
 
 function InstallMSUpdates {
-    [CmdletBinding(DefaultParameterSetName = 'Include')]
+    [CmdletBinding(DefaultParameterSetName = 'Only')]
     param (
-        [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'Only')]
         [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
         [string]$NetworkName,
-        [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
-        [string[]]$IncludeNames,
+        [Parameter(Mandatory = $false, ParameterSetName = 'Only')]
+        [string[]]$OnlyNames,
         [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
         [string[]]$ExcludeNames,
         [Parameter(Mandatory = $true, ParameterSetName = 'SimplePC')]
@@ -111,20 +111,19 @@ function InstallMSUpdates {
         [string]$LoginName
     )
 
-    if ($PSCmdlet.ParameterSetName -eq 'Include' -or $PSCmdlet.ParameterSetName -eq 'Exclude' ) {
+    if ($PSCmdlet.ParameterSetName -eq 'Only' -or $PSCmdlet.ParameterSetName -eq 'Exclude' ) {
         Write-Host "*** Updatting $NetworkName network." -ForegroundColor DarkGreen
-
-        $objects = LmGetObjects -ConfigName "Networks" | Where-Object {$_.name -eq $NetworkName} | Select-Object -ExpandProperty "Hosts"
-
+        $objects = LmGetObjects -ConfigName  "networks\$NetworkName", "hosts"
         if (-not $objects) {
             return
         }
+        #$objects = $objects | Where-Object { $_.WUFlag }
     }
 
     switch ($PSCmdlet.ParameterSetName) {
-        'Include' {
-            if ($IncludeNames) {
-                $objects = $objects | Where-Object { $IncludeNames -icontains $_.HostName }
+        'Only' {
+            if ($OnlyNames) {
+                $objects = $objects | Where-Object { $OnlyNames -icontains $_.HostName }
             }
             break
         }

@@ -1,0 +1,265 @@
+[
+	{
+		"Name": "Win32-OpenSSH",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/PowerShell/Win32-OpenSSH",
+			"Destination": "\\\\STORAGE\\software\\microsoft\\Open SSH",
+			"Deep": 3,
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "xmrig",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://api.github.com/repos/xmrig/xmrig",
+			"Destination": "D:\\work\\coins\\xmrig\\bin\\xmrig",
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "xmrig-cuda",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://api.github.com/repos/xmrig/xmrig-cuda",
+			"Destination": "D:\\work\\coins\\xmrig\\bin\\xmrig-cuda",
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "xmrig-proxy",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://api.github.com/repos/xmrig/xmrig-proxy",
+			"Destination": "D:\\work\\coins\\xmrig\\bin\\xmrig-proxy",
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "xmrig-deps",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/xmrig/xmrig-deps",
+			"Destination": "D:\\work\\coins\\xmrig\\bin\\xmrig-deps",
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "vertcoin-core",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/vertcoin-project/vertcoin-core",
+			"Destination": "\\\\STORAGE\\software\\coins\\vertcoin",
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "monero-gui",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/monero-project/monero-gui",
+			"Destination": "\\\\STORAGE\\software\\coins\\monero",
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "easyrsa",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/OpenVPN/easy-rsa",
+			"Destination": "\\\\STORAGE\\software\\network\\easyrsa",
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "hiddify",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/hiddify/hiddify-next/",
+			"Destination": "\\\\STORAGE\\software\\network\\xray\\hiddify",
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "hiddify-beta",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/hiddify/hiddify-next/",
+			"Destination": "\\\\STORAGE\\software\\network\\xray\\hiddify",
+			"UsePreview": true,
+			"Force": false
+		}
+	},
+	{
+		"Name": "nekoray",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/MatsuriDayo/nekoray",
+			"Destination": "\\\\STORAGE\\software\\network\\xray\\nekoray",
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "nekoray",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/MatsuriDayo/nekoray",
+			"Destination": "\\\\STORAGE\\software\\network\\xray\\nekoray",
+			"UsePreview": true,
+			"Force": false
+		}
+	},
+	{
+		"Name": "v2rayn",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/2dust/v2rayN",
+			"Destination": "\\\\STORAGE\\software\\network\\xray\\v2rayN",
+			"Deep": 3,
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "syncthing",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/syncthing/syncthing",
+			"Destination": "\\\\STORAGE\\software\\network\\syncthing",
+			"Deep": 1,
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "yt-dlp",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/yt-dlp/yt-dlp",
+			"Destination": "\\\\STORAGE\\software\\media\\yt-dlp",
+			"Deep": 3,
+			"UsePreview": true,
+			"Force": false
+		}
+	},
+	{
+		"Name": "yt-dlp",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/yt-dlp/yt-dlp",
+			"Destination": "\\\\STORAGE\\software\\media\\yt-dlp",
+			"Deep": 5,
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "PaintNet",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/paintdotnet/release",
+			"Destination": "\\\\STORAGE\\software\\media\\Paint net",
+			"Deep": 3,
+			"UsePreview": true,
+			"Force": false
+		}
+	},
+	{
+		"Name": "Anki",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/ankitects/anki",
+			"Destination": "\\\\STORAGE\\software\\languages\\anki",
+			"Deep": 1,
+			"UsePreview": true,
+			"Force": false
+		}
+	},
+	{
+		"Name": "Driver Store Explorer",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/lostindark/DriverStoreExplorer",
+			"Destination": "\\\\STORAGE\\software\\hardware\\Driver Store Explorer",
+			"Deep": 1,
+			"UsePreview": true,
+			"Force": false
+		}
+	},
+	{
+		"Name": "Rufus",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/pbatard/rufus",
+			"Destination": "\\\\STORAGE\\software\\utilites\\rufus",
+			"Deep": 1,
+			"UsePreview": true,
+			"Force": false
+		}
+	},
+	{
+		"Name": "Rufus",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/pbatard/rufus",
+			"Destination": "\\\\STORAGE\\software\\utilites\\rufus",
+			"Deep": 1,
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "Notepad++",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/notepad-plus-plus/notepad-plus-plus",
+			"Destination": "\\\\STORAGE\\software\\utilites\\Notepad++",
+			"Deep": 1,
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "VirtualHere",
+		"Type": "direct",
+		"JobName": "VirtualHere",
+		"Prepare": true,
+		"params": {
+			"Destination": "\\\\STORAGE\\software\\network\\VirtualHere",
+			"Force": false
+		}
+	}
+]

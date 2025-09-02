@@ -6,7 +6,7 @@ param (
     [Parameter(Mandatory = $false, ParameterSetName = 'Work')]
     [Parameter(Mandatory = $false, ParameterSetName = 'ListItems')]
     [Parameter(Mandatory = $false, ParameterSetName = 'ListSets')]
-    [string]$SetName,
+    [string]$UserName,
     [Parameter(Mandatory = $false, ParameterSetName = 'Work')]
     [array]$Items,
     [Parameter(Mandatory = $false, ParameterSetName = 'ListItems')]
@@ -38,9 +38,9 @@ function ListSets {
 function ListItems {
     param (
         [Parameter(Mandatory = $true)]
-        [string]$SetName
+        [string]$UserName
     )
-    $objects = LmGetObjects -ConfigName "Tasks", "$SetName"
+    $objects = LmGetObjects -ConfigName "Tasks", "$UserName"
 
     $objects | Select-Object -Property Name | Format-Table @{
         Label      = "Operations";
@@ -57,11 +57,11 @@ function ListItems {
 
 function SetStartupItems {
     param (
-        [Parameter(Mandatory = $true)] [string]$SetName,
+        [Parameter(Mandatory = $true)] [string]$UserName,
         [Parameter(Mandatory = $false)] [array]$Items
     )
 
-    $objects = LmGetObjects -ConfigName "Tasks", "$SetName"
+    $objects = LmGetObjects -ConfigName "users", "$UserName", "tasks"
 
     if (-not $objects -or $objects -isnot [array]) {
         Write-Host "Empty objects or wrong type." -ForegroundColor DarkYellow
@@ -79,7 +79,7 @@ function SetStartupItems {
             continue
         }
 
-        Write-Host "Create task for $($object.Name)" -ForegroundColor DarkYellow
+        Write-HostColorable @("Create", "startup task", "for", $($object.Name))  @("DarkYellow", "DarkGreen", "DarkYellow", "DarkBlue")
 
         if ($Items -or $object.prepare) {
             $params = $object
