@@ -5,14 +5,14 @@
 param (
     [Parameter(Mandatory = $false, ParameterSetName = 'Work')]
     [Parameter(Mandatory = $false, ParameterSetName = 'ListItems')]
-    [Parameter(Mandatory = $false, ParameterSetName = 'ListSets')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'ListUsers')]
     [string]$UserName,
     [Parameter(Mandatory = $false, ParameterSetName = 'Work')]
     [array]$Items,
     [Parameter(Mandatory = $false, ParameterSetName = 'ListItems')]
     [switch]$ListItems,
-    [Parameter(Mandatory = $false, ParameterSetName = 'ListSets')]
-    [switch]$ListSets
+    [Parameter(Mandatory = $false, ParameterSetName = 'ListUsers')]
+    [switch]$ListUsers
 )
 
 Set-StrictMode -Version 3.0
@@ -20,19 +20,8 @@ Set-StrictMode -Version 3.0
 . "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common") -Force | Out-Null
 
 
-function ListSets {
-    $objects = LmGetObjects -ConfigName "Tasks"
-    $objects | Format-Table @{
-        Label      = "Sets";
-        Expression = {
-            $color = "93"
-            #$color = "32"
-            #$color = "35"
-            #$color = "0"
-            $e = [char]27
-            "$e[${color}m$($_.Key)${e}[0m"
-        }
-    }
+function ListUsers {
+    LmListObjects -ConfigName "Users"
 }
 
 function ListItems {
@@ -40,19 +29,7 @@ function ListItems {
         [Parameter(Mandatory = $true)]
         [string]$UserName
     )
-    $objects = LmGetObjects -ConfigName "Tasks", "$UserName"
-
-    $objects | Select-Object -Property Name | Format-Table @{
-        Label      = "Operations";
-        Expression = {
-            #$color = "93"
-            #$color = "32"
-            $color = "35"
-            #$color = "0"
-            $e = [char]27
-            "$e[${color}m$($_.Name)${e}[0m"
-        }
-    }
+    LmListObjects -ConfigName "Users", "$UserName", "tasks"
 }
 
 function SetStartupItems {
@@ -75,7 +52,7 @@ function SetStartupItems {
 
     foreach ($object in $objects) {
 
-        if($Items -and ($Items -notcontains $object.Name)){
+        if ($Items -and ($Items -notcontains $object.Name)) {
             continue
         }
 
@@ -106,10 +83,10 @@ if ($PSBoundParameters.Count -gt 0) {
             ListItems @params
             break
         }
-        'ListSets' {
+        'ListUsers' {
             $params.Remove("ListItems") | Out-Null
-            $params.Remove("LisSets") | Out-Null
-            ListSets @params
+            $params.Remove("ListUsers") | Out-Null
+            ListUsers @params
             break
         }
     }

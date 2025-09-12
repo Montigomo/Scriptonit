@@ -12,11 +12,13 @@ function DownloadGitHubItems {
         [Parameter(Mandatory = $false)] [switch]$Force
     )
 
+    $IsVerbose = $PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue'
+
     [uri]$_gitProjectApiUri = GetGitHubApiUri -GitProjectUrl $GitProjectUrl
 
     $objects = GetGitHubItems -Uri $_gitProjectApiUri -UsePreview:$UsePreview -Deep $Deep -ReleasePattern $ReleasePattern -VersionPattern $VersionPattern
 
-    if(-not $objects){
+    if (-not $objects) {
 
     }
 
@@ -45,7 +47,9 @@ function DownloadGitHubItems {
                     $ProgressPreference = $__ProgressPreference
                 }
                 else {
-                    Write-Host "File $_fileName exist, skipping." -ForegroundColor DarkGray
+                    if ($IsVerbose) {
+                        Write-Host "File $_fileName exist, skipping." -ForegroundColor DarkGray
+                    }
                 }
             }
         }

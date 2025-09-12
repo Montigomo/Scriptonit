@@ -1,10 +1,10 @@
-[CmdletBinding(DefaultParameterSetName = 'Include')]
+[CmdletBinding(DefaultParameterSetName = 'Only')]
 param (
-    [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'Only')]
     [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
     [Parameter(Mandatory = $false)] [string]$UserName,
-    [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
-    [string[]]$IncludeNames,
+    [Parameter(Mandatory = $false, ParameterSetName = 'Only')]
+    [string[]]$OnlyNames,
     [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
     [string[]]$ExcludeNames
 )
@@ -14,23 +14,23 @@ Set-StrictMode -Version 3.0
 . "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Download") -Force | Out-Null
 
 function DownloadItems {
-    [CmdletBinding(DefaultParameterSetName = 'Include')]
+    [CmdletBinding(DefaultParameterSetName = 'Only')]
     param (
-        [Parameter(Mandatory = $true, ParameterSetName = 'Include')]
+        [Parameter(Mandatory = $true, ParameterSetName = 'Only')]
         [Parameter(Mandatory = $true, ParameterSetName = 'Exclude')]
         [Parameter(Mandatory = $false)] [string]$UserName,
-        [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
-        [string[]]$IncludeNames,
+        [Parameter(Mandatory = $false, ParameterSetName = 'Only')]
+        [string[]]$OnlyNames,
         [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
         [string[]]$ExcludeNames
     )
-
-    $objects = LmGetObjects -ConfigName "users\$UserName\downloads"
+    $IsVerbose = $PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue'
+    $objects = LmGetObjects -ConfigName "users", "$UserName", "downloads"
 
     switch ($PSCmdlet.ParameterSetName) {
         'Include' {
-            if ($IncludeNames) {
-                $objects = $objects | Where-Object { $IncludeNames -icontains $_.Name }
+            if ($OnlyNames) {
+                $objects = $objects | Where-Object { $OnlyNames -icontains $_.Name }
             }
             break
         }

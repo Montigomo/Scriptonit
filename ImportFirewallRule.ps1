@@ -7,7 +7,7 @@ param (
     [Parameter(Mandatory = $false, ParameterSetName = 'Work')]
     [Parameter(Mandatory = $false, ParameterSetName = 'List')]
     [Parameter(Mandatory = $false)]
-    [string]$UserName,
+    [object]$ConfigPath,
     [Parameter(Mandatory = $false, ParameterSetName = 'Work')]
     [Parameter(Mandatory = $false)]
     [string]$RuleSetName,
@@ -24,39 +24,29 @@ Set-StrictMode -Version 3.0
 
 Get-ModuleAdvanced -ModuleName "NetSecurity"
 
+#region ListFirewallRule
 function ListFirewallRule {
     param (
         [Parameter(Mandatory = $true)]
         [string]$UserName
     )
-
-    $objects = LmGetObjects -ConfigName "users\$UserName", "firewall"
-
-    $objects | Format-Table | Out-String
+    LmListObjects -ConfigName "users", "$UserName", "firewall"
 }
+
+#endregion
 
 function ImportFirewallRule {
     param (
         [Parameter(Mandatory = $true)]
-        [string]$UserName,
-        [Parameter(Mandatory = $false)]
-        [string]$RuleSetName,
+        [object]$ConfigPath,
         [Parameter(Mandatory = $false)]
         [switch]$Force
     )
 
-    $objects = LmGetObjects -ConfigName @("users\$UserName", "firewall")
-
-    if(-not $objects){
-        return
-    }
-
-    if ($RuleSetName) {
-        $objects = $objects | Where-Object { $_.RulesSetName -eq $RuleSetName }
-    }
+    $objects = LmGetObjects -ConfigName $ConfigPath
 
     if (-not $objects) {
-        Write-Host "Not any ruleset to apply." -ForegroundColor DarkYellow
+        Write-Host "Not any rules to apply." -ForegroundColor DarkYellow
         return
     }
 
@@ -74,12 +64,12 @@ function ImportFirewallRule {
                 $Params[$key] = $value
             }
 
-            $ruleName = $Params["Name"]
-            $rule = Get-NetFirewallRule -Name $ruleName -ErrorAction SilentlyContinue
+            $RuleName = $Params["Name"]
+            $rule = Get-NetFirewallRule -Name $RuleName -ErrorAction SilentlyContinue
             if($rule){
                 if($Force){
                     Write-Host "NetFireWall Rule with name $RuleName already exist. Removing it." -ForegroundColor DarkYellow
-                    Remove-NetFirewallRule -Name $ruleName | Out-Null
+                    Remove-NetFirewallRule -Name $RuleName | Out-Null
                 }
                 else{
                     Write-Host "NetFireWall Rule with name $RuleName  already exist." -ForegroundColor DarkYellow

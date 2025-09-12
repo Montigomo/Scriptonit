@@ -287,9 +287,12 @@ function LmGetLocalizedResourceName {
 #region LmListObjects
 function LmListObjects {
     param (
-        [Parameter()][object[]]$ConfigName,
-        [Parameter()][string]$Property,
-        [Parameter()][int]$Color
+        [Parameter(Mandatory=$true)]
+        [object[]]$ConfigName,
+        [Parameter()]
+        [string]$Property = "name",
+        [Parameter()]
+        [int]$Color
     )
     if (-not $Color ) {
         $Color = "35"
@@ -298,15 +301,24 @@ function LmListObjects {
     $objects = LmGetObjects -ConfigName $ConfigName
 
     if ($Property -and ($objects -is [array])) {
-        #$objects = $objects | Select-Object {$_.$Property}
-        $objects = $objects | Select-Object @{n = "name"; e = { $_.$Property } }
+        $objects = $objects | Select-Object @{
+            n = "name"
+            e = {
+                if ($_ -is [hashtable] -and $_.ContainsKey($Property)) {
+                    $_.$Property
+                }elseif($_ -is [string]){
+                    $_
+                }
+            }
+        }
         $objects = $objects | Select-Object -ExpandProperty "name"
         $str = ($objects -join "=0`n") + "=0"
         $objects = ConvertFrom-StringData $str
     }
 
+    $_fullName = LmJoinObjects -Objects $ConfigName
     $objects | Format-Table @{
-        Label      = "$($ConfigName -join ".")";
+        Label      = "$_fullName"
         Expression = {
             "$e[${Color}m$($_.Key)${e}[0m"
         }
@@ -315,7 +327,28 @@ function LmListObjects {
 }
 #endregion
 
-#region LmGetObjects LmGetParams
+#region LmGetObjects
+
+function LmJoinObjects {
+    param (
+        [Parameter(Mandatory = $true)]
+        [object[]]$Objects
+    )
+    $sb = [System.Text.StringBuilder]::new()
+
+    foreach ($item in $Objects) {
+        if ($item -is [string]) {
+            [void]$sb.Append("$item.")
+        }
+        elseif ($item -is [hashtable]) {
+            foreach ($key in $item.Keys) {
+                [void]$sb.Append("$key-$($item[$key]).")
+            }
+        }
+    }
+    [void]$sb.Remove($sb.Length - 1, 1)
+    $sb.ToString()
+}
 
 # .SYNOPSIS
 #     Get object from json config Filed
@@ -343,6 +376,8 @@ function LmGetObjects {
 
     $array = $ConfigName
 
+    $_fullName = LmJoinObjects -Objects $ConfigName
+
     $jsonConfigsFolder = Join-Path $PSScriptRoot "..\$LocationFolder" | Resolve-Path -ErrorAction SilentlyContinue
 
     if (-not (Test-Path -Path $jsonConfigsFolder -PathType Container)) {
@@ -350,71 +385,75 @@ function LmGetObjects {
         return
     }
 
-    $object = $null
-    $jsonConfigPath = $null
-    $found = $true
+    $_object = $null
+    $_found = $false
 
     for ($i = 0; $i -lt $array.Length; $i++) {
+        $_selector = $SelectorProperty
         $_item = $array[$i]
-        if ($null -eq $jsonConfigPath) {
-            #$jsonConfigPath = (Join-Path $jsonConfigsFolder "$_item.json") | Resolve-Path -ErrorAction SilentlyContinue
-
-            $jsonConfigPath = "$([System.IO.Path]::Combine([string[]]$(@($jsonConfigsFolder) + [string[]]$array[0..$i]))).json"
-
-            if (-not (Test-Path $jsonConfigPath)) {
-                if ($i -eq ($array.Length - 1)) {
-                    $found = $false
-                    break
-                }
-                else {
-                    $jsonConfigPath = $null
-                    continue
-                }
-            }
-            $jsonConfigString = Get-Content $jsonConfigPath | Out-String
-            $object = ConvertFrom-Json -InputObject $jsonConfigString
-            $object = $object | LmConvertObjectToHashtable
-            continue
+        if ($_item -is [hashtable]) {
+            $_selector = [System.Linq.Enumerable]::ToArray([System.Object[]]$_item.Keys)[0]
+            $_item = $_item[$_selector]
         }
-        if ($object -is [array]) {
-            $_key = $null
-            $_value = $null
-            if ($_item -is [hashtable] -and $_item.Keys.Count -eq 1) {
-                $_key = $_item.Keys[0]
-                $_value = $_item[$_key]
+        $_folder = $null
+        $_rightBound = $i -eq ($array.Length - 1)
+        if ($null -eq $_object) {
+            $_currentFolder = $([System.IO.Path]::Combine([string[]]$(@($jsonConfigsFolder) + [string[]]$array[0..$i])))
+            if (Test-Path $_currentFolder -PathType Container) {
+                $_folder = $_currentFolder
             }
-            elseif ($_item.ContainsKey($SelectorProperty)) {
-                $_key = $SelectorProperty
-                $_value = $_item[$_key]
+            if ($_rightBound -and $_folder) {
+                $_object = Get-ChildItem -Path "$_folder" | Select-Object -ExpandProperty BaseName
             }
             else {
-                $found = $false
-                break
-            }
-            $object = $object | Where-Object { $_[$_key] -eq $_value }
-        }
-        elseif ($object -is [hashtable]) {
-            if ($object.ContainsKey($_item)) {
-                $object = $object[$_item]
-            }
-            else {
-                $found = $false
-                break
+                $_currentPath = "$_currentFolder.json"
+                if ((Test-Path $_currentPath -PathType Leaf)) {
+                    $_json = Get-Content $_currentPath | Out-String
+                    $_object = ConvertFrom-Json -InputObject $_json
+                    $_object = $_object | LmConvertObjectToHashtable
+
+                }
             }
         }
         else {
-            Write-Host "The variable is of an unrecognized type."
+
+            if ($_object -is [array]) {
+                $_object = $_object | Where-Object {
+                    if ($_.ContainsKey($_selector)) {
+                        $_.$_selector -eq $_item
+                    }
+                }
+            }
+            elseif ($_object -is [hashtable]) {
+                if ($_object.ContainsKey($_item)) {
+                    $_object = $_object[$_item]
+                }
+                else {
+                    break
+                }
+            }
+            else {
+                Write-Host "The variable is of an unrecognized type."
+            }
+        }
+
+        if ($_rightBound -and $_object) {
+            $_found = $true
         }
     }
 
-    if (-not $found) {
-        Write-Host "Object $($ConfigName -join "-") not found." -ForegroundColor DarkRed
+    if (-not $_found) {
+        Write-Host "Object $_fullName not found." -ForegroundColor DarkRed
         return $null
     }
 
 
-    return $object
+    return $_object
 }
+
+#endregion
+
+#region LmGetParams
 
 function LmGetParams {
     param (

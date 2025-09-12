@@ -20,6 +20,20 @@ Set-StrictMode -Version 3.0
 
 . "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "UserFolders", "Network", "Network.Hosts", "UserSettings") -Force | Out-Null
 
+#region ListUsers ListUserOperations
+function ListUsers {
+    LmListObjects -ConfigName "Users"
+}
+
+function ListUserOperations {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$UserName
+    )
+    LmListObjects -ConfigName "users", "$UserName", "operations"
+}
+#endregion
+
 function RunOperation {
     param (
         [Parameter(Mandatory = $true)] [string]$OpName,
@@ -36,19 +50,6 @@ function RunOperation {
     }
 }
 
-function ListUsers {
-    LmListObjects -ConfigName "Users" -Property "Name"
-}
-
-function ListUserOperations {
-    param (
-        [Parameter(Mandatory = $true)]
-        [string]$UserName
-    )
-    LmListObjects -ConfigName "Users\$UserName", "Operations" -Property "name"
-}
-
-
 function SetUserSettings {
     param (
         [Parameter(Mandatory = $true)]
@@ -57,7 +58,7 @@ function SetUserSettings {
         [array]$Operations
     )
 
-    $objects = LmGetObjects -ConfigName "users\$UserName\operations"
+    $objects = LmGetObjects -ConfigName "users", "$UserName", "operations"
 
     if (-not $objects) {
         return

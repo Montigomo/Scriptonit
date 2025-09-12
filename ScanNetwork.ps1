@@ -83,7 +83,7 @@ function ScanNetwork {
 
     switch ($PSCmdlet.ParameterSetName) {
         'NetworkName' {
-            $objects = LmGetObjects -ConfigName "networks\$NetworkName\scan"
+            $objects = LmGetObjects -ConfigName "networks", "$NetworkName", "scan"
             if (-not $objects) {
                 return
             }
