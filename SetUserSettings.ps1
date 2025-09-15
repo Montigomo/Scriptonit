@@ -22,7 +22,7 @@ Set-StrictMode -Version 3.0
 
 #region ListUsers ListUserOperations
 function ListUsers {
-    LmListObjects -ConfigName "Users"
+    LmListObjects "Users"
 }
 
 function ListUserOperations {
@@ -30,7 +30,7 @@ function ListUserOperations {
         [Parameter(Mandatory = $true)]
         [string]$UserName
     )
-    LmListObjects -ConfigName "users", "$UserName", "operations"
+    LmListObjects "users", "$UserName", "operations"
 }
 #endregion
 
@@ -58,7 +58,7 @@ function SetUserSettings {
         [array]$Operations
     )
 
-    $objects = LmGetObjects -ConfigName "users", "$UserName", "operations"
+    $objects = LmGetObjects "users", "$UserName", "operations"
 
     if (-not $objects) {
         return

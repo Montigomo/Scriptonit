@@ -21,7 +21,7 @@ Set-StrictMode -Version 3.0
 
 
 function ListUsers {
-    LmListObjects -ConfigName "Users"
+    LmListObjects "Users"
 }
 
 function ListItems {
@@ -29,7 +29,7 @@ function ListItems {
         [Parameter(Mandatory = $true)]
         [string]$UserName
     )
-    LmListObjects -ConfigName "Users", "$UserName", "tasks"
+    LmListObjects "Users", "$UserName", "tasks"
 }
 
 function SetStartupItems {
@@ -38,7 +38,7 @@ function SetStartupItems {
         [Parameter(Mandatory = $false)] [array]$Items
     )
 
-    $objects = LmGetObjects -ConfigName "users", "$UserName", "tasks"
+    $objects = LmGetObjects "users", "$UserName", "tasks"
 
     if (-not $objects -or $objects -isnot [array]) {
         Write-Host "Empty objects or wrong type." -ForegroundColor DarkYellow

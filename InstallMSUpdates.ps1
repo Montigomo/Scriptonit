@@ -26,7 +26,7 @@ Set-StrictMode -Version 3.0
 . "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network") -Force | Out-Null
 
 function ListNetworks {
-    LmListObjects -ConfigName "Networks"
+    LmListObjects "Networks"
 }
 
 function ListHosts {
@@ -34,7 +34,7 @@ function ListHosts {
         [Parameter(Mandatory = $true)]
         [string]$NetworkName
     )
-    LmListObjects -ConfigName "networks", $NetworkName, "hosts" -Property "HostName"
+    LmListObjects "networks", $NetworkName, "hosts" -Property "HostName"
 }
 
 function InstallMSUpdatesStub {
@@ -113,7 +113,7 @@ function InstallMSUpdates {
 
     if ($PSCmdlet.ParameterSetName -eq 'Only' -or $PSCmdlet.ParameterSetName -eq 'Exclude' ) {
         Write-Host "*** Updatting $NetworkName network." -ForegroundColor DarkGreen
-        $objects = LmGetObjects -ConfigName  "networks\$NetworkName", "hosts"
+        $objects = LmGetObjects "networks\$NetworkName", "hosts"
         if (-not $objects) {
             return
         }

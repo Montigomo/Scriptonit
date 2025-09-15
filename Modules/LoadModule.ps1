@@ -222,12 +222,14 @@ function LmConvertObjectToHashtable {
         }
         if ($InputObject -is [System.Collections.IEnumerable] -and $InputObject -isnot [string]) {
             $collection = @(
-                foreach ($object in $InputObject) { LmConvertObjectToHashtable($object) }
+                foreach ($object in $InputObject) {
+                    LmConvertObjectToHashtable -InputObject $object
+                }
             )
 
             return $collection
         }
-        elseif ($InputObject -is [psobject]) {
+        elseif ($InputObject -is [psobject] -and ($InputObject.psobject.properties | Where-Object {$_.IsSettable })) {
             $hash = @{}
 
             foreach ($property in $InputObject.PSObject.Properties) {
@@ -287,8 +289,8 @@ function LmGetLocalizedResourceName {
 #region LmListObjects
 function LmListObjects {
     param (
-        [Parameter(Mandatory=$true)]
-        [object[]]$ConfigName,
+        [Parameter(Mandatory=$true, Position=0)]
+        [object[]]$ConfigPath,
         [Parameter()]
         [string]$Property = "name",
         [Parameter()]
@@ -298,7 +300,7 @@ function LmListObjects {
         $Color = "35"
     }
     $e = [char]27
-    $objects = LmGetObjects -ConfigName $ConfigName
+    $objects = LmGetObjects $ConfigPath
 
     if ($Property -and ($objects -is [array])) {
         $objects = $objects | Select-Object @{
@@ -316,7 +318,7 @@ function LmListObjects {
         $objects = ConvertFrom-StringData $str
     }
 
-    $_fullName = LmJoinObjects -Objects $ConfigName
+    $_fullName = LmJoinObjects -Objects $ConfigPath
     $objects | Format-Table @{
         Label      = "$_fullName"
         Expression = {
@@ -366,17 +368,17 @@ function LmJoinObjects {
 #     Version : 0.0.1
 function LmGetObjects {
     param (
-        [Parameter(Mandatory = $true)]
-        [object[]]$ConfigName,
+        [Parameter(Mandatory = $true, Position = 0)]
+        [object[]]$ConfigPath,
         [Parameter(Mandatory = $false)]
         [string]$SelectorProperty = "name",
         [Parameter(Mandatory = $false)]
         [string]$LocationFolder = ".configs"
     )
 
-    $array = $ConfigName
+    $array = $ConfigPath
 
-    $_fullName = LmJoinObjects -Objects $ConfigName
+    $_fullName = LmJoinObjects -Objects $ConfigPath
 
     $jsonConfigsFolder = Join-Path $PSScriptRoot "..\$LocationFolder" | Resolve-Path -ErrorAction SilentlyContinue
 
@@ -410,7 +412,7 @@ function LmGetObjects {
                 if ((Test-Path $_currentPath -PathType Leaf)) {
                     $_json = Get-Content $_currentPath | Out-String
                     $_object = ConvertFrom-Json -InputObject $_json
-                    $_object = $_object | LmConvertObjectToHashtable
+                    $_object = LmConvertObjectToHashtable -InputObject $_object
 
                 }
             }

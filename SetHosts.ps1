@@ -1,45 +1,28 @@
+#R-equires -Version 6.0
+#R-equires -PSEdition Core
+#Requires -RunAsAdministrator
+[CmdletBinding(DefaultParameterSetName = 'Work')]
+[CmdletBinding()]
+param (
+    [Parameter(Mandatory = $false, ParameterSetName = 'Work')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'List')]
+    [Parameter(Mandatory = $false)]
+    [object]$ConfigPath,
+    [Parameter(Mandatory = $false, ParameterSetName = 'Work')]
+    [Parameter(Mandatory = $false)]
+    [switch]$Force,
+    [Parameter(Mandatory = $false, ParameterSetName = 'List')]
+    [switch]$ListRules
+)
+
+
 Set-StrictMode -Version 3.0
+
 
 . "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network", "Network.Hosts") -Force | Out-Null
 
-$Hosts = @{
-    "Common" = @(
-        "127.0.0.1|compute-1.amazonaws.com"
-        "0.0.0.0|license.sublimehq.com"
-        "83.243.40.67|wiki.bash-hackers.org"
-    )
-    "Corel"  = @(
-        "127.0.0.1|iws.corel.com",
-        "127.0.0.1|apps.corel.com",
-        "127.0.0.1|mc.corel.com",
-        "127.0.0.1|origin-mc.corel.com",
-        "127.0.0.1|iws.corel.com",
-        "127.0.0.1|deploy.akamaitechnologies.com"
-    )
-    "Adobe"  = @(
-        "127.0.0.1|na1r.services.adobe.com"
-        "127.0.0.1|hlrcv.stage.adobe.com"
-        "127.0.0.1|lmlicenses.wip4.adobe.com"
-        "127.0.0.1|lm.licenses.adobe.com"
-        "127.0.0.1|activate.adobe.com"
-        "127.0.0.1|practivate.adobe.com"
-        "127.0.0.1|ereg.adobe.com"
-        "127.0.0.1|activate.wip3.adobe.com"
-        "127.0.0.1|wip3.adobe.com"
-        "127.0.0.1|3dns-3.adobe.com"
-        "127.0.0.1|3dns-2.adobe.com"
-        "127.0.0.1|adobe-dns.adobe.com"
-        "127.0.0.1|adobe-dns-2.adobe.com"
-        "127.0.0.1|adobe-dns-3.adobe.com"
-        "127.0.0.1|ereg.wip3.adobe.com"
-        "127.0.0.1|activate-sea.adobe.com"
-        "127.0.0.1|wwis-dubc1-vip60.adobe.com"
-        "127.0.0.1|activate-sjc0.adobe.com"
-        "127.0.0.1|adobeereg.com"
-        "127.0.0.1|adobe.activate.com"
-    )
-}
 
+#region PrepareHostsRaw
 
 function PrepareHostsRaw {
     param (
@@ -47,6 +30,20 @@ function PrepareHostsRaw {
     )
     foreach ($item in $Hosts) {
         $values = ($item -split "\|")
+        if ( $values.Count -lt 2) {
+            Write-Host "[PrepareHosts] Invalid host entry: $item" -ForegroundColor DarkRed
+            continue
+        }
+
+        if ($values[0] -notmatch '^\d{1,3}(\.\d{1,3}){3}$') {
+            Write-Host "[PrepareHosts] Invalid IP address: $($values[0])" -ForegroundColor DarkRed
+            continue
+        }
+        if ($values[1] -notmatch '^[a-zA-Z0-9\-\.]+$') {
+            Write-Host "[PrepareHosts] Invalid host name: $($values[1])" -ForegroundColor DarkRed
+            continue
+        }
+
         $result = Add-Host -HostIp $values[0] -HostName $values[1]
         if ($result) {
             Write-Host "[PrepareHosts] Added host $($values[0]) - $($values[1])" -ForegroundColor DarkGreen
@@ -58,18 +55,61 @@ function PrepareHostsRaw {
 
 }
 
-function PrepareHosts {
-    param (
-        [Parameter(Mandatory = $true)][hashtable]$Hosts
-    )
-    Write-Host "[PrepareHosts] started ..." -ForegroundColor DarkYellow
+#endregion
 
-    foreach ($key in $Hosts.Keys) {
-        Write-Host "[PrepareHosts] Adding group: $key" -ForegroundColor DarkGreen
-        PrepareHostsRaw -Hosts $Hosts[$key]
+
+function PrepareHostsPost {
+    param (
+        [Parameter(Mandatory = $true)]
+        [object]$Object
+    )
+
+    if ($objects -is [array] ) {
+        $_fullName = LmJoinObjects -Objects $ConfigPath
+        Write-Host "[PrepareHosts] Adding group: $_fullName" -ForegroundColor DarkGreen
+        PrepareHostsRaw -Hosts $objects
     }
+    elseif ($objects -is [hashtable]) {
+        $_fullName = LmJoinObjects -Objects $ConfigPath
+        foreach ($key in $objects.Keys) {
+            $_item = $objects[$key]
+            PrepareHostsPost $_item
+        }
+
+    }
+
 
 }
 
 
-PrepareHosts -Hosts $Hosts
+function PrepareHosts {
+    param (
+        [Parameter(Mandatory = $false)]
+        [object]$ConfigPath
+    )
+
+    $objects = LmGetObjects -ConfigPath $ConfigPath
+
+    if (-not $objects) {
+        Write-Host "Not any hosts to apply." -ForegroundColor DarkYellow
+        return
+    }
+
+    PrepareHostsPost -Object $objects
+}
+
+
+if ($PSBoundParameters.Count -gt 0) {
+    $params = $PSCmdlet.MyInvocation.BoundParameters
+    switch ($PSCmdlet.ParameterSetName) {
+        'Work' {
+            ImportFirewallRule @params
+            break
+        }
+        'List' {
+            $params.Remove("ListRules")
+            ListFirewallRule @params
+            break
+        }
+    }
+}

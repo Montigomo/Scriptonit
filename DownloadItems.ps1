@@ -25,7 +25,7 @@ function DownloadItems {
         [string[]]$ExcludeNames
     )
     $IsVerbose = $PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue'
-    $objects = LmGetObjects -ConfigName "users", "$UserName", "downloads"
+    $objects = LmGetObjects "users", "$UserName", "downloads"
 
     switch ($PSCmdlet.ParameterSetName) {
         'Include' {

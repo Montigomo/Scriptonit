@@ -26,7 +26,7 @@ function InvokeWakeOnLan {
         [string[]]$ExcludeNames
     )
 
-    $objects = LmGetObjects -ConfigName "networks", "$networkName", "Hosts"
+    $objects = LmGetObjects "networks", "$networkName", "Hosts"
 
     if (-not $objects) {
         return
