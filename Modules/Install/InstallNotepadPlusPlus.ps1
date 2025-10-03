@@ -38,10 +38,12 @@ function InstallNotepadPlusPlus {
     $versionPattern = "\d?\d.\d?\d.\d?\d"
 
     if ($IsOs64) {
-        $ReleasePattern = "^npp.$versionPattern.portable.x64.7z$"
+        #$ReleasePattern = "^npp.$versionPattern.portable.x64.7z$"
+        $ReleasePattern = "^npp.$versionPattern.portable.x64.zip$"
     }
     else {
-        $ReleasePattern = "^npp.$versionPattern.portable.7z$"
+        #$ReleasePattern = "^npp.$versionPattern.portable.7z$"
+        $ReleasePattern = "^npp.$versionPattern.portable.zip$"
     }
 
     $object = GetGitHubItems -Uri "https://github.com/notepad-plus-plus/notepad-plus-plus" -ReleasePattern $ReleasePattern
@@ -72,7 +74,7 @@ function InstallNotepadPlusPlus {
 
             Invoke-WebRequest -OutFile $tmp $downloadUri
 
-            Unpack-7zipToFolder -ArchivePath $tmp.FullName -DestinationFolder $programFolder
+            Unpack-ZipToFolder -ArchivePath $tmp.FullName -DestinationFolder $programFolder
 
             $tmp | Remove-Item
         }

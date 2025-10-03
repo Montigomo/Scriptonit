@@ -58,7 +58,7 @@ function SetUserSettings {
         [array]$Operations
     )
 
-    $objects = LmGetObjects "users", "$UserName", "operations"
+    $objects = LmGetObjects "users", "$UserName", "operations", "*"
 
     if (-not $objects) {
         return

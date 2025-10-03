@@ -30,7 +30,18 @@ function DownloadGitHubItems {
             New-Item -ItemType Directory -Path $_destinationFolder | Out-Null
         }
 
-        Write-Host "Project $GitProjectUrl;  Version $($object.Version); Destination folder: $_destinationFolder" -ForegroundColor DarkYellow
+        $infoObject = @{
+            "Project Url"        = "$GitProjectUrl"
+            "Version"            = "$($object.Version)"
+            "Destination folder" = "$_destinationFolder"
+        }
+        $_sl = "-24"
+        foreach ($key in $infoObject.Keys) {
+            $_key = "{0,$_sl}" -f $key
+            $_value = "{0,$_sl}" -f $infoObject[$key]
+            Write-Host -Object $_key -NoNewline -ForegroundColor DarkGreen
+            Write-Host -Object $_value -ForegroundColor DarkYellow
+        }
 
         foreach ($surl in $object.Url) {
 

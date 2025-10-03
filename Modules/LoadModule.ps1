@@ -229,7 +229,7 @@ function LmConvertObjectToHashtable {
 
             return $collection
         }
-        elseif ($InputObject -is [psobject] -and ($InputObject.psobject.properties | Where-Object {$_.IsSettable })) {
+        elseif ($InputObject -is [psobject] -and ($InputObject.psobject.properties | Where-Object { $_.IsSettable })) {
             $hash = @{}
 
             foreach ($property in $InputObject.PSObject.Properties) {
@@ -289,7 +289,7 @@ function LmGetLocalizedResourceName {
 #region LmListObjects
 function LmListObjects {
     param (
-        [Parameter(Mandatory=$true, Position=0)]
+        [Parameter(Mandatory = $true, Position = 0)]
         [object[]]$ConfigPath,
         [Parameter()]
         [string]$Property = "name",
@@ -308,7 +308,8 @@ function LmListObjects {
             e = {
                 if ($_ -is [hashtable] -and $_.ContainsKey($Property)) {
                     $_.$Property
-                }elseif($_ -is [string]){
+                }
+                elseif ($_ -is [string]) {
                     $_
                 }
             }
@@ -329,7 +330,7 @@ function LmListObjects {
 }
 #endregion
 
-#region LmGetObjects
+#region LmJoinObjects
 
 function LmJoinObjects {
     param (
@@ -351,7 +352,9 @@ function LmJoinObjects {
     [void]$sb.Remove($sb.Length - 1, 1)
     $sb.ToString()
 }
+#endregion
 
+#region LmGetObjects
 # .SYNOPSIS
 #     Get object from json config Filed
 # .PARAMETER ConfigName
@@ -393,6 +396,7 @@ function LmGetObjects {
     for ($i = 0; $i -lt $array.Length; $i++) {
         $_selector = $SelectorProperty
         $_item = $array[$i]
+        $_currentFolder = [System.IO.Path]::Combine([string[]]$(@($jsonConfigsFolder) + [string[]]$array[0..$i] | Where-Object { $_ -ne "*" }))
         if ($_item -is [hashtable]) {
             $_selector = [System.Linq.Enumerable]::ToArray([System.Object[]]$_item.Keys)[0]
             $_item = $_item[$_selector]
@@ -400,11 +404,16 @@ function LmGetObjects {
         $_folder = $null
         $_rightBound = $i -eq ($array.Length - 1)
         if ($null -eq $_object) {
-            $_currentFolder = $([System.IO.Path]::Combine([string[]]$(@($jsonConfigsFolder) + [string[]]$array[0..$i])))
             if (Test-Path $_currentFolder -PathType Container) {
                 $_folder = $_currentFolder
             }
-            if ($_rightBound -and $_folder) {
+            if ($_rightBound -and $_item -eq "*") {
+                $_inner_object = LmGetObjects_LoadFolder -FolderPath $_currentFolder
+                if ($_inner_object) {
+                    $_object = $_inner_object
+                }
+            }
+            elseif ($_rightBound -and $_folder) {
                 $_object = Get-ChildItem -Path "$_folder" | Select-Object -ExpandProperty BaseName
             }
             else {
@@ -418,24 +427,25 @@ function LmGetObjects {
             }
         }
         else {
-
-            if ($_object -is [array]) {
-                $_object = $_object | Where-Object {
-                    if ($_.ContainsKey($_selector)) {
-                        $_.$_selector -eq $_item
+            if ($_item -ne "*") {
+                if ($_object -is [array]) {
+                    $_object = $_object | Where-Object {
+                        if ($_.ContainsKey($_selector)) {
+                            $_.$_selector -eq $_item
+                        }
                     }
                 }
-            }
-            elseif ($_object -is [hashtable]) {
-                if ($_object.ContainsKey($_item)) {
-                    $_object = $_object[$_item]
+                elseif ($_object -is [hashtable]) {
+                    if ($_object.ContainsKey($_item)) {
+                        $_object = $_object[$_item]
+                    }
+                    else {
+                        break
+                    }
                 }
                 else {
-                    break
+                    Write-Host "The variable is of an unrecognized type."
                 }
-            }
-            else {
-                Write-Host "The variable is of an unrecognized type."
             }
         }
 
@@ -453,6 +463,36 @@ function LmGetObjects {
     return $_object
 }
 
+
+function LmGetObjects_LoadFolder {
+    param (
+        [Parameter(Mandatory = $true, Position = 0)]
+        [string]$FolderPath
+    )
+
+    $_object = $null
+    if (-not (Test-Path -Path $FolderPath -PathType Container)) {
+        return $_object
+    }
+    $_files = Get-ChildItem -Path $FolderPath | Where-Object {
+        $_.Extension -eq ".json"
+    }
+    foreach ($_file in $_files) {
+        $_filePath = $_file.FullName
+        $_json = Get-Content $_filePath  | Out-String
+        $_inner_object = ConvertFrom-Json -InputObject $_json
+        $_inner_object = LmConvertObjectToHashtable -InputObject $_inner_object
+        if ($_inner_object) {
+            if (-not $_object) {
+                $_object = @($_inner_object)
+            }
+            else {
+                $_object = $_object + $_inner_object
+            }
+        }
+    }
+    return $_object
+}
 #endregion
 
 #region LmGetParams

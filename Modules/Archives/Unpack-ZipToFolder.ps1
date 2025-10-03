@@ -14,23 +14,27 @@ Set-StrictMode -Version 3.0
 function Unpack-ZipToFolder {
     param
     (
-        [Parameter(Mandatory = $true)]  [string]$ZipArchivePath,
-        [Parameter(Mandatory = $true)]  [string]$DestinationFolder
+        [Parameter(Mandatory = $true)]
+        [string]$ArchivePath,
+        [Parameter(Mandatory = $true)]
+        [string]$DestinationFolder
     )
 
     Add-Type -Assembly System.IO.Compression.FileSystem
 
-    $zip = [IO.Compression.ZipFile]::OpenRead($ZipArchivePath)
+    $zip = [IO.Compression.ZipFile]::OpenRead($ArchivePath)
 
-    $entries = $zip.Entries | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Name) } #| where {$_.FullName -like 'myzipdir/c/*' -and $_.FullName -ne 'myzipdir/c/'}
+    # $entries = $zip.Entries | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Name) } #| where {$_.FullName -like 'myzipdir/c/*' -and $_.FullName -ne 'myzipdir/c/'}
 
-    foreach ($entry in $entries) {
+    # foreach ($entry in $entries) {
 
-        $DestinationPath = [System.IO.Path]::Combane($DestinationFolder, $entry.Name)
+    #     $DestinationPath = [System.IO.Path]::Combine($DestinationFolder, $entry.FullName)
 
-        [IO.Compression.ZipFileExtensions]::ExtractToFile( $entry, $DestinationPath, $true)
+    #     [IO.Compression.ZipFileExtensions]::ExtractToFile( $entry, $DestinationPath, $true)
 
-    }
+    # }
+
+    [IO.Compression.ZipFileExtensions]::ExtractToDirectory($zip, $DestinationFolder)
 
     $zip.Dispose()
 }

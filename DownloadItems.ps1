@@ -25,10 +25,10 @@ function DownloadItems {
         [string[]]$ExcludeNames
     )
     $IsVerbose = $PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue'
-    $objects = LmGetObjects "users", "$UserName", "downloads"
+    $objects = LmGetObjects "users", "$UserName", "downloads", "*"
 
     switch ($PSCmdlet.ParameterSetName) {
-        'Include' {
+        'Only' {
             if ($OnlyNames) {
                 $objects = $objects | Where-Object { $OnlyNames -icontains $_.Name }
             }

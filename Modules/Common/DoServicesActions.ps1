@@ -1,12 +1,11 @@
 
 
-
 function DoServicesActions {
     param (
         [Parameter(Mandatory = $true)]
         [array]$Services,
         [Parameter(Mandatory = $true)]
-        [ValidateSet('Restart', 'Stop', 'Start')]
+        [ValidateSet('Restart', 'Stop', 'Start', 'Remove')]
         [string]$Action
     )
 
@@ -34,6 +33,19 @@ function DoServicesActions {
                 if ($service) {
                     $service | Set-Service -StartupType 'Automatic' | Start-Service
                 }
+                break
+            }
+            'Remove' {
+                $service = Get-Service -Name $serviceName -ErrorAction SilentlyContinue
+                if ($service) {
+                    $service | Stop-Service
+                    $service | Remove-Service -ErrorAction SilentlyContinue
+                }
+                break
+            }
+            default{
+                Write-Host "Unknown action: $Action" -ForegroundColor Red
+                break
             }
         }
     }

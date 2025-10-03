@@ -31,10 +31,10 @@ function InstallNppShell {
     }
 
     if ($IsOs64) {
-        $ReleasePattern = "^NppShell.x64.7z$"
+        $ReleasePattern = "^NppShell.x64.zip$"
     }
     else {
-        $ReleasePattern = "^NppShell.7z$"
+        $ReleasePattern = "^NppShell.zip$"
     }
 
     $object = GetGitHubItems -Uri "https://github.com/Montigomo/NppShell" -ReleasePattern $ReleasePattern
@@ -69,7 +69,7 @@ function InstallNppShell {
         }
         $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'zip' } -PassThru
         Invoke-WebRequest -OutFile $tmp $downloadUri
-        Unpack-7zipToFolder -ArchivePath $tmp.FullName -DestinationFolder $programFolder
+        Unpack-ZipToFolder -ArchivePath $tmp.FullName -DestinationFolder $programFolder
         $tmp | Remove-Item
     }
     if (-not (IsComRegistered -Guid "{B298D29A-A6ED-11DE-BA8C-A68E55D89593}" -DllPath $programExePath)) {
