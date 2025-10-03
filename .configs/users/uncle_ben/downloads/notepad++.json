@@ -1,0 +1,12 @@
+{
+    "Name": "Notepad++",
+    "Type": "github",
+    "Prepare": true,
+    "params": {
+        "GitProjectUrl": "https://github.com/notepad-plus-plus/notepad-plus-plus",
+        "Destination": "\\\\STORAGE\\software\\utilites\\Notepad++",
+        "Deep": 1,
+        "UsePreview": false,
+        "Force": false
+    }
+}

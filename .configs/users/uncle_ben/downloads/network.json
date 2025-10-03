@@ -1,0 +1,93 @@
+[
+	{
+		"Name": "Win32-OpenSSH",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/PowerShell/Win32-OpenSSH",
+			"Destination": "\\\\STORAGE\\software\\microsoft\\Open SSH",
+			"Deep": 3,
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "easyrsa",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/OpenVPN/easy-rsa",
+			"Destination": "\\\\STORAGE\\software\\network\\easyrsa",
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "hiddify",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/hiddify/hiddify-next/",
+			"Destination": "\\\\STORAGE\\software\\network\\xray\\hiddify",
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "hiddify-beta",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/hiddify/hiddify-next/",
+			"Destination": "\\\\STORAGE\\software\\network\\xray\\hiddify",
+			"UsePreview": true,
+			"Force": false
+		}
+	},
+	{
+		"Name": "nekoray",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/MatsuriDayo/nekoray",
+			"Destination": "\\\\STORAGE\\software\\network\\xray\\nekoray",
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "nekoray",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/MatsuriDayo/nekoray",
+			"Destination": "\\\\STORAGE\\software\\network\\xray\\nekoray",
+			"UsePreview": true,
+			"Force": false
+		}
+	},
+	{
+		"Name": "v2rayn",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/2dust/v2rayN",
+			"Destination": "\\\\STORAGE\\software\\network\\xray\\v2rayN",
+			"Deep": 3,
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "syncthing",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/syncthing/syncthing",
+			"Destination": "\\\\STORAGE\\software\\network\\syncthing",
+			"Deep": 1,
+			"UsePreview": false,
+			"Force": false
+		}
+	}
+]

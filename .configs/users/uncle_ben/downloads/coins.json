@@ -1,0 +1,68 @@
+[
+	{
+		"Name": "xmrig",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://api.github.com/repos/xmrig/xmrig",
+			"Destination": "D:\\work\\coins\\xmrig\\bin\\xmrig",
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "xmrig-cuda",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://api.github.com/repos/xmrig/xmrig-cuda",
+			"Destination": "D:\\work\\coins\\xmrig\\bin\\xmrig-cuda",
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "xmrig-proxy",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://api.github.com/repos/xmrig/xmrig-proxy",
+			"Destination": "D:\\work\\coins\\xmrig\\bin\\xmrig-proxy",
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "xmrig-deps",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/xmrig/xmrig-deps",
+			"Destination": "D:\\work\\coins\\xmrig\\bin\\xmrig-deps",
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "vertcoin-core",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/vertcoin-project/vertcoin-core",
+			"Destination": "\\\\STORAGE\\software\\coins\\vertcoin",
+			"UsePreview": false,
+			"Force": false
+		}
+	},
+	{
+		"Name": "monero-gui",
+		"Type": "github",
+		"Prepare": true,
+		"params": {
+			"GitProjectUrl": "https://github.com/monero-project/monero-gui",
+			"Destination": "\\\\STORAGE\\software\\coins\\monero",
+			"UsePreview": false,
+			"Force": false
+		}
+	}
+]
