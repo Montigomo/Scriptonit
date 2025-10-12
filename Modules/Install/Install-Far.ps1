@@ -75,7 +75,7 @@ function Install-Far {
         Write-Host "Error gatting download url." -ForegroundColor DarkYellow
     }
 
-    $object = GetGitHubItems -Uri $repoUri -ReleasePattern $ReleasePattern -VersionPattern @($versionPattern) -UsePreview:$UsePreview
+    $object = GetGitHubItems -Uri $repoUri -ReleasePattern $ReleasePattern -VersionPattern $versionPattern -UsePreview:$UsePreview
     $remoteVersion = $object.Version
     $remoteVersion = [System.Version]::new($remoteVersion.Major, $remoteVersion.Minor, $remoteVersion.Build, 0)
     $downloadUri = $object.Url
@@ -112,10 +112,8 @@ function Install-Far {
             Invoke-WebRequest -Uri $downloadUri -OutFile $tmp
             #$packageOptions = "ADDLOCAL=Colors,Macros,SetUp,Shell,XLat,Align.Changelogs,Align.FExcept,Align.Russian,_7z.dll,arclite.Changelogs,arclite.FExcept,arclite.Russian,sfx,AutoWrap.Changelogs,AutoWrap.FExcept,AutoWrap.Russian,Brackets.Changelogs,Brackets.FExcept,Brackets.Russian,Compare.Changelogs,Compare.FExcept,Compare.Russian,DrawLine.Changelogs,DrawLine.FExcept,DrawLine.Russian,EditCase.Changelogs,EditCase.FExcept,EditCase.Russian,Align,AutoWrap,Brackets,DrawLine,EditCase,EMenu.Changelogs,EMenu.FExcept,EMenu.Russian,Addons,Changelogs,Changelogs.FExcept,Docs,Docs.Russian,FExcept,FarShortcuts,Languages,Plugins,SDK,System,FARCmds.Changelogs,FARCmds.FExcept,FARCmds.Russian,FarColorer.Changelogs,FarColorer.FExcept,FarColorer.Ignore.base,FarColorer.Russian,FarColorer.Ignore.base_hrc,FarColorer.Ignore.base_hrd,FarColorer.Ignore.base_hrc_auto,FarColorer.Ignore.base_hrd_console,FarColorer.Ignore.base_hrd_css,FarColorer.Ignore.base_hrd_rgb,FarColorer.Ignore.base_hrd_text,FarProgramsShortcut,FarQuickLaunchShortcut,FarStartMenuShortcut,FileCase.Changelogs,FileCase.FExcept,FileCase.Russian,HlfViewer.Changelogs,HlfViewer.FExcept,HlfViewer.Russian,Czech,German,Hungarian,Polish,Russian,Slovak,Spanish,LuaMacro.Changelogs,LuaMacro.FExcept,LuaMacro.Russian,NetBox.Changelogs,NetBox.Russian,Network.Changelogs,Network.FExcept,Network.Russian,Compare,EMenu,Editor,FARCmds,FarColorer,FileCase,HlfViewer,LuaMacro,NetBox,Network,Proclist,SameFolder,TmpPanel,arclite,Proclist.Changelogs,Proclist.FExcept,Proclist.Russian,SameFolder.Changelogs,SameFolder.FExcept,SameFolder.Russian,Pascal,_7z.sfx,_7zCon.sfx,_7zS2.sfx,_7zS2con.sfx,_7zSD.sfx,AppPaths,FarHere,TmpPanel.Changelogs,TmpPanel.FExcept,TmpPanel.Russian"
             $packageOptions = "ADDLOCAL=ALL"
-            Invoke-MsiPackage -MsiPackagePath $tmp.FullName -PackageOptions "$packageOptions" -IsWait
+            Install-MsiPackage -MsiPackagePath $tmp.FullName -PackageOptions "$packageOptions" -IsWait
         }
         Set-EnvironmentVariable -Value $farFolder -Scope "Machine" -Action "Add"
     }
-
-    return $true
 }

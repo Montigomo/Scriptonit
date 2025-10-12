@@ -81,7 +81,6 @@ function Install-7zip {
         $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'msi' } -PassThru
         Invoke-WebRequest -OutFile $tmp $requestUri
         $PackageParams = "/q"
-        Invoke-MsiPackage -MsiPackagePath $tmp.FullName -PackageOptions $PackageParams -IsWait
+        Install-MsiPackage -MsiPackagePath $tmp.FullName -PackageOptions $PackageParams -IsWait
     }
-    return $true
 }

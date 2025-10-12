@@ -81,7 +81,7 @@ function InstallNotepadPlusPlus {
         else {
             $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'msi' } -PassThru
             Invoke-WebRequest -Uri $downloadUri -OutFile $tmp
-            Invoke-MsiPackage -MsiPackagePath $tmp.FullName -PackageOptions "$packageOptions" -IsWait
+            Install-MsiPackage -MsiPackagePath $tmp.FullName -PackageOptions "$packageOptions" -IsWait
         }
         Set-EnvironmentVariable -Value $programFolder -Scope "Machine" -Action "Add"
     }

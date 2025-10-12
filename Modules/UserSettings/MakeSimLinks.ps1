@@ -19,9 +19,9 @@ function MakeSimLinks {
                 $item = Get-Item "$itemSrcPath" -ErrorAction SilentlyContinue
                 if (
                     $item -and (
-                    ($item.GetType() -ne [System.IO.FileInfo]) -or 
-                    (-not $item.LinkType) -or 
-                    (-not ($item.LinkType -eq "SymbolicLink"))) -or
+                        ($item.GetType() -ne [System.IO.FileInfo]) -or 
+                        (-not $item.LinkType) -or 
+                        (-not ($item.LinkType -eq "SymbolicLink"))) -or
                     ($item.LinkTarget -ine $itemDstPath)
                 ) {
                     Write-Host "[MakeSimLinks] Simlink $itemSrcPath found but its target path not correct. Remove it." -ForegroundColor DarkYellow
@@ -30,6 +30,11 @@ function MakeSimLinks {
             }
             if (-not (Test-Path -Path $itemSrcPath)) {
                 Write-Host "[MakeSimLinks] Create simlink $itemSrcPath." -ForegroundColor DarkGreen
+
+                $directoryPath = [System.IO.Path]::GetDirectoryName($itemSrcPath)
+                if (-not (Test-Path -Path $directoryPath -PathType Container)) {
+                    New-Item -Path $directoryPath -ItemType Directory -Force | Out-Null
+                }
                 New-Item -Path $itemSrcPath -ItemType SymbolicLink -Value $itemDstPath | Out-Null
             }
             else {
