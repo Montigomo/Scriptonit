@@ -61,9 +61,15 @@ function DvhGetObjects {
         return
     }
 
-    $htmlDoc = ConvertFrom-Html -URI $Uri
-    $UrlHost = "$($Uri.Scheme)://$($Uri.Host)"
-
+    try {
+        $htmlDoc = ConvertFrom-Html -URI $Uri
+        $UrlHost = "$($Uri.Scheme)://$($Uri.Host)"
+    }
+    catch {
+        Write-Host "Error when getting html from $($Uri.AbsoluteUri)" -ForegroundColor Red
+        return
+    }
+    
     $_currentNode = $server
 
     $node = $htmlDoc.SelectSingleNode('/html/body/div[2]/main/div/div[2]/div/div/div[3]/article/div/div/table/thead/tr/th/strong')
