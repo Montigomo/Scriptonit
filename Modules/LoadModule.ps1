@@ -291,9 +291,9 @@ function LmListObjects {
     param (
         [Parameter(Mandatory = $true, Position = 0)]
         [object[]]$ConfigPath,
-        [Parameter()]
-        [string]$Property = "name",
-        [Parameter()]
+        [Parameter(Mandatory = $false, Position = 1)]
+        [string]$PropertyName = "name",
+        [Parameter(Mandatory = $false, Position = 2)]
         [int]$Color
     )
     if (-not $Color ) {
@@ -302,12 +302,12 @@ function LmListObjects {
     $e = [char]27
     $objects = LmGetObjects $ConfigPath
 
-    if ($Property -and ($objects -is [array])) {
+    if ($PropertyName -and ($objects -is [array])) {
         $objects = $objects | Select-Object @{
             n = "name"
             e = {
-                if ($_ -is [hashtable] -and $_.ContainsKey($Property)) {
-                    $_.$Property
+                if ($_ -is [hashtable] -and $_.ContainsKey($PropertyName)) {
+                    $_.$PropertyName
                 }
                 elseif ($_ -is [string]) {
                     $_
@@ -746,10 +746,19 @@ function LmLoadModule {
     $script = "Set-StrictMode -Version 3.0" + [System.Environment]::NewLine
 
     foreach ($item in $items) {
+        if ($item.Name -match ".*_run.ps1$") {
+            if ($verbose) {
+                $_backup_color = $Host.PrivateData.VerboseForegroundColor
+                $Host.PrivateData.VerboseForegroundColor = 'Red'
+                Write-Verbose "Script: $($item.FullName) is skipped."
+                 $Host.PrivateData.VerboseForegroundColor = $_backup_color
+            }
+            continue
+        }
         if ($item.FullName -ine $Parent.ScriptName) {
             $script = $script + ". $($item.FullName)" + [System.Environment]::NewLine
             if ($verbose) {
-                Write-Verbose "Script: $($item.FullName)"
+                Write-Verbose "Script: $($item.FullName) is loaded."
             }
         }
         else {

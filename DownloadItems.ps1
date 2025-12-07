@@ -2,7 +2,8 @@
 param (
     [Parameter(Mandatory = $false, ParameterSetName = 'Only')]
     [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
-    [Parameter(Mandatory = $false)] [string]$UserName,
+    [Parameter(Mandatory = $false)]
+    [string]$UserName,
     [Parameter(Mandatory = $false, ParameterSetName = 'Only')]
     [string[]]$OnlyNames,
     [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
@@ -18,12 +19,14 @@ function DownloadItems {
     param (
         [Parameter(Mandatory = $true, ParameterSetName = 'Only')]
         [Parameter(Mandatory = $true, ParameterSetName = 'Exclude')]
-        [Parameter(Mandatory = $false)] [string]$UserName,
+        [Parameter(Mandatory = $false)]
+        [string]$UserName,
         [Parameter(Mandatory = $false, ParameterSetName = 'Only')]
         [string[]]$OnlyNames,
         [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
         [string[]]$ExcludeNames
     )
+    
     $IsVerbose = $PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue'
     $objects = LmGetObjects "users", "$UserName", "downloads", "*"
 

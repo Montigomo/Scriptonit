@@ -1,0 +1,48 @@
+[
+  {
+    "servername": "SomeName",
+    "output_folder": "D:\\foldera\\folderb\\<?DateTimeStamp?>",
+    "ip": "255.255.255.255",
+    "username": "root",
+    "files": [
+      "/etc/apache2/sites-available/git.conf",
+      "/etc/apache2/apache2.conf",
+      "/etc/openvpn/ipp.txt",
+      "/etc/openvpn/server.conf",
+      "/etc/ssh/sshd_config",
+      "/etc/systemd/system/firewall*",
+      "/etc/systemd/system/flask*",
+      "/etc/hostname",
+      "/etc/wireguard*",
+      "/usr/local/sbin/firewall.sh",
+      "/usr/local/etc/firewall/*",
+      "/srv/files/*",
+      "/var/www/*"
+    ]
+  },
+  {
+    "servername": "SomeNameB",
+    "output_folder": "D:\\foldera\\folderc\\<?DateTimeStamp?>",
+    "ip": "255.255.255.0",
+    "username": "root",
+    "files": [
+      "/root/.tmux/tmux.conf",
+      "/etc/apache2/sites-available/git.conf",
+      "/etc/apt/sources.list",
+      "/etc/apt/sources.list.d/*",
+      "/etc/apache2/apache2.conf",
+      "/etc/openvpn/ipp.txt",
+      "/etc/openvpn/server.conf",
+      "/etc/ssh/sshd_config",
+      "/etc/systemd/system/firewall*",
+      "/etc/systemd/system/flask*",
+      "/etc/hostname",
+      "/etc/wireguard*",
+      "/usr/local/sbin/firewall.sh",
+      "/usr/local/etc/firewall/*",
+      "/srv/files/*",
+      "/srv/api/*",
+      "/var/www/*"
+    ]
+  }
+]

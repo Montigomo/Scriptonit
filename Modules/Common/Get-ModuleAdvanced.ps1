@@ -17,7 +17,8 @@ function Get-ModuleAdvanced {
     )
 
     function Prepare {
-        #[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor  [Net.SecurityProtocolType]::Tls12
+        #[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
+        # check and install NuGet provider (what is NuGet - https://learn.microsoft.com/en-us/nuget/what-is-nuget)
         if (-not ($np = Get-PackageProvider | Where-Object { $_.Name -ieq "nuget" }) -or ($np.Version -lt "2.0.0")) {
             $PackageProvider = 'NuGet'
             $nugetPackage = Get-PackageProvider -ListAvailable | Where-Object { $_.Name -ieq $PackageProvider }
@@ -25,13 +26,18 @@ function Get-ModuleAdvanced {
                 Install-PackageProvider -Name $PackageProvider -Confirm:$false -Force | Out-Null
             }
         }
+
+        # register the PowerShell Gallery as a trusted repository
         $RepositorySource = 'PSGallery'
         if (($psr = Get-PSRepository -Name $RepositorySource) -and ($psr.InstallationPolicy -eq "Untrusted")) {
             Set-PSRepository -Name $RepositorySource -InstallationPolicy Trusted
         }
+        
+        # install PowerShellGet
         if (($pm = get-module PowerShellGet) -and ($pm.Version -lt "2.0.0")) {
             Install-Module PowerShellGet -Force -AllowClobber
         }
+
     }
 
     # $sourceArgs = @{

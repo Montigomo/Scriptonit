@@ -2,18 +2,22 @@
 #--Requires -Version 6.0
 #--Requires -PSEdition Core
 
-[CmdletBinding(DefaultParameterSetName = 'Work')]
+[CmdletBinding(DefaultParameterSetName = 'Include')]
 param (
-    [Parameter(Mandatory = $false, ParameterSetName = 'Work')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
     [Parameter(Mandatory = $false, ParameterSetName = 'ListOperations')]
     [Parameter(Mandatory = $false, ParameterSetName = 'ListUsers')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]    
     [string]$UserName,
-    [Parameter(Mandatory = $false, ParameterSetName = 'Work')]
-    [array]$Operations,
+    [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
+    [array]$OnlyNames,
+    [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
+    [array]$ExcludeNames,    
     [Parameter(Mandatory = $false, ParameterSetName = 'ListOperations')]
     [switch]$ListOperations,
     [Parameter(Mandatory = $false, ParameterSetName = 'ListUsers')]
     [switch]$ListUsers
+    
 )
 
 Set-StrictMode -Version 3.0
@@ -51,11 +55,15 @@ function RunOperation {
 }
 
 function SetUserSettings {
+    [CmdletBinding(DefaultParameterSetName = 'Include')]
     param (
-        [Parameter(Mandatory = $true)]
+        [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
+        [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]    
         [string]$UserName,
-        [Parameter(Mandatory = $false)]
-        [array]$Operations
+        [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
+        [array]$OnlyNames,
+        [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
+        [array]$ExcludeNames
     )
 
     $objects = LmGetObjects "users", "$UserName", "operations", "*"
@@ -64,15 +72,26 @@ function SetUserSettings {
         return
     }
 
-    $objects = LmSortCollectionByPropertyValue -InputObject $objects -Key "order"
+    switch ($PSCmdlet.ParameterSetName) {
+        'Include' {
+            if ($OnlyNames) {
+                $objects = $objects | Where-Object { $OnlyNames -icontains $_.Name }
+            }
+            break
+        }
+        'Exclude' {
+            if ($ExcludeNames) {
+                $objects = $objects | Where-Object { $ExcludeNames -inotcontains $_.Name }
+            }
+            break
+        }
+    }
+
+    #$objects = LmSortCollectionByPropertyValue -InputObject $objects -Key "order"
 
     foreach ($operation in $objects) {
         $_functionName = $operation.name
 
-        # skip if specified operations list and item not in
-        if ((-not [System.String]::IsNullOrWhiteSpace($Operations) -and $Operations -inotcontains $_functionName)) {
-            continue
-        }
         # skip if operation not a function or start with '--'
         if (-not (TestFunction -Name $_functionName) -or ($_functionName.StartsWith("--"))) {
             continue
@@ -91,7 +110,7 @@ function SetUserSettings {
 if ($PSBoundParameters.Count -gt 0) {
     $params = $PSBoundParameters
     switch ($PSCmdlet.ParameterSetName) {
-        'Work' {
+        { ($_ -eq 'Include') -or ($_ -eq 'Exclude') } {
             SetUserSettings @params
             break
         }
