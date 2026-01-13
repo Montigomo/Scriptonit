@@ -39,7 +39,7 @@ function InstallMsvcrt {
             continue
         }
 
-        Write-HostColorable @("Package", """$id""", "local version:", "$($packageLocal.InstalledVersion),", "remove version:", "$($packageRemote.Version).")  @("DarkYellow", "DarkGreen", "DarkYellow", "DarkCyan", "DarkYellow", "DarkCyan")
+        Write-HostColorable @("Package", """$id""", "local version:", "$($packageLocal.InstalledVersion),", "remote version:", "$($packageRemote.Version).")  @("DarkYellow", "DarkGreen", "DarkYellow", "DarkCyan", "DarkYellow", "DarkCyan")
 
         if ($packageLocal.IsUpdateAvailable) {
             Write-Host "The Package " -ForegroundColor DarkYellow -NoNewline

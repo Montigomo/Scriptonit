@@ -11,7 +11,7 @@ function SetMpPreference {
     $o = $mp.ExclusionPath
 
     foreach ($item in $Items) {
-        if (-not (Test-Path $item)) {
+        if (-not (Test-Path $item -ErrorAction SilentlyContinue)) {
             Write-Host "[SetMpPreference] path $item doesn't exist." -ForegroundColor DarkRed
             continue
         }

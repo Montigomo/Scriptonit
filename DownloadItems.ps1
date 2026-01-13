@@ -26,9 +26,9 @@ function DownloadItems {
         [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
         [string[]]$ExcludeNames
     )
-    
+
     $IsVerbose = $PSBoundParameters['Verbose'] -or $VerbosePreference -eq 'Continue'
-    $objects = LmGetObjects "users", "$UserName", "downloads", "*"
+    $objects = LmGetObjects "$UserName", "downloads", "*"
 
     switch ($PSCmdlet.ParameterSetName) {
         'Only' {

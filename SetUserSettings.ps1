@@ -7,17 +7,17 @@ param (
     [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
     [Parameter(Mandatory = $false, ParameterSetName = 'ListOperations')]
     [Parameter(Mandatory = $false, ParameterSetName = 'ListUsers')]
-    [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]    
+    [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
     [string]$UserName,
     [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
     [array]$OnlyNames,
     [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
-    [array]$ExcludeNames,    
+    [array]$ExcludeNames,
     [Parameter(Mandatory = $false, ParameterSetName = 'ListOperations')]
     [switch]$ListOperations,
     [Parameter(Mandatory = $false, ParameterSetName = 'ListUsers')]
     [switch]$ListUsers
-    
+
 )
 
 Set-StrictMode -Version 3.0
@@ -34,7 +34,7 @@ function ListUserOperations {
         [Parameter(Mandatory = $true)]
         [string]$UserName
     )
-    LmListObjects "users", "$UserName", "operations"
+    LmListObjects $UserName, "operations", "*"
 }
 #endregion
 
@@ -58,7 +58,7 @@ function SetUserSettings {
     [CmdletBinding(DefaultParameterSetName = 'Include')]
     param (
         [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
-        [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]    
+        [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
         [string]$UserName,
         [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
         [array]$OnlyNames,
@@ -66,7 +66,7 @@ function SetUserSettings {
         [array]$ExcludeNames
     )
 
-    $objects = LmGetObjects "users", "$UserName", "operations", "*"
+    $objects = LmGetObjects -ConfigPath @("$UserName", "operations", "*")
 
     if (-not $objects) {
         return
@@ -75,25 +75,28 @@ function SetUserSettings {
     switch ($PSCmdlet.ParameterSetName) {
         'Include' {
             if ($OnlyNames) {
-                $objects = $objects | Where-Object { $OnlyNames -icontains $_.Name }
+                $objects = @($objects | Where-Object { $OnlyNames -icontains $_.Name })
             }
             break
         }
         'Exclude' {
             if ($ExcludeNames) {
-                $objects = $objects | Where-Object { $ExcludeNames -inotcontains $_.Name }
+                $objects = @($objects | Where-Object { $ExcludeNames -inotcontains $_.Name })
             }
             break
         }
     }
 
-    #$objects = LmSortCollectionByPropertyValue -InputObject $objects -Key "order"
-
     foreach ($operation in $objects) {
         $_functionName = $operation.name
 
-        # skip if operation not a function or start with '--'
-        if (-not (TestFunction -Name $_functionName) -or ($_functionName.StartsWith("--"))) {
+        $_skip = $true
+        if (-not ($_functionName.StartsWith("--"))) {
+            $_skip = -not (TestFunction -Name $_functionName)
+            $_skip = $_skip -and -not (Get-Command $_functionName -errorAction SilentlyContinue)
+        }
+
+        if ($_skip) {
             continue
         }
 

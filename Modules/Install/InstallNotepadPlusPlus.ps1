@@ -35,7 +35,7 @@ function InstallNotepadPlusPlus {
         $null = [System.Version]::TryParse($vtext, [ref]$localVersion)
     }
 
-    $versionPattern = "\d?\d.\d?\d.\d?\d"
+    $versionPattern = "\d?\d.\d?\d(.\d?\d)?"
 
     if ($IsOs64) {
         #$ReleasePattern = "^npp.$versionPattern.portable.x64.7z$"
@@ -58,32 +58,37 @@ function InstallNotepadPlusPlus {
 
     Write-Host "LocalVersion: $localVersion; RemoteVersion: $remoteVersion" -ForegroundColor DarkYellow
 
-    if (($localVersion -lt $remoteVersion) -and ($downloadUri)) {
-        Write-Host "Let's install version $remoteVersion" -ForegroundColor DarkGreen
-        if ($UseZip) {
-            # uninstall
-            if (Test-Path -Path $programFolder) {
-                DoProcessActions -Name $programExePath -ExePath |Out-Null
-                DeleteFolderExcludeSubfolders -Folder $programFolder -ExcludeFolders @("contextmenu")
+    if (($localVersion -lt $remoteVersion)) {
+        if ($downloadUri) {
+            Write-Host "Let's install version $remoteVersion" -ForegroundColor DarkGreen
+            if ($UseZip) {
+                # uninstall
+                if (Test-Path -Path $programFolder) {
+                    DoProcessActions -Name $programExePath -ExePath | Out-Null
+                    DeleteFolderExcludeSubfolders -Folder $programFolder -ExcludeFolders @("contextmenu")
+                }
+                else {
+                    [System.IO.Directory]::CreateDirectory($programFolder) | Out-Null
+                }
+
+                $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'zip' } -PassThru
+
+                Invoke-WebRequest -OutFile $tmp $downloadUri
+
+                Unpack-ZipToFolder -ArchivePath $tmp.FullName -DestinationFolder $programFolder
+
+                $tmp | Remove-Item
             }
             else {
-                [System.IO.Directory]::CreateDirectory($programFolder) | Out-Null
+                $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'msi' } -PassThru
+                Invoke-WebRequest -Uri $downloadUri -OutFile $tmp
+                Install-MsiPackage -MsiPackagePath $tmp.FullName -PackageOptions "$packageOptions" -IsWait
             }
-
-            $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'zip' } -PassThru
-
-            Invoke-WebRequest -OutFile $tmp $downloadUri
-
-            Unpack-ZipToFolder -ArchivePath $tmp.FullName -DestinationFolder $programFolder
-
-            $tmp | Remove-Item
+            Set-EnvironmentVariable -Value $programFolder -Scope "Machine" -Action "Add"
+        }else {
+            Write-Host "No download URI found!" -ForegroundColor Red
+            return
         }
-        else {
-            $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'msi' } -PassThru
-            Invoke-WebRequest -Uri $downloadUri -OutFile $tmp
-            Install-MsiPackage -MsiPackagePath $tmp.FullName -PackageOptions "$packageOptions" -IsWait
-        }
-        Set-EnvironmentVariable -Value $programFolder -Scope "Machine" -Action "Add"
     }
     InstallNppShell -DestinationFolder $programFolder
 }
