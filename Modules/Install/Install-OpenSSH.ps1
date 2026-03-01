@@ -47,12 +47,16 @@ function Install-OpenSsh {
         $ReleasePattern = if ($IsOs64) { "OpenSSH-Win64.zip" }else { "OpenSSH-Win32.zip" }
     }
     else {
-        $ReleasePattern = if ($IsOs64) { "OpenSSH-Win64-v\d.\d.\d.\d.msi" }else { "OpenSSH-Win32-v\d.\d.\d.\d.msi" }
+        $ReleasePattern = if ($IsOs64) { "OpenSSH-Win64-v\d\d?.\d.\d.\d.msi" }else { "OpenSSH-Win32-v\d\d?.\d.\d.\d.msi" }
     }
 
     $item = GetGitHubItems -Uri $gitUri -ReleasePattern $ReleasePattern
     if ($item) {
         $downloadUri = $item.Url
+        if([string]::IsNullOrWhiteSpace($downloadUri)) {
+            Write-Host "Download url is empty." -ForegroundColor DarkRed
+            continue
+        }
         $remoteVersion = $item.Version
         Write-Host "LocalVersion: $localVersion; RemoteVersion: $remoteVersion" -ForegroundColor DarkYellow
         if ($remoteVersion -gt $localVersion -or $Force) {

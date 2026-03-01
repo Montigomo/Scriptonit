@@ -1,18 +1,16 @@
 #Requires -RunAsAdministrator
 #--Requires -Version 6.0
 #--Requires -PSEdition Core
-
-[CmdletBinding(DefaultParameterSetName = 'Include')]
+[CmdletBinding(DefaultParameterSetName = 'Operate')]
 param (
-    [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
     [Parameter(Mandatory = $false, ParameterSetName = 'ListOperations')]
     [Parameter(Mandatory = $false, ParameterSetName = 'ListUsers')]
-    [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
-    [string]$UserName,
-    [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
-    [array]$OnlyNames,
-    [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
-    [array]$ExcludeNames,
+    [Parameter(Mandatory = $false, ParameterSetName = 'Operate')]
+    [string]$ConfigPath,
+    [Parameter(Mandatory = $false, ParameterSetName = 'Operate')]
+    [array]$Actions,
+    [Parameter(Mandatory = $false, ParameterSetName = 'Operate')]
+    [switch]$Exclude,
     [Parameter(Mandatory = $false, ParameterSetName = 'ListOperations')]
     [switch]$ListOperations,
     [Parameter(Mandatory = $false, ParameterSetName = 'ListUsers')]
@@ -26,94 +24,85 @@ Set-StrictMode -Version 3.0
 
 #region ListUsers ListUserOperations
 function ListUsers {
-    LmListObjects "Users"
+    LmListObjects $ConfigPath, "users"
 }
 
 function ListUserOperations {
     param (
         [Parameter(Mandatory = $true)]
-        [string]$UserName
+        [string]$ConfigPath
     )
-    LmListObjects $UserName, "operations", "*"
+    LmListObjects $ConfigPath, "operations", "*"
 }
 #endregion
 
-function RunOperation {
-    param (
-        [Parameter(Mandatory = $true)] [string]$OpName,
-        [Parameter(Mandatory = $false)] [hashtable]$Arguments
-    )
-
-    Write-Host "*** Run action - $OpName. ***" -ForegroundColor DarkCyan
-
-    if ($Arguments) {
-        &"$OpName" @Arguments
-    }
-    else {
-        &"$OpName"
-    }
-}
-
 function SetUserSettings {
-    [CmdletBinding(DefaultParameterSetName = 'Include')]
     param (
-        [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
-        [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
-        [string]$UserName,
-        [Parameter(Mandatory = $false, ParameterSetName = 'Include')]
-        [array]$OnlyNames,
-        [Parameter(Mandatory = $false, ParameterSetName = 'Exclude')]
-        [array]$ExcludeNames
+        [Parameter(Mandatory = $false)]
+        [string]$ConfigPath,
+        [Parameter(Mandatory = $false)]
+        [array]$Actions,
+        [Parameter(Mandatory = $false)]
+        [switch]$Exclude
     )
 
-    $objects = LmGetObjects -ConfigPath @("$UserName", "operations", "*")
+    $objects = LmGetObjects -ConfigPath @("$ConfigPath", "operations", "*")
 
     if (-not $objects) {
         return
     }
 
-    switch ($PSCmdlet.ParameterSetName) {
-        'Include' {
-            if ($OnlyNames) {
-                $objects = @($objects | Where-Object { $OnlyNames -icontains $_.Name })
-            }
-            break
+    if ($Actions) {
+        if ($Exclude) {
+            $objects = @($objects | Where-Object { $Actions -inotcontains $_.Name })
         }
-        'Exclude' {
-            if ($ExcludeNames) {
-                $objects = @($objects | Where-Object { $ExcludeNames -inotcontains $_.Name })
-            }
-            break
+        else {
+            $objects = @($objects | Where-Object { $Actions -icontains $_.Name })
         }
     }
 
     foreach ($operation in $objects) {
         $_functionName = $operation.name
+        $_params = $null
+        $_modules = $null
 
-        $_skip = $true
-        if (-not ($_functionName.StartsWith("--"))) {
-            $_skip = -not (TestFunction -Name $_functionName)
-            $_skip = $_skip -and -not (Get-Command $_functionName -errorAction SilentlyContinue)
-        }
-
-        if ($_skip) {
+        if ($_functionName.StartsWith("--")) {
+            Write-Host "Skip operation - $_functionName." -ForegroundColor Yellow
             continue
         }
 
         if ($operation.ContainsKey("params")) {
-            $params = $operation["params"]
+            $_params = $operation["params"]
+        }
+
+        if ($operation.ContainsKey("modules")) {
+            $_modules = $operation["modules"]
+        }
+
+        if ($_modules) {
+            . "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames $_modules | Out-Null
+        }
+
+        if (-not (TestFunction -Name $_functionName) -and -not (Get-Command $_functionName -errorAction SilentlyContinue)) {
+            Write-Host "Function - $_functionName not found." -ForegroundColor Red
+            continue
+        }
+
+        Write-Host "*** Run action - $_functionName. ***" -ForegroundColor DarkCyan
+
+        if ($_params) {
+            &"$_functionName" @_params
         }
         else {
-            $params = $null
+            &"$_functionName"
         }
-        RunOperation -OpName $_functionName -Arguments $params
     }
 }
 
 if ($PSBoundParameters.Count -gt 0) {
     $params = $PSBoundParameters
     switch ($PSCmdlet.ParameterSetName) {
-        { ($_ -eq 'Include') -or ($_ -eq 'Exclude') } {
+        { ($_ -eq 'Operate') -or ($_ -eq 'Operate') } {
             SetUserSettings @params
             break
         }

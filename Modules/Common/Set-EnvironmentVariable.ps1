@@ -2,7 +2,7 @@ Set-StrictMode -Version 3.0
 
 
 # .SYNOPSIS
-#     Set environment variable 
+#     Set environment variable
 # .DESCRIPTION
 # .PARAMETER Value
 #     [string] Environment variable value
@@ -21,15 +21,25 @@ Set-StrictMode -Version 3.0
 # .NOTES
 #     Author: Agitech; Version: 0.0.0.1
 function Set-EnvironmentVariable {
-    [CmdletBinding()]
     param(
-        [Parameter(Mandatory = $true)][string] $Value,
-        [Parameter(Mandatory = $false)][ValidateSet('Path', 'PSModulePath')][string] $Name = "Path",
-        [Parameter(Mandatory = $false)][ValidateSet('User', 'Process', 'Machine')][string] $Scope = "User",
-        [Parameter(Mandatory = $false)][ValidateSet('Add', 'Remove')][string] $Action = "Add"
+        [Parameter(Mandatory = $false)]
+        [string] $Value,
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('Path', 'PSModulePath')]
+        [string] $Name = "Path",
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('User', 'Process', 'Machine')]
+        [string] $Scope = "User",
+        [Parameter(Mandatory = $false)]
+        [ValidateSet('Add', 'Remove', 'Deduplicate')]
+        [string] $Action = "Add"
     )
-  
-    switch ($Action) {        
+    if(-not $Value -and $Action -ne "Deduplicate") {
+        Write-Host "Value is empty." -ForegroundColor DarkRed
+        return
+    }
+
+    switch ($Action) {
         "Add" {
             $items = [Environment]::GetEnvironmentVariable($Name, $Scope).Split(";")
             if (!($items.Contains($Value))) {
@@ -41,7 +51,13 @@ function Set-EnvironmentVariable {
         "Remove" {
             $items = [Environment]::GetEnvironmentVariable($Name, $Scope).Split(";")
             $oevNew = ($items -notlike $Value -notlike "" -join ";")
-            [Environment]::SetEnvironmentVariable($Name, $oevNew, $Scope) 
-        }     
+            [Environment]::SetEnvironmentVariable($Name, $oevNew, $Scope)
+        }
+        "Deduplicate" {
+            $items = [Environment]::GetEnvironmentVariable($Name, $Scope).Split(";")
+            $uniqueItems = $items | Select-Object -Unique | Sort-Object
+            $oevNew = ($uniqueItems -notlike "" -join ";")
+            [Environment]::SetEnvironmentVariable($Name, $oevNew, $Scope)
+        }
     }
 }

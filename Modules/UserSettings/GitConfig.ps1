@@ -5,7 +5,7 @@ function GetGitCmdPath{
 
     if (-not (Test-Path $gitCmdPath)) {
         Write-Host "Not found git." -ForegroundColor DarkYellow
-        return false
+        return $false
     }
 
     return $gitCmdPath

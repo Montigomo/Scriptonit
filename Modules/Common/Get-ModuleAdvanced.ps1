@@ -61,6 +61,8 @@ function Get-ModuleAdvanced {
     #     ProviderName = 'NuGet'
     # }
 
+    $IsVerbose = $VerbosePreference -ne 'SilentlyContinue'
+
     Prepare
 
     if (-not (GMA_IsBuiltInModule -ModuleName $ModuleName)) {
@@ -73,14 +75,14 @@ function Get-ModuleAdvanced {
                     if ($_localVersion -lt $_remoteVersion) {
                         Remove-Module -Name $ModuleName -Force -ErrorAction SilentlyContinue
                         Uninstall-Module -Name $ModuleName -AllVersions -Force
-                        Install-Module -Name $ModuleName -Force -Verbose
+                        Install-Module -Name $ModuleName -Force -Verbose:$IsVerbose
                     }
                     Import-Module $ModuleName
                 }
             }
             else {
                 if (Find-Module -Name $ModuleName) {
-                    Install-Module -Name $ModuleName -Force -Verbose
+                    Install-Module -Name $ModuleName -Force -Verbose:$IsVerbose
                     Import-Module -Name $ModuleName
                 }
                 else {

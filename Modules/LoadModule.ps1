@@ -478,12 +478,20 @@ function LmGetObjects {
         return $null
     }
 
-    if ([System.String]::IsNullOrWhiteSpace($OrderProperty)) {
-        if($_object.ContainsKey("file_name")){
-            $_object = $_object | Sort-Object {$_.file_name}
-        }
+    # if ([System.String]::IsNullOrWhiteSpace($OrderProperty)) {
+    #     if ($_object -is [hashtable] -or $_object -is [pscustomobject]) {
+    #         if ($_object.ContainsKey("file_name")) {
+    #             $_object = $_object | Sort-Object { $_.file_name }
+    #         }
+    #     }
+    # }
 
+    if (-not [System.String]::IsNullOrWhiteSpace($OrderProperty)) {
+        $_object = LmSortCollectionByPropertyValue -InputObject $_object -Key $OrderProperty
+    }else {
+        $_object = LmSortCollectionByPropertyValue -InputObject $_object -Key "file_name"
     }
+
 
     return $_object
 }
@@ -504,9 +512,16 @@ function LmGetObjects_LoadFile {
     $_fileName = [System.IO.Path]::GetFileNameWithoutExtension($FilePath)
     $_json = Get-Content $FilePath | Out-String
     $_object = ConvertFrom-Json -InputObject $_json
-    $_object.Add("file_name",$_fileName)
+    if ($_object -is [hashtable] -or $_object -is [System.Management.Automation.PSCustomObject]) {
+        $_object.Add("file_name", $_fileName)
+    }elseif($_object -is [array]) {
+        foreach ($_item in $_object) {
+            if ($_item -is [hashtable] -or $_item -is [System.Management.Automation.PSCustomObject]) {
+                $_item.Add("file_name", $_fileName)
+            }
+        }
+    }
     $_object = LmConvertObjectToHashtable -InputObject $_object
-
     return $_object
 }
 
@@ -640,7 +655,7 @@ function LmTestFunction {
 
 #endregion
 
-#region  LmSortHashtableByKey LmSortHashtableByPropertyValue
+#region LmSortHashtableByKey LmSortHashtableByPropertyValue
 
 function LmSortCollectionByPropertyValue {
     param (
@@ -695,14 +710,11 @@ function LmSortHashtableByPropertyValue {
     )
 
     $hash = $InputHashtable.GetEnumerator()
-
     $hash = $hash | Sort-Object { if ($_.Value.ContainsKey($Key)) { $_.Value.$Key } else { $_.Value } }
-
     $sorted_hash = [System.Collections.Specialized.OrderedDictionary]@{}
     foreach ($item in $hash) {
         $sorted_hash.Add($item.Key, $item.Value)
     }
-
     return $sorted_hash
 }
 
