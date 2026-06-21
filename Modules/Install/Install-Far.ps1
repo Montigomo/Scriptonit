@@ -13,6 +13,8 @@ Set-StrictMode -Version 3.0
 #   [switch] preview or release
 # .NOTES
 #     Author: Agitech; Version: 1.00.11
+. "$PSScriptRoot\..\LoadModule.ps1" -ModuleNames @("Common", "Archives", "Download") -Force | Out-Null
+
 function Install-Far {
     [CmdletBinding()]
     param(
@@ -21,8 +23,6 @@ function Install-Far {
         [Parameter(Mandatory = $false)] [switch]$UseMsi,
         [Parameter(Mandatory = $false)] [switch]$UsePreview
     )
-
-    . "$PSScriptRoot\..\LoadModule.ps1" -ModuleNames @("Common", "Archives", "Download") -Force | Out-Null
 
     # https://forum.farmanager.com/viewtopic.php?t=9889
 
@@ -97,19 +97,15 @@ function Install-Far {
             else {
                 [System.IO.Directory]::CreateDirectory($farFolder) | Out-Null
             }
-
             $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'zip' } -PassThru
-
-            Invoke-WebRequest -OutFile $tmp $downloadUri
-
+            (New-Object System.Net.WebClient).DownloadFile("$downloadUri", "$tmp")
             Unpack-7zipToFolder -ArchivePath $tmp.FullName -DestinationFolder $farFolder
-
             $tmp | Remove-Item
             # post actions
         }
         else {
             $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'msi' } -PassThru
-            Invoke-WebRequest -Uri $downloadUri -OutFile $tmp
+            (New-Object System.Net.WebClient).DownloadFile("$downloadUri", "$tmp")
             #$packageOptions = "ADDLOCAL=Colors,Macros,SetUp,Shell,XLat,Align.Changelogs,Align.FExcept,Align.Russian,_7z.dll,arclite.Changelogs,arclite.FExcept,arclite.Russian,sfx,AutoWrap.Changelogs,AutoWrap.FExcept,AutoWrap.Russian,Brackets.Changelogs,Brackets.FExcept,Brackets.Russian,Compare.Changelogs,Compare.FExcept,Compare.Russian,DrawLine.Changelogs,DrawLine.FExcept,DrawLine.Russian,EditCase.Changelogs,EditCase.FExcept,EditCase.Russian,Align,AutoWrap,Brackets,DrawLine,EditCase,EMenu.Changelogs,EMenu.FExcept,EMenu.Russian,Addons,Changelogs,Changelogs.FExcept,Docs,Docs.Russian,FExcept,FarShortcuts,Languages,Plugins,SDK,System,FARCmds.Changelogs,FARCmds.FExcept,FARCmds.Russian,FarColorer.Changelogs,FarColorer.FExcept,FarColorer.Ignore.base,FarColorer.Russian,FarColorer.Ignore.base_hrc,FarColorer.Ignore.base_hrd,FarColorer.Ignore.base_hrc_auto,FarColorer.Ignore.base_hrd_console,FarColorer.Ignore.base_hrd_css,FarColorer.Ignore.base_hrd_rgb,FarColorer.Ignore.base_hrd_text,FarProgramsShortcut,FarQuickLaunchShortcut,FarStartMenuShortcut,FileCase.Changelogs,FileCase.FExcept,FileCase.Russian,HlfViewer.Changelogs,HlfViewer.FExcept,HlfViewer.Russian,Czech,German,Hungarian,Polish,Russian,Slovak,Spanish,LuaMacro.Changelogs,LuaMacro.FExcept,LuaMacro.Russian,NetBox.Changelogs,NetBox.Russian,Network.Changelogs,Network.FExcept,Network.Russian,Compare,EMenu,Editor,FARCmds,FarColorer,FileCase,HlfViewer,LuaMacro,NetBox,Network,Proclist,SameFolder,TmpPanel,arclite,Proclist.Changelogs,Proclist.FExcept,Proclist.Russian,SameFolder.Changelogs,SameFolder.FExcept,SameFolder.Russian,Pascal,_7z.sfx,_7zCon.sfx,_7zS2.sfx,_7zS2con.sfx,_7zSD.sfx,AppPaths,FarHere,TmpPanel.Changelogs,TmpPanel.FExcept,TmpPanel.Russian"
             $packageOptions = "ADDLOCAL=ALL"
             Install-MsiPackage -MsiPackagePath $tmp.FullName -PackageOptions "$packageOptions" -IsWait

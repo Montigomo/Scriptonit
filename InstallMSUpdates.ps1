@@ -25,6 +25,10 @@ Set-StrictMode -Version 3.0
 
 . "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Network") -Force | Out-Null
 
+#region Help
+# Get-WindowsUpdate -Criteria "isinstalled=0 and deploymentaction=*" -AcceptAll | Format-Table -Property Status, Size, KB, Title
+#endregion
+
 function ListNetworks {
     LmListObjects "Networks"
 }

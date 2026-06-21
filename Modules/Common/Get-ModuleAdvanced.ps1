@@ -1,16 +1,18 @@
 Set-StrictMode -Version 3.0
 
-#.SYNOPSIS
-#.DESCRIPTION
-#.PARAMETER ModuleName
-#     [string] module name to install
-#.INPUTS
-#.OUTPUTS
-#.EXAMPLE
-#.EXAMPLE
-#.LINK
-#.NOTES
-#     Author : Agitech   Version : 0.0.0.1
+<#
+.SYNOPSIS
+.DESCRIPTION
+.PARAMETER ModuleName
+    [string] module name to install
+.INPUTS
+.OUTPUTS
+.EXAMPLE
+.EXAMPLE
+.LINK
+.NOTES
+    Author : Agitech   Version : 0.0.0.1
+#>
 function Get-ModuleAdvanced {
     param (
         [Parameter(Mandatory = $true)] [string]$ModuleName
@@ -23,7 +25,7 @@ function Get-ModuleAdvanced {
         )
 
         $systemPaths = "$env:SystemRoot\system32\WindowsPowerShell\v1.0\Modules", "${env:SystemRoot}\System32\WindowsPowerShell\v1.0\Modules"
-        if ($PSVersionTable.PSEdition -eq 'Core' -or $PSVersionTable.Version.Major -ge 6) {
+        if ($PSVersionTable.PSEdition -eq 'Core' -or $PSVersionTable.PSVersion.Major -ge 6) {
             # Add PowerShell Core/7+ system path if applicable (adjust as needed for specific OS)
             $systemPaths += "${env:ProgramFiles}\PowerShell\Modules"
         }

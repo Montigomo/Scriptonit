@@ -79,7 +79,7 @@ function Install-OpenSsh {
                     [System.IO.Directory]::CreateDirectory($destPath) | Out-Null
                 }
                 $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'zip' } -PassThru
-                Invoke-WebRequest -OutFile $tmp $downloadUri
+                (New-Object System.Net.WebClient).DownloadFile("$downloadUri", "$tmp")
                 Add-Type -Assembly System.IO.Compression.FileSystem
                 $zip = [IO.Compression.ZipFile]::OpenRead($tmp.FullName)
                 $entries = $zip.Entries | Where-Object { -not [string]::IsNullOrWhiteSpace($_.Name) } #| where {$_.FullName -like 'myzipdir/c/*' -and $_.FullName -ne 'myzipdir/c/'}
@@ -95,7 +95,7 @@ function Install-OpenSsh {
             }
             else {
                 $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'msi' } -PassThru
-                Invoke-WebRequest -OutFile $tmp $downloadUri
+                (New-Object System.Net.WebClient).DownloadFile("$downloadUri", "$tmp")
                 Install-MsiPackage -MsiPackagePath $tmp.FullName
             }
         }

@@ -1,6 +1,6 @@
 Set-StrictMode -Version 3.0
 
-. "$PSScriptRoot\..\LoadModule.ps1" -ModuleNames @("Common", "Archives", "Download", "Install") -Force | Out-Null
+. "$PSScriptRoot\..\LoadModule.ps1" -ModuleNames @("Common", "Common.DoActions", "Archives", "Download.Github", "Install") -Force | Out-Null
 
 
 function InstallNotepadPlusPlus {
@@ -35,7 +35,7 @@ function InstallNotepadPlusPlus {
         $null = [System.Version]::TryParse($vtext, [ref]$localVersion)
     }
 
-    $versionPattern = "\d?\d.\d?\d(.\d?\d)?"
+    $versionPattern = "\d?\d.\d?\d(.\d?\d)?(.\d?\d)?"
 
     if ($IsOs64) {
         #$ReleasePattern = "^npp.$versionPattern.portable.x64.7z$"
@@ -91,4 +91,5 @@ function InstallNotepadPlusPlus {
         }
     }
     InstallNppShell -DestinationFolder $programFolder
+    #SetExeToRunAsAdmin -Path $programExePath -AllUsers
 }

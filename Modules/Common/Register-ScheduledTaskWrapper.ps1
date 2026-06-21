@@ -5,8 +5,6 @@ Set-StrictMode -Version 3.0
 
 
 
-. "$PSScriptRoot\..\LoadModule.ps1" -ModuleNames @("Common") -Force | Out-Null
-
 # .SYNOPSIS
 #     add task to taskmanager for run an item on startup
 # .PARAMETER Name

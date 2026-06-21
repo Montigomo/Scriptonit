@@ -1,6 +1,6 @@
 Set-StrictMode -Version 3.0
 
-. "$PSScriptRoot\..\..\LoadModule.ps1" -ModuleNames @("Common") -Force | Out-Null
+. "$PSScriptRoot\..\LoadModule.ps1" -ModuleNames @("Common") -Force | Out-Null
 
 function DownloadFromJson {
     [CmdletBinding()]

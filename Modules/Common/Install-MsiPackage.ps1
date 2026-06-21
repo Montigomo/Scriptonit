@@ -1,15 +1,17 @@
 Set-StrictMode -Version 3.0
 
-# .SYNOPSIS
-#     Run msi package
-# .PARAMETER MsiPackagePath
-#     [string] path to msi package
-# .PARAMETER PackageOptions
-#     [string] specific msi package options
-# .PARAMETER IsWait
-#     [switch] wait untill msi executed
-# .NOTES
-#     Author : Agitech  Version : 0.0.0.1
+<#
+.SYNOPSIS
+    Run msi package
+.PARAMETER MsiPackagePath
+    [string] path to msi package
+.PARAMETER PackageOptions
+    [string] specific msi package options
+.PARAMETER IsWait
+    [switch] wait untill msi executed
+.NOTES
+    Author : Agitech  Version : 0.0.0.1
+#>
 # https://learn.microsoft.com/en-us/windows/win32/msi/command-line-options
 function Install-MsiPackage {
     param

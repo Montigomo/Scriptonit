@@ -27,6 +27,7 @@ Set-StrictMode -Version 3.0
 # .LINK
 # .NOTES
 #     Author: Agitech Version: 0.0.0.1
+
 function Register-Task {
     param(
         [Parameter(Mandatory = $true)] [hashtable]$TaskData,

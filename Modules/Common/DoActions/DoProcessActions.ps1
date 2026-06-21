@@ -1,3 +1,4 @@
+Set-StrictMode -Version 3.0
 function DoProcessActions {
     param (
         [Parameter(Mandatory = $true, ValueFromPipeline = $true)]

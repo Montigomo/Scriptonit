@@ -1,19 +1,23 @@
 #Requires -RunAsAdministrator
 #--Requires -Version 6.0
 #--Requires -PSEdition Core
-[CmdletBinding(DefaultParameterSetName = 'Operate')]
+[CmdletBinding(DefaultParameterSetName = 'ConfigPath')]
 param (
-    [Parameter(Mandatory = $false, ParameterSetName = 'ListOperations')]
-    [Parameter(Mandatory = $false, ParameterSetName = 'ListUsers')]
-    [Parameter(Mandatory = $false, ParameterSetName = 'Operate')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'ConfigPath')]
     [string]$ConfigPath,
-    [Parameter(Mandatory = $false, ParameterSetName = 'Operate')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'CommonUsers')]
+    [array]$UserName,
+    [Parameter(Mandatory = $false, ParameterSetName = 'ConfigPath')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'CommonUsers')]
     [array]$Actions,
-    [Parameter(Mandatory = $false, ParameterSetName = 'Operate')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'ConfigPath')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'CommonUsers')]
     [switch]$Exclude,
-    [Parameter(Mandatory = $false, ParameterSetName = 'ListOperations')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'ConfigPath')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'CommonUsers')]
     [switch]$ListOperations,
-    [Parameter(Mandatory = $false, ParameterSetName = 'ListUsers')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'ConfigPath')]
+    [Parameter(Mandatory = $false, ParameterSetName = 'CommonUsers')]
     [switch]$ListUsers
 
 )
@@ -24,7 +28,11 @@ Set-StrictMode -Version 3.0
 
 #region ListUsers ListUserOperations
 function ListUsers {
-    LmListObjects $ConfigPath, "users"
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$ConfigPath
+    )
+    LmListObjects -ConfigPath  @("$ConfigPath")
 }
 
 function ListUserOperations {
@@ -32,10 +40,11 @@ function ListUserOperations {
         [Parameter(Mandatory = $true)]
         [string]$ConfigPath
     )
-    LmListObjects $ConfigPath, "operations", "*"
+    LmListObjects -ConfigPath @("$ConfigPath", "operations", "*") -PropertyName "name" -OrderPropertyName "order"
 }
 #endregion
 
+#region SetUserSettings
 function SetUserSettings {
     param (
         [Parameter(Mandatory = $false)]
@@ -46,7 +55,7 @@ function SetUserSettings {
         [switch]$Exclude
     )
 
-    $objects = LmGetObjects -ConfigPath @("$ConfigPath", "operations", "*")
+    $objects = LmGetObjects -ConfigPath @("$ConfigPath", "operations", "*")  -OrderPropertyName "order"
 
     if (-not $objects) {
         return
@@ -99,24 +108,39 @@ function SetUserSettings {
     }
 }
 
+#endregion
+
 if ($PSBoundParameters.Count -gt 0) {
     $params = $PSBoundParameters
-    switch ($PSCmdlet.ParameterSetName) {
-        { ($_ -eq 'Operate') -or ($_ -eq 'Operate') } {
-            SetUserSettings @params
-            break
+    $_paramSetName = $PSCmdlet.ParameterSetName
+
+
+    if ($ListUsers) {
+        if (-not $params.ContainsKey("ConfigPath")) {
+            $params.Add("ConfigPath", "users")
         }
-        'ListOperations' {
+        $params.Remove("ListOperations") | Out-Null
+        $params.Remove("ListUsers") | Out-Null
+        ListUsers @params
+    }
+    else {
+        if (-not $params.ContainsKey("ConfigPath") -and -not $params.ContainsKey("UserName")) {
+            Write-Host "Please specify either ConfigPath or UserName parameter." -ForegroundColor Red
+        }
+        else {
+            if (-not $params.ContainsKey("ConfigPath")) {
+                $params.Add("ConfigPath", "users.$UserName")
+
+            }
+            $params.Remove("UserName") | Out-Null
             $params.Remove("ListOperations") | Out-Null
             $params.Remove("ListUsers") | Out-Null
-            ListUserOperations @params
-            break
-        }
-        'ListUsers' {
-            $params.Remove("ListOperations") | Out-Null
-            $params.Remove("ListUsers") | Out-Null
-            ListUsers @params
-            break
+            if ($ListOperations) {
+                ListUserOperations @params
+            }
+            else {
+                SetUserSettings @params
+            }
         }
     }
 }

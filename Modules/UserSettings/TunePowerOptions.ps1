@@ -1,41 +1,49 @@
-Set-StrictMode -Version 3.0
+﻿Set-StrictMode -Version 3.0
 # HKEY_LOCAL_MACHINE\SYSTEM\ControlSet001\Control\Power\User\PowerSchemes
 
-#region PredefinedPowerPlans
-$_predefinedPowerPlans = @(
-    @{
-        guid  = "e9a42b02-d5df-448d-aa00-03f14749eb61"
-        names = @{
-            'en-US' = "Ultimate Performance"
-            'ru-RU' = "Максимальная производительность"
-        }
-    },
-    @{
-        guid  = "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"
-        names = @{
-            'en-US' = "High performance"
-            'ru-RU' = "Максимальная производительность"
-        }
-    },
-    @{
-        guid  = "381b4222-f694-41f0-9685-ff5bb260df2e"
-        names = @{
-            'en-US' = "Balanced"
-            'ru-RU' = "Сбалансированная"
-        }
-    },
-    @{
-        guid  = "a1841308-3541-4fab-bc81-f71556f20b4a"
-        names = @{
-            'en-US' = "Power saver"
-            'ru-RU' = "Экономия энергии"
-        }
+$isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
+).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)
+
+if (-not $isAdmin) {
+    Write-Error "Run as administrator to change power plans."
+    return
+}
+
+$knownPlans = @{
+    'Ultimate Performance' = @{
+        TemplateGuid = 'e9a42b02-d5df-448d-aa00-03f14749eb61'
+        Aliases      = @(
+            'Ultimate Performance',        # EN
+            'Höchstleistung',              # DE
+            'Максимальная производительность' # RU
+        )
     }
-)
+    'High performance'     = @{
+        TemplateGuid = '8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c'
+        Aliases      = @(
+            'High performance',            # EN
+            'Höchstleistung',              # DE
+            'Высокая производительность'   # RU
+        )
+    }
+    'Balanced'             = @{
+        TemplateGuid = '381b4222-f694-41f0-9685-ff5bb260df2e'
+        Aliases      = @(
+            'Balanced',                    # EN
+            'Ausbalanciert',               # DE
+            'Сбалансированная'             # RU
+        )
+    }
+    'Power saver'          = @{
+        TemplateGuid = 'a1841308-3541-4fab-bc81-f71556f20b4a'
+        Aliases      = @(
+            'Power saver',                 # EN
+            'Energiesparmodus',            # DE
+            'Экономия энергии'             # RU
+        )
+    }
+}
 
-#endregion
-
-#region functions
 
 function DisableSleep {
     powercfg /change standby-timeout-ac 0
@@ -47,7 +55,6 @@ function SetMonitorTimeout {
     powercfg /change monitor-timeout-ac 10
     powercfg /change monitor-timeout-dc 10
 }
-
 function GetPowerInfo {
     $_powerPlan = powercfg /getactivescheme
     Write-Host "$_powerPlan" -ForegroundColor DarkBlue
@@ -73,94 +80,132 @@ function GetSleepTimeout {
     return $_time
 }
 
-function GetPowerPlanGuid {
-    param (
-        [Parameter(Position = 0)]
-        [string]$PowerPlanString
-    )
-    $planGuid = $null
-    if (-not [string]::IsNullOrWhiteSpace($PowerPlanString)) {
-        $planGuid = ($PowerPlanString -split ' ')[3].Trim('():')
-    }
-    return $planGuid
-}
+function GetPowerPlans {
 
-function TryGetExistPowerPlanString {
-    param (
-        [Parameter(Position = 0, Mandatory = $true)]
-        [string]$PowerPlanName
-    )
-    $_powerPlanString = $null
-    $_ui = (Get-UICulture).Name
-    $_powerPlanObject = $_predefinedPowerPlans | Where-Object { $_.names['en-US'] -eq $PowerPlanName }
-    if ($null -ne $_powerPlanObject) {
-        if ($_powerPlanObject.names.ContainsKey($_ui)) {
-            $_powerPlanNameUI = $_powerPlanObject.names[$_ui]
-            $_powerPlanString = powercfg /l | Select-String $_powerPlanNameUI
+    $output = powercfg /list 2>&1 | Out-String -Stream
+    $PowerLines = $output | Where-Object { $_ -match "[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}" }
+
+    $PowerPlans = foreach ($Line in $PowerLines) {
+        $CleanLine = $Line.Trim()
+        $IsActive = $CleanLine -match "\*$"
+        if ($CleanLine -match "([a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12})") {
+            $GUID = $Matches[1]
+            if ($CleanLine -match "\(([^)]+)\)") {
+                $PlanName = $Matches[1].Trim()
+            }
+            else {
+                $PlanName = ($CleanLine -replace ".*$GUID\s*", "").Trim()
+                $PlanName = $PlanName -replace "\s*\*$", ""
+                $PlanName = $PlanName -replace "^[()]", ""
+            }
+
+            [PSCustomObject]@{
+                IsActive = $IsActive
+                Guid     = $GUID
+                Name     = $PlanName
+            }
         }
     }
-    return $_powerPlanString
-}
-#endregion
 
-#region SetPowerPlan
-function SetPowerPlan {
-    param (
-        [Parameter()]
-        [ValidateSet("Ultimate Performance", "High performance", "Balanced", "Power saver")]
-        [string]$PowerPlanName,
-        [Parameter(Mandatory = $false)]
-        [switch]$Force
+    if ($PowerPlans.Count -eq 0) {
+        Write-Host "No power plans found." -ForegroundColor Red
+    }
+
+    return $PowerPlans
+}
+
+function Set-PowerPlan {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$PlanName
     )
 
-    $_desiredPowerPlanObject = $_predefinedPowerPlans | Where-Object { $_.names["en-US"] -eq $PowerPlanName }
-    if ($null -eq $_desiredPowerPlanObject) {
+    if (-not $knownPlans.ContainsKey($PlanName)) {
+        Write-Error "Unknown plan '$PlanName'. Available: $($knownPlans.Keys -join ', ')"
         return
     }
 
-    $_existPowerPlanGuid = GetPowerPlanGuid(powercfg /l | Select-String $_desiredPowerPlanObject.guid)
+    $plan = $knownPlans[$PlanName]
+    $templateGuid = $plan.TemplateGuid
+    $aliases = $plan.Aliases
 
-    if ($null -eq $_existPowerPlanGuid) {
-        if ($Force) {
-            # try find powerplan considerate ui lang
-            $_powerPlanString = TryGetExistPowerPlanString -PowerPlanName $PowerPlanName
-            # if powerplan don't found try to duplicate
-            if ([string]::IsNullOrWhiteSpace($_powerPlanString)) {
-                $_desiredPowerPlanGuid = $_desiredPowerPlanObject.guid
-                powercfg -duplicatescheme $_desiredPowerPlanGuid | Out-Null
-                $_powerPlanString = TryGetExistPowerPlanString -PowerPlanName $PowerPlanName
-            }
-            # after create try getting desired powerplan again
-            if([string]::IsNullOrWhiteSpace($_powerPlanString)){
-                $_powerPlanString = TryGetExistPowerPlanString -PowerPlanName $PowerPlanName
-            }
-            # if after all tries there is no desired powerpal exit with message
-            if([string]::IsNullOrWhiteSpace($_powerPlanString)){
-                Write-Host "Tring create $PowerPlanName power scheme was not succesefull." -ForegroundColor Red
-                return
-            }
-            # if found desired powerplan set if active
-            $_powerPlanGuid = GetPowerPlanGuid($_powerPlanString)
-            $_powerPlanActiveGuid = GetPowerPlanGuid(powercfg /getactivescheme)
-            if ($_powerPlanGuid -ne $_powerPlanActiveGuid) {
-                powercfg /setactive $_powerPlanGuid
-            }
+    $schemes = GetPowerPlans
 
+    $target = $null
+
+    $target = $schemes | Where-Object { $_.Guid -eq $templateGuid } | Select-Object -First 1
+    if ($target) {
+        Write-Verbose "Scheme found by GUID: $($target.Guid) ($($target.Name))"
+    }
+
+    # if (-not $target) {
+    #     $target = $schemes | Where-Object {
+    #         $name = $_.Name
+    #         $aliases | Where-Object { $_ -eq $name }
+    #     } | Select-Object -First 1
+
+    #     if ($target) {
+    #         Write-Verbose "Scheme found by name: '$($target.Name)' (GUID: $($target.Guid))"
+    #     }
+    # }
+
+
+    if (-not $target) {
+        $target = $schemes | Where-Object { $aliases -contains $_.Name } | Select-Object -First 1
+        if ($target) {
+            Write-Verbose "Scheme found by name: '$($target.Name)' (GUID: $($target.Guid))"
+        }
+    }
+
+    if (-not $target) {
+        Write-Verbose "Scheme not found. Creating from template $templateGuid..."
+
+        $output = powercfg -duplicatescheme $templateGuid 2>&1
+        $m = [regex]::Match($output, '[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}')
+
+        if (-not $m.Success) {
+            Write-Error "Failed to create scheme '$PlanName'. Possibly the template is missing from the system.`n$output"
+            return
         }
 
+        $target = [PSCustomObject]@{
+            Guid     = $m.Value.tolower()
+            Name     = $PlanName
+            IsActive = $false
+        }
+        Write-Verbose "Scheme created: $($target.Guid)"
+    }
+
+    if ($target.IsActive) {
+        Write-Host "Scheme '$PlanName' already active (GUID: $($target.Guid))."
+        return
+    }
+
+    powercfg /setactive $target.Guid
+    if ($LASTEXITCODE -eq 0) {
+        Write-Host "Scheme '$PlanName' activated (GUID: $($target.Guid))."
+    }
+    else {
+        Write-Error "Failed to activate scheme (GUID: $($target.Guid))."
     }
 }
 
-#endregion
-function TunePowerOptions {
+# 1. Capture the previous settings
+$prevOutputEncoding = $OutputEncoding
+$prevDefaultEncoding = $PSDefaultParameterValues['*:Encoding']
+$prevCodePage = [Console]::OutputEncoding
 
-    Write-Host "PowerInfo before:" -ForegroundColor DarkGreen
-    GetPowerInfo
-    SetPowerPlan -PowerPlanName "Ultimate Performance" -Force
-    DisableSleep
-    SetMonitorTimeout
-    Write-Host "PowerInfo after:" -ForegroundColor DarkGreen
-    GetPowerInfo
-}
+# 2. Set to UTF-8
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+$PSDefaultParameterValues['*:Encoding'] = 'utf8'
 
-#TunePowerOptions
+Set-PowerPlan -PlanName 'Ultimate Performance' -Verbose
+# Set-PowerPlan -PlanName 'High performance' -Verbose
+# Set-PowerPlan -PlanName 'Balanced' -Verbose
+
+# 3. Restore previous settings
+[Console]::OutputEncoding = $prevCodePage
+$OutputEncoding = $prevOutputEncoding
+$PSDefaultParameterValues['*:Encoding'] = $prevDefaultEncoding

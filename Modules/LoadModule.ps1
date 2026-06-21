@@ -8,81 +8,120 @@ Set-StrictMode -Version 3.0
 
 #region types definition
 
-$TypeData = @{
-    TypeName   = 'System.Management.Automation.PSCustomObject'
-    MemberType = 'ScriptMethod'
-    MemberName = 'ContainsKey'
-    Value      = {
-        Param($Key)
-        [bool]$this.psobject.Properties.GetEnumerator().MoveNext() -and ($this.psobject.Properties.name -match $Key)
-        #[bool]($this.psobject.Properties.name -match $Key)
-    }
-}
 
-Update-TypeData @TypeData -Force -ErrorAction Ignore
-
-$TypeData = @{
-    TypeName   = 'System.Management.Automation.PSCustomObject'
-    MemberType = 'ScriptMethod'
-    MemberName = 'Add'
-    Value      = {
-        Param($Key, $Value)
-        Add-Member -InputObject $this -MemberType NoteProperty -Name $Key  -Value $Value
-    }
-}
-
-Update-TypeData @TypeData -Force  -ErrorAction Ignore
-
-$TypeData = @{
-    TypeName   = [System.Diagnostics.Process].ToString()
-    MemberType = [System.Management.Automation.PSMemberTypes]::ScriptProperty
-    MemberName = 'CommandLine'
-    Value      = {
-        if (('Win32NT' -eq [System.Environment]::OSVersion.Platform)) {
-            # it's windows
-            (Get-CimInstance Win32_Process -Filter "ProcessId = $($this.Id)").CommandLine
-        }
-        elseif (('Unix' -eq [System.Environment]::OSVersion.Platform)) {
-            # it's linux/unix
-            Get-Content -LiteralPath "/proc/$($this.Id)/cmdline"
-        }
-        elseif (('MacOSX' -eq [System.Environment]::OSVersion.Platform)) {
-            # it's macos
-            # ???
+$TypeDataArray = @(
+    @{
+        TypeName   = 'System.Management.Automation.PSCustomObject'
+        MemberType = 'ScriptMethod'
+        MemberName = 'ContainsKey'
+        Value      = {
+            Param($Key)
+            [bool]$this.psobject.Properties.GetEnumerator().MoveNext() -and ($this.psobject.Properties.name -match $Key)
+            #[bool]($this.psobject.Properties.name -match $Key)
         }
     }
-}
-
-Update-TypeData @TypeData -ErrorAction Ignore
-
-$TypeParam = @{
-    TypeName   = 'System.Array'
-    MemberType = 'ScriptMethod'
-    MemberName = 'ArrContainsName'
-    Value      = {
-        Param($Name)
-        #return ($this.BinarySearch($Name, [ObjComparer]::new()) -ge 0)
-        if (-not $this) {
-            return $false
+    @{
+        TypeName   = 'System.Management.Automation.PSCustomObject'
+        MemberType = 'ScriptMethod'
+        MemberName = 'Add'
+        Value      = {
+            Param($Key, $Value)
+            Add-Member -InputObject $this -MemberType NoteProperty -Name $Key  -Value $Value
         }
-        return ([System.Array]::FindIndex($this, [Predicate[pscustomobject]] { param($s)$s.Name -eq $Name }) -ge 0)
     }
-}
-
-Update-TypeData @TypeParam -Force
-
-$TypeParam = @{
-    TypeName   = 'System.Array'
-    MemberType = 'ScriptMethod'
-    MemberName = 'ArrFindName'
-    Value      = {
-        Param($Name)
-        #return ($this.BinarySearch($Name, [ObjComparer]::new()) -ge 0)
-        return ([System.Array]::Find($this, [Predicate[pscustomobject]] { param($s)$s.Name -eq $Name }))
+    @{
+        TypeName   = 'System.Management.Automation.PSCustomObject'
+        MemberType = 'ScriptMethod'
+        MemberName = 'SetValue'
+        Value      = {
+            Param($Key, $Value, $Force = $true)
+            if ($this.ContainsKey("$Key")) {
+                $this."$Key" = $Value
+            }
+            else {
+                if ($Force) {
+                    $this.Add("$Key", $Value)
+                }
+            }
+        }
     }
-}
+    @{
+        TypeName   = 'System.Collections.Hashtable'
+        MemberType = 'ScriptMethod'
+        MemberName = 'SetValue'
+        Value      = {
+            Param($Key, $Value, $Force = $true)
+            if ($this.ContainsKey("$Key")) {
+                $this."$Key" = $Value
+            }
+            else {
+                if ($Force) {
+                    $this.Add("$Key", $Value)
+                }
+            }
+        }
+    }
+    @{
+        TypeName   = 'System.Collections.Hashtable'
+        MemberType = 'ScriptMethod'
+        MemberName = 'GetValue'
+        Value      = {
+            Param($Key)
+            if ($this.ContainsKey("$Key")) {
+                return $this."$Key"
+            }
+            else {
+                return $null
+            }
+        }
+    }
+    @{
+        TypeName   = [System.Diagnostics.Process].ToString()
+        MemberType = [System.Management.Automation.PSMemberTypes]::ScriptProperty
+        MemberName = 'CommandLine'
+        Value      = {
+            if (('Win32NT' -eq [System.Environment]::OSVersion.Platform)) {
+                # it's windows
+                (Get-CimInstance Win32_Process -Filter "ProcessId = $($this.Id)").CommandLine
+            }
+            elseif (('Unix' -eq [System.Environment]::OSVersion.Platform)) {
+                # it's linux/unix
+                Get-Content -LiteralPath "/proc/$($this.Id)/cmdline"
+            }
+            elseif (('MacOSX' -eq [System.Environment]::OSVersion.Platform)) {
+                # it's macos
+                # ???
+            }
+        }
+    }
+    @{
+        TypeName   = 'System.Array'
+        MemberType = 'ScriptMethod'
+        MemberName = 'ArrContainsName'
+        Value      = {
+            Param($Name)
+            #return ($this.BinarySearch($Name, [ObjComparer]::new()) -ge 0)
+            if (-not $this) {
+                return $false
+            }
+            return ([System.Array]::FindIndex($this, [Predicate[pscustomobject]] { param($s)$s.Name -eq $Name }) -ge 0)
+        }
+    }
+    @{
+        TypeName   = 'System.Array'
+        MemberType = 'ScriptMethod'
+        MemberName = 'ArrFindName'
+        Value      = {
+            Param($Name)
+            #return ($this.BinarySearch($Name, [ObjComparer]::new()) -ge 0)
+            return ([System.Array]::Find($this, [Predicate[pscustomobject]] { param($s)$s.Name -eq $Name }))
+        }
+    }
+)
 
-Update-TypeData @TypeParam -Force
+foreach ($TypeData in $TypeDataArray) {
+    Update-TypeData @TypeData -Force
+}
 
 $command = Get-Command "Get-WmiObject" -ErrorAction SilentlyContinue
 if (-not $command -or ($command.CommandType -eq "Alias")) {
@@ -291,21 +330,28 @@ function LmListObjects {
     param (
         [Parameter(Mandatory = $true, Position = 0)]
         [object[]]$ConfigPath,
-        [Parameter(Mandatory = $false, Position = 1)]
+        [Parameter(Mandatory = $false)]
         [string]$PropertyName = "name",
-        [Parameter(Mandatory = $false, Position = 2)]
+        [Parameter(Mandatory = $false)]
+        [string]$OrderPropertyNameName,
+        [Parameter(Mandatory = $false)]
         [int]$Color
     )
-    if (-not $Color ) {
-        $Color = "35"
-    }
-    $e = [char]27
-    $objects = LmGetObjects $ConfigPath
+
+    $Esc = [char]27
+    $Magenta = "$Esc[35m"
+    $Red = "$Esc[91m"
+    $Yellow = "$Esc[33m"
+    $YellowBright = "$Esc[93m"
+    $Green = "$Esc[92m"
+    $Reset = "$Esc[0m"
+
+    $objects = LmGetObjects -ConfigPath $ConfigPath -OrderPropertyName $OrderPropertyNameName
 
     if ($PropertyName -and ($objects -is [array])) {
         $objects = $objects | Select-Object @{
-            n = "name"
-            e = {
+            Name       = "name"
+            Expression = {
                 if ($_ -is [hashtable] -and $_.ContainsKey($PropertyName)) {
                     $_.$PropertyName
                 }
@@ -314,19 +360,18 @@ function LmListObjects {
                 }
             }
         }
-        $objects = $objects | Select-Object -ExpandProperty "name"
-        $str = ($objects -join "=0`n") + "=0"
-        $objects = ConvertFrom-StringData $str
+        #$objects = $objects | Select-Object -ExpandProperty "name"
+        #$str = ($objects -join "=0`n") + "=0"
+        #$objects = ConvertFrom-StringData $str
     }
 
     $_fullName = LmJoinObjects -Objects $ConfigPath
     $objects | Format-Table @{
-        Label      = "$_fullName"
+        Label      = "$Yellow$($_fullName)$Reset"
         Expression = {
-            "$e[${Color}m$($_.Key)${e}[0m"
+            "$Magenta$($_.name)$Reset"
         }
     }
-
 }
 
 #endregion
@@ -347,7 +392,7 @@ function LmGetConfigPath {
             $_outArray += $ConfigPath[$i]
         }
     }
-    return $_outArray
+    return , $_outArray
 }
 
 function LmJoinObjects {
@@ -395,7 +440,7 @@ function LmGetObjects {
         [Parameter(Mandatory = $false)]
         [string]$SelectorProperty = "name",
         [Parameter(Mandatory = $false)]
-        [string]$OrderProperty,
+        [string]$OrderPropertyName,
         [Parameter(Mandatory = $false)]
         [string]$LocationFolder = ".configs"
     )
@@ -478,17 +523,10 @@ function LmGetObjects {
         return $null
     }
 
-    # if ([System.String]::IsNullOrWhiteSpace($OrderProperty)) {
-    #     if ($_object -is [hashtable] -or $_object -is [pscustomobject]) {
-    #         if ($_object.ContainsKey("file_name")) {
-    #             $_object = $_object | Sort-Object { $_.file_name }
-    #         }
-    #     }
-    # }
-
-    if (-not [System.String]::IsNullOrWhiteSpace($OrderProperty)) {
-        $_object = LmSortCollectionByPropertyValue -InputObject $_object -Key $OrderProperty
-    }else {
+    if (-not [System.String]::IsNullOrWhiteSpace($OrderPropertyName)) {
+        $_object = LmSortCollectionByPropertyValue -InputObject $_object -Key $OrderPropertyName
+    }
+    else {
         $_object = LmSortCollectionByPropertyValue -InputObject $_object -Key "file_name"
     }
 
@@ -514,7 +552,8 @@ function LmGetObjects_LoadFile {
     $_object = ConvertFrom-Json -InputObject $_json
     if ($_object -is [hashtable] -or $_object -is [System.Management.Automation.PSCustomObject]) {
         $_object.Add("file_name", $_fileName)
-    }elseif($_object -is [array]) {
+    }
+    elseif ($_object -is [array]) {
         foreach ($_item in $_object) {
             if ($_item -is [hashtable] -or $_item -is [System.Management.Automation.PSCustomObject]) {
                 $_item.Add("file_name", $_fileName)
@@ -655,7 +694,7 @@ function LmTestFunction {
 
 #endregion
 
-#region LmSortHashtableByKey LmSortHashtableByPropertyValue
+#region LmSortCollectionByPropertyValue LmSortHashtableByKey LmSortHashtableByPropertyValue
 
 function LmSortCollectionByPropertyValue {
     param (
@@ -666,7 +705,7 @@ function LmSortCollectionByPropertyValue {
     $_flag = $true
     if ($InputObject -is [array]) {
         $_retObject = $InputObject | Sort-Object {
-            if ($_.ContainsKey($Key)) {
+            if ($_ -is [hashtable] -and $_.ContainsKey($Key)) {
                 $_.$Key
             }
             else {
@@ -709,10 +748,17 @@ function LmSortHashtableByPropertyValue {
         [Parameter(Mandatory = $true)][string]$Key
     )
 
-    $hash = $InputHashtable.GetEnumerator()
-    $hash = $hash | Sort-Object { if ($_.Value.ContainsKey($Key)) { $_.Value.$Key } else { $_.Value } }
+    $_hash = $InputHashtable.GetEnumerator()
+    $_hash2 = $_hash | Sort-Object {
+        if ($_.Value -is [hashtable] -and $_.Value.ContainsKey($Key)) {
+            $_.Value.$Key
+        }
+        else {
+            $_.Value
+        }
+    }
     $sorted_hash = [System.Collections.Specialized.OrderedDictionary]@{}
-    foreach ($item in $hash) {
+    foreach ($item in $_hash2) {
         $sorted_hash.Add($item.Key, $item.Value)
     }
     return $sorted_hash
@@ -720,7 +766,7 @@ function LmSortHashtableByPropertyValue {
 
 #endregion
 
-#region LmScanModule LmLoadModule
+#region LmTestModule LmScanModule LmLoadModule LoadModule
 
 function LmTestModule {
     param (

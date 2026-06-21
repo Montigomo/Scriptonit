@@ -46,21 +46,6 @@ function Install-Powershell {
         $localVersion = $PSVersionTable.PSVersion
     }
 
-    #region Release pattern
-
-    # PowerShell-7.4.10-win-arm64.exe
-    # PowerShell-7.4.10-win-arm64.msi
-    # PowerShell-7.4.10-win-arm64.zip
-    # PowerShell-7.4.10-win-fxdependent.zip
-    # PowerShell-7.4.10-win-fxdependentWinDesktop.zip
-    # PowerShell-7.4.10-win-x64.exe
-    # PowerShell-7.4.10-win-x64.msi
-    # PowerShell-7.4.10-win-x64.zip
-    # PowerShell-7.4.10-win-x86.exe
-    # PowerShell-7.4.10-win-x86.msi
-    # PowerShell-7.4.10-win-x86.zip
-    # PowerShell-7.4.10.msixbundle
-
     $ReleasePattern = "PowerShell-\d?\d.\d?\d.\d?\d"
 
     if ($IsOs64) {
@@ -71,7 +56,6 @@ function Install-Powershell {
 
     }
 
-    #endregion
 
     $item = GetGitHubItems -Uri "https://api.github.com/repos/powershell/powershell/" -ReleasePattern $ReleasePattern
 
@@ -83,7 +67,7 @@ function Install-Powershell {
         if ($remoteVersion -gt $localVersion) {
             Write-Host "Let's install version $remoteVersion" -ForegroundColor DarkGreen
             $tmp = New-TemporaryFile | Rename-Item -NewName { $_ -replace 'tmp$', 'msi' } -PassThru
-            Invoke-WebRequest -OutFile $tmp $downloadUri
+            (New-Object System.Net.WebClient).DownloadFile("$downloadUri", "$tmp")
             $packageOptions = "ADD_EXPLORER_CONTEXT_MENU_OPENPOWERSHELL=1 ADD_FILE_CONTEXT_MENU_RUNPOWERSHELL=1 ENABLE_PSREMOTING=1 REGISTER_MANIFEST=1 USE_MU=1 ENABLE_MU=1 ADD_PATH=1"
             Install-MsiPackage -MsiPackagePath $tmp.FullName -PackageOptions $packageOptions -IsWait:$IsWait
         }

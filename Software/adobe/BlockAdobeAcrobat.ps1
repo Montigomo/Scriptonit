@@ -4,8 +4,8 @@
 
 . "D:\software\scripts\SetHosts.ps1"
 
-#ImportFirewallRuleset -ConfigPath "firewall", "AdobeAcrobat" -Force
+ImportFirewallRuleset -ConfigPath "firewall", "AdobeAcrobat" -Force
 
-DeleteFirewallRuleset -ConfigPath "firewall", "AdobeAcrobat" -Force
+#DeleteFirewallRuleset -ConfigPath "firewall", "AdobeAcrobat" -Force
 
 PrepareHosts -ConfigPath "hosts", "Adobe"

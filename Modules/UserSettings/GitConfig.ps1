@@ -19,11 +19,13 @@ function GitConfig {
 
     $path = "$([System.Environment]::GetFolderPath("UserProfile"))\.gitconfig"
 
+    $array = $null
+
     if (Test-Path $path) {
         $array = & $gcp config --global --list
     }
 
-    if (-not $($array -icontains "safe.directory=*")) {
+    if ($null -eq $array -or $null -eq $($array -icontains "safe.directory=*")) {
         & $gcp config --global --add safe.directory "*"
     }
 

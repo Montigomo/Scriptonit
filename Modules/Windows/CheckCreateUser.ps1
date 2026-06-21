@@ -2,17 +2,17 @@
 
 Set-StrictMode -Version 3.0
 
-function CheckCreateUser {
+function EnsureUserExist {
     param (
         [Parameter(Mandatory = $true)]
         [string]$UserName,
         [Parameter(Mandatory = $true)]
-        [string]$UserPsw,
+        [string]$UserPassword,
         [Parameter(Mandatory = $false)]
         [string]$Description
     )
 
-    $SecurePassword = ConvertTo-SecureString $UserPsw -AsPlainText -Force
+    $SecurePassword = ConvertTo-SecureString $UserPassword -AsPlainText -Force
 
     if (!(Get-LocalUser -Name $UserName -ErrorAction SilentlyContinue)) {
         New-LocalUser -Name $UserName -Description $Description -Password $SecurePassword | Out-Null
