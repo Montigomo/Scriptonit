@@ -1,10 +1,14 @@
 ﻿#requires -RunAsAdministrator
 
-#using module D:\software\scripts\Modules\Windows\Health\SfcScanner.ps1
-
 Set-StrictMode -Version Latest
 
-. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Windows.Health") -Force | Out-Null
+$script:ScriptPath = $PSCommandPath
+$script:ScriptFolder = [System.IO.Path]::GetDirectoryName($ScriptPath)
+$script:ScriptFileName = [System.IO.Path]::GetFileName($ScriptPath)
+$script:ScriptFileNameWithoutExtension = [System.IO.Path]::GetFileNameWithoutExtension(($ScriptPath))
+$script:ScriptLogFileName = "$ScriptFolder/.logs/$ScriptFileNameWithoutExtension.log"
+
+. "$PSScriptRoot\Modules\LoadModule.ps1" -ModuleNames @("Common", "Common.log", "Windows.Health") -Force | Out-Null
 
 enum DismHealthStatus {
     Healthy
@@ -17,7 +21,7 @@ enum DismHealthStatus {
 # this file should save with encoding utf8 with bom, otherwise dism.exe output will be garbled and unreadable.
 # If you see garbled text in the log file, please change the encoding of this file to utf8 with bom and run again.
 
-
+Start-WriteHostCapture -ScriptLogFileName $script:ScriptLogFileName
 
 function SfcCheck {
 
@@ -73,3 +77,4 @@ function DismCheck {
 SfcCheck
 
 DismCheck
+Stop-WriteHostCapture

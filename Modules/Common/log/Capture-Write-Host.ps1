@@ -10,6 +10,10 @@ function Start-WriteHostCapture {
         [string]$ScriptLogFileName
     )
 
+    if([string]::IsNullOrWhiteSpace($ScriptLogFileName)) {
+        $ScriptLogFileName = "$PSScriptRoot\$([System.IO.Path]::GetFileNameWithoutExtension($PSCommandPath)).log"
+    }
+
     $script:CwrLogFile = $ScriptLogFileName
 
     function global:Write-Host {

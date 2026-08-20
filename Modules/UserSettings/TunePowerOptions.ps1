@@ -191,21 +191,27 @@ function Set-PowerPlan {
     }
 }
 
-# 1. Capture the previous settings
-$prevOutputEncoding = $OutputEncoding
-$prevDefaultEncoding = $PSDefaultParameterValues['*:Encoding']
-$prevCodePage = [Console]::OutputEncoding
 
-# 2. Set to UTF-8
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$OutputEncoding = [System.Text.Encoding]::UTF8
-$PSDefaultParameterValues['*:Encoding'] = 'utf8'
+function TunePowerOptions {
+    DisableSleep
+    SetMonitorTimeout
 
-Set-PowerPlan -PlanName 'Ultimate Performance' -Verbose
-# Set-PowerPlan -PlanName 'High performance' -Verbose
-# Set-PowerPlan -PlanName 'Balanced' -Verbose
+    # 1. Capture the previous settings
+    $prevOutputEncoding = $OutputEncoding
+    $prevDefaultEncoding = $PSDefaultParameterValues['*:Encoding']
+    $prevCodePage = [Console]::OutputEncoding
 
-# 3. Restore previous settings
-[Console]::OutputEncoding = $prevCodePage
-$OutputEncoding = $prevOutputEncoding
-$PSDefaultParameterValues['*:Encoding'] = $prevDefaultEncoding
+    # 2. Set to UTF-8
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    $OutputEncoding = [System.Text.Encoding]::UTF8
+    $PSDefaultParameterValues['*:Encoding'] = 'utf8'
+
+
+    Set-PowerPlan -PlanName 'Ultimate Performance' -Verbose
+
+
+    # 3. Restore previous settings
+    [Console]::OutputEncoding = $prevCodePage
+    $OutputEncoding = $prevOutputEncoding
+    $PSDefaultParameterValues['*:Encoding'] = $prevDefaultEncoding
+}

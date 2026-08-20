@@ -20,7 +20,7 @@ function Get-Shortcut {
     [pscustomobject]$info
 }
 
-$r = Get-Shortcut -Path 'D:\_users\agite\Desktop\Network adapters.lnk'
+#$r = Get-Shortcut -Path 'D:\_users\agite\Desktop\Network adapters.lnk'
 
 
-exit
+#exit

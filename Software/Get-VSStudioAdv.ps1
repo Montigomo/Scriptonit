@@ -5,8 +5,11 @@ Set-StrictMode -Version 3.0
 
 #region Functions
 
+$currentFolder = Split-Path -Parent $MyInvocation.MyCommand.Path
+
 # https://learn.microsoft.com/en-us/visualstudio/install/create-a-network-installation-of-visual-studio?view=vs-2022#download-the-visual-studio-bootstrapper-to-create-the-layout
 # https://learn.microsoft.com/en-us/visualstudio/install/command-line-parameter-examples?view=vs-2022
+# https://gist.github.com/Chenx221/6f4ed72cd785d80edb0bc50c9921daf7
 
 [hashtable]$assets = @{
     "2017" = @{
@@ -24,7 +27,7 @@ Set-StrictMode -Version 3.0
             "pro" = "https://aka.ms/vs/16/release/vs_professional.exe"
             "ent" = "https://aka.ms/vs/16/release/vs_enterprise.exe"
         }
-    }        
+    }
     "2022" = @{
         "version" = 17
         "urls"    = @{
@@ -32,42 +35,58 @@ Set-StrictMode -Version 3.0
             "pro" = "https://aka.ms/vs/17/release/vs_professional.exe"
             "ent" = "https://aka.ms/vs/17/release/vs_enterprise.exe"
         }
-    }        
+    }
+    "2026" = @{
+        "version" = 18
+        "urls"    = @{
+            "community"    = "https://aka.ms/vs/18/Stable/vs_community.exe"
+            "professional" = "https://aka.ms/vs/18/Stable/vs_professional.exe"
+            "enterprise"   = "https://aka.ms/vs/18/Stable/vs_enterprise.exe"
+        }
+    }
 }
+#keys
+# 2026
+# Professional: NVTDK-QB8J9-M28GR-92BPC-BTHXK
+# Enterprise: VYGRN-WPR22-HG4X3-692BF-QGT2V
+
+
+# .SYNOPSIS
+#     Download Visual Studio packages.
+# .DESCRIPTION
+#     Download Visual Studio (2017[15],2019[16],2022[17]) all components and workloads to selected folder.
+# .PARAMETER Version
+#     [string] Visual Studio version. Allowed values "2017", "2019", "2022"
+# .PARAMETER Edition
+#     [string] Visual Studio edition. Allowed values "com" (community), "pro" (professiaonal), "ent" (enterprise)
+# .PARAMETER FolderPath
+#     [string] Destination folder path. To where it will be ddownloaded
+# .PARAMETER ClearFolder
+#     [switch] If set all content of destination folder will be deleted
+# .INPUTS
+#     none
+# .OUTPUTS
+#     none
+# .NOTES
+#     Author : Agitech
+#     Version : 1.0
+#     Purpose : Get world better
+# .EXAMPLE
+#     Get-VSStudio -Version 2022 -Edition "pro" -FolderPath "D:\vs\20222\pro" -ClearFolder
+# .LINK
 
 function Get-VSStudio {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true)][ValidateSet("2017", "2019", "2022")][string]$Version,
-        [Parameter(Mandatory = $true)][ValidateSet("com", "pro", "ent")][string]$Edition,
-        [Parameter(Mandatory = $false)][string]$FolderPath,
-        [Parameter(Mandatory = $false)][switch]$ClearFolder
+        [Parameter(Mandatory = $true)][ValidateSet("2017", "2019", "2022", "2026")]
+        [string]$Version,
+        [Parameter(Mandatory = $true)]
+        [string]$Edition,
+        [Parameter(Mandatory = $false)]
+        [string]$FolderPath,
+        [Parameter(Mandatory = $false)]
+        [switch]$ClearFolder
     )
-    <#
-    .SYNOPSIS
-        Download Visual Studio packages.
-    .DESCRIPTION
-        Download Visual Studio (2017[15],2019[16],2022[17]) all components and workloads to selected folder.
-    .PARAMETER Version
-        [string] Visual Studio version. Allowed values "2017", "2019", "2022"
-    .PARAMETER Edition
-        [string] Visual Studio edition. Allowed values "com" (community), "pro" (professiaonal), "ent" (enterprise)
-    .PARAMETER FolderPath
-        [string] Destination folder path. To where it will be ddownloaded
-    .PARAMETER ClearFolder
-        [switch] If set all content of destination folder will be deleted
-    .INPUTS
-        none
-    .OUTPUTS
-        none
-    .NOTES
-        Author : Agitech 
-        Version : 1.0 
-        Purpose : Get world better
-    .EXAMPLE
-        Get-VSStudio -Version 2022 -Edition "pro" -FolderPath "D:\vs\20222\pro" -ClearFolder
-    .LINK
-    #>
     if (-not $FolderPath) {
         $FolderPath = $PSScriptRoot
     }
@@ -105,8 +124,56 @@ function Get-VSStudio {
     Start-Sleep -Seconds 3
 
     $shortcutPath = "$DownLoadFolderPath\setup.lnk"
-    $targetPath = "components\vs_setup.exe"
-    New-Item -ItemType SymbolicLink -Path $shortcutPath -Target $targetPath -Force
+    $targetPath = "$FolderPath\components\vs_setup.exe"
+    #New-Item -ItemType Junction  -Path $shortcutPath -Target $targetPath -Force
+    #New-Item -ItemType SymbolicLink -Path $shortcutPath -Target $targetPath
+    $params = @{
+        TargetPath  = $targetPath
+        Arguments    = "--layout `"$layoutPath`" --lang en-US"
+        LinkPath    = $shortcutPath
+        Description = "Visual Studio $Version $Edition setup"
+        IconLocation = "\\STORAGE\software\microsoft\vs\2026\professional\components\vs_setup.exe,0"
+        #IconLocation = "$layoutPath\resources\app\icons\vs_setup.ico"
+    }
+    Set-Shortcut @params
+}
+
+function Set-Shortcut {
+    param(
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$TargetPath,
+        [Parameter(Mandatory = $false, ValueFromPipelineByPropertyName = $true)]
+        [string]$Arguments,
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$LinkPath,
+        [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]$Description,
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [string]$IconLocation,
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
+        [string]$Hotkey
+    )
+    begin {
+        $shell = New-Object -ComObject WScript.Shell
+    }
+
+    process {
+        $link = $shell.CreateShortcut($LinkPath)
+        foreach ($item in $PSCmdlet.MyInvocation.BoundParameters.GetEnumerator()) {
+            if ($item.Key -eq 'LinkPath' -or [string]::IsNullOrEmpty($item.Value)) {
+                continue
+            }
+            $link.$($item.Key) = $item.Value
+
+        }
+        # |
+        # Where-Object {
+        #     $_.key -ne 'LinkPath' } |
+        # ForEach-Object {
+        #     $link.$($_.key) = $_.value
+        # }
+        $link.Save()
+    }
 }
 
 #endregion
@@ -133,7 +200,7 @@ Add-Type -AssemblyName PresentationFramework, System.Drawing, System.Windows.For
         <Button x:Name="btnSelectFolder" Content="..." HorizontalAlignment="Left" Margin="327,92,0,0" VerticalAlignment="Top" Height="18" Width="21" Click="btnSelectFolder_Click"/>
         <Button x:Name="btnStart" Content="Start" HorizontalAlignment="Center" Margin="0,138,0,0" VerticalAlignment="Top" Height="20" Width="92" Click="btnStart_Click"/>
         <Label x:Name="lblInfo" Content="Select VS version, edition, destination folder and press start" HorizontalAlignment="Left" Margin="16,168,0,0" VerticalAlignment="Top" Width="332" Foreground="#FF007800"/>
-        <CheckBox x:Name="chkClearFolder" Content="Clear destination folder" HorizontalAlignment="Left" Margin="16,64,0,0" VerticalAlignment="Top" IsChecked="True"/>
+        <CheckBox x:Name="chkClearFolder" Content="Clear destination folder" HorizontalAlignment="Left" Margin="16,64,0,0" VerticalAlignment="Top" IsChecked="False"/>
     </Grid>
 </Window>
 
@@ -190,7 +257,7 @@ $wndMain.Icon = $bitmap
 
 $cmbVersion.Items.Clear()
 $cmbEdition.Items.Clear()
-
+$txtFolderPath.Text = $currentFolder
 function FillCmbEditions {
     $selectedVersion = $cmbVersion.SelectedItem.ToString() -replace ' (\S+)', ''
     if ($selectedVersion) {
